@@ -6,13 +6,34 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A5A084F12D58A20300A41B5B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A5A084F02D58A20300A41B5B /* FirebaseAuth */; };
+		A5A084F32D58A20300A41B5B /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A5A084F22D58A20300A41B5B /* FirebaseCore */; };
+		A5A084F52D58A20300A41B5B /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = A5A084F42D58A20300A41B5B /* FirebaseDatabase */; };
+		A5A084F72D58A20300A41B5B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A5A084F62D58A20300A41B5B /* FirebaseFirestore */; };
+		A5A084F92D58A20300A41B5B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A5A084F82D58A20300A41B5B /* FirebaseStorage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A5A084C32D589E7D00A41B5B /* StudyStacks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StudyStacks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A5A084FE2D58A46D00A41B5B /* Exceptions for "StudyStacks" folder in "StudyStacks" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A5A084C22D589E7D00A41B5B /* StudyStacks */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A5A084C52D589E7D00A41B5B /* StudyStacks */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A5A084FE2D58A46D00A41B5B /* Exceptions for "StudyStacks" folder in "StudyStacks" target */,
+			);
 			path = StudyStacks;
 			sourceTree = "<group>";
 		};
@@ -23,6 +44,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5A084F52D58A20300A41B5B /* FirebaseDatabase in Frameworks */,
+				A5A084F72D58A20300A41B5B /* FirebaseFirestore in Frameworks */,
+				A5A084F32D58A20300A41B5B /* FirebaseCore in Frameworks */,
+				A5A084F92D58A20300A41B5B /* FirebaseStorage in Frameworks */,
+				A5A084F12D58A20300A41B5B /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +91,11 @@
 			);
 			name = StudyStacks;
 			packageProductDependencies = (
+				A5A084F02D58A20300A41B5B /* FirebaseAuth */,
+				A5A084F22D58A20300A41B5B /* FirebaseCore */,
+				A5A084F42D58A20300A41B5B /* FirebaseDatabase */,
+				A5A084F62D58A20300A41B5B /* FirebaseFirestore */,
+				A5A084F82D58A20300A41B5B /* FirebaseStorage */,
 			);
 			productName = StudyStacks;
 			productReference = A5A084C32D589E7D00A41B5B /* StudyStacks.app */;
@@ -94,6 +125,9 @@
 			);
 			mainGroup = A5A084BA2D589E7D00A41B5B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A5A084C42D589E7D00A41B5B /* Products */;
 			projectDirPath = "";
@@ -255,6 +289,7 @@
 				DEVELOPMENT_TEAM = 9TPA5PBLX8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStacks/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -265,6 +300,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = lmu.veritas.StudyStacks;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -284,6 +320,7 @@
 				DEVELOPMENT_TEAM = 9TPA5PBLX8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StudyStacks/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,6 +331,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = lmu.veritas.StudyStacks;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -324,6 +362,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.8.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A5A084F02D58A20300A41B5B /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A5A084F22D58A20300A41B5B /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		A5A084F42D58A20300A41B5B /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		A5A084F62D58A20300A41B5B /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		A5A084F82D58A20300A41B5B /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5A084EF2D58A20300A41B5B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A5A084BB2D589E7D00A41B5B /* Project object */;
 }
