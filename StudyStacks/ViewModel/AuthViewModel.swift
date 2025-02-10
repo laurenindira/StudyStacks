@@ -14,7 +14,16 @@ import GoogleSignIn
 @Observable
 class AuthViewModel: NSObject, ObservableObject {
     static var shared = AuthViewModel()
-    @Published var user: User?
+    var user: User? {
+        didSet {
+            if let currentUser = user {
+                saveUserToCache(currentUser)
+                userDefaults.set(currentUser != nil , forKey: "isSignedIn")
+            } else {
+                clearUserCache()
+            }
+        }
+    }
     
     private let auth = Auth.auth()
     private let db = Firestore.firestore()
@@ -28,15 +37,21 @@ class AuthViewModel: NSObject, ObservableObject {
     var errorMessage: String?
     
     override init() {
-        Task {
-            await loadSession()
+        guard auth.currentUser != nil else {
+            self.user = nil
+            return
+        }
+        
+        if let savedUserData = userDefaults.data(forKey: userKey),
+           let savedUser = try? JSONDecoder().decode(User.self, from: savedUserData) {
+            user = savedUser
+            UserDefaults.standard.set(true, forKey: "isSignedIn")
         }
     }
     
     //MARK: - Loading User
-    //loading user session when app launches (if exists)
     private func loadSession() async {
-        guard let user = auth.currentUser else {
+        guard auth.currentUser != nil else {
             self.user = nil
             return
         }
@@ -46,6 +61,7 @@ class AuthViewModel: NSObject, ObservableObject {
         } else {
             await loadUserFromFirebase()
         }
+        UserDefaults.standard.set(true, forKey: "isSignedIn")
     }
     
     //loading signed in user from Firebase
@@ -74,6 +90,7 @@ class AuthViewModel: NSObject, ObservableObject {
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
+            UserDefaults.standard.set(true, forKey: "isSignedIn")
             self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -100,6 +117,7 @@ class AuthViewModel: NSObject, ObservableObject {
             let result = try await auth.signIn(withEmail: email, password: password)
             await updateLastSignIn(for: result.user.uid)
             await loadUserFromFirebase()
+            UserDefaults.standard.set(true, forKey: "isSignedIn")
             self.isLoading = false
         } catch let error as NSError {
             self.isLoading = false
@@ -149,6 +167,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
+                                UserDefaults.standard.set(true, forKey: "isSignedIn")
                             }
                         }
                     } else {
@@ -160,6 +179,7 @@ class AuthViewModel: NSObject, ObservableObject {
                                 try await self.saveUserToFirestore(user: newUser)
                                 self.user = newUser
                                 self.saveUserToCache(newUser)
+                                UserDefaults.standard.set(true, forKey: "isSignedIn")
                                 self.isLoading = false
                             } catch {
                                 self.isLoading = false
@@ -199,7 +219,7 @@ class AuthViewModel: NSObject, ObservableObject {
     }
     
     //MARK: - Sign out and deletion
-    func signOut() throws {
+    func signOut() {
         do {
             self.isLoading = true
             if auth.currentUser?.uid != nil {
@@ -248,5 +268,10 @@ class AuthViewModel: NSObject, ObservableObject {
     
     private func clearUserCache() {
         userDefaults.removeObject(forKey: userKey)
+        UserDefaults.standard.set(false, forKey: "isSignedIn")
     }
+}
+
+protocol AuthenticationFormProtocol {
+    var formIsValid: Bool { get }
 }
