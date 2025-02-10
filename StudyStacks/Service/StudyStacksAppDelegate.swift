@@ -5,8 +5,10 @@
 //  Created by Lauren Indira on 2/9/25.
 //
 
+import Foundation
 import SwiftUI
 import FirebaseCore
+import GoogleSignIn
 
 class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -14,4 +16,10 @@ class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
         FirebaseApp.configure()
         return true
       }
+    
+    func application(_ app: UIApplication,
+                     open url: URL,
+                     options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+      return GIDSignIn.sharedInstance.handle(url)
+    }
 }
