@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct StudyStacksApp: App {
+    @UIApplicationDelegateAdaptor(StudyStacksAppDelegate.self) var appDelegate
+    @AppStorage("isSignedIn") var isSignedIn = false
+    
+    @StateObject private var auth = AuthViewModel.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(AuthViewModel())
         }
     }
 }
