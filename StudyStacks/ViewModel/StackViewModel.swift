@@ -13,8 +13,8 @@ class StackViewModel: ObservableObject {
     static var shared = StackViewModel()
     @Published var stacks: [Stack] = []
     
-    @Published var creatingStack: Bool = false
-    @Published var editingStack: Bool = false
+    var creatingStack: Bool = false
+    var editingStack: Bool = false
     
     var isLoading: Bool = false
     var errorMessage: String = ""
@@ -59,7 +59,7 @@ class StackViewModel: ObservableObject {
         stackToAddWithID.id = stackRef.documentID
         
         do {
-            try stackRef.setData(from: stackToAddWithID)
+            try await stackRef.setData(from: stackToAddWithID)
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed create stack - \(String(describing: errorMessage))")

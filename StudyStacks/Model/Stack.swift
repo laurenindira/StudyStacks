@@ -11,7 +11,8 @@ import SwiftUI
 struct Stack: Identifiable, Codable {
     var id: String
     var title: String
-    var creator: String 
+    var description: String
+    var creator: String
     var creationDate: Date
     var tags: [String]
     var cards: [Card]
