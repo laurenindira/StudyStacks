@@ -11,19 +11,41 @@ struct Dashboard: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @State var creatingStack: Bool = false
-    
+
     var body: some View {
         NavigationStack {
             VStack {
-                Text("This is a dashboard")
+                Text("My Stacks")
+                    .font(.title)
+                    .bold()
+                    .padding(.top, 20)
+
+                // List of Stacks
+                List(stackVM.stacks) { stack in
+                    NavigationLink(destination: EditStackView(stack: stack)) {
+                        VStack(alignment: .leading) {
+                            Text(stack.title)
+                                .font(.headline)
+                                .bold()
+                            Text("Created by \(stack.creator)")
+                                .font(.subheadline)
+                                .foregroundStyle(.gray)
+                        }
+                    }
+                }
+                .task {
+                    await stackVM.fetchStacks()
+                }
+
+                // Sign Out Button
                 Button {
                     Task {
                         auth.signOut()
                     }
                 } label: {
-                    GeneralButton(placeholder: "sign out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                 }
-                
+                .padding(.top, 20)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -40,7 +62,6 @@ struct Dashboard: View {
             }
             .padding()
         }
-        
     }
 }
 

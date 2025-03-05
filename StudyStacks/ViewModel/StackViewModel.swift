@@ -88,5 +88,20 @@ class StackViewModel: ObservableObject {
         self.isLoading = false
     }
     
+    func updateStack(for userID: String, stackToUpdate: Stack) async {
+        self.isLoading = true
+        let stackRef = db.collection("allStacks").document(userID).collection("stacks").document(stackToUpdate.id)
+
+        do {
+            try await stackRef.setData(from: stackToUpdate)
+            print("SUCCESS: Stack updated")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to update stack - \(String(describing: errorMessage))")
+        }
+        
+        self.isLoading = false
+    }
+    
     
 }

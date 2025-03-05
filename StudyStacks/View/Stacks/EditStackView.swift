@@ -1,13 +1,13 @@
 //
-//  NewStackView.swift
+//  EditStackView.swift
 //  StudyStacks
 //
-//  Created by Lauren Indira on 3/4/25.
+//  Created by Raihana Zahra on 3/5/25.
 //
 
 import SwiftUI
 
-struct NewStackView: View {
+struct EditStackView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
@@ -23,13 +23,15 @@ struct NewStackView: View {
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
     
+    var stack: Stack
+    
     var body: some View {
         NavigationStack {
             ScrollView{
                 VStack {
                     VStack(alignment: .leading, spacing: 10) {
                         //TITLE
-                        Text("New Stack")
+                        Text("Edit Stack")
                             .font(.customHeading(.title))
                             .padding(.bottom, 20)
                         
@@ -169,11 +171,21 @@ struct NewStackView: View {
                     }
                 }
                 .padding()
+                .onAppear {
+                    // Prepopulate stack data
+                    title = stack.title
+                    description = stack.description
+                    creator = stack.creator
+                    creationDate = stack.creationDate
+                    tags = stack.tags.joined(separator: ", ")
+                    cards = stack.cards
+                    isPublic = stack.isPublic
+                }
             }
             .scrollContentBackground(.hidden)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Save Stack") {
+                    Button("Update Stack") {
                         Task {
                             await saveStack()
                         }
@@ -204,17 +216,40 @@ struct NewStackView: View {
             print("ERROR: User ID is nil")
             return
         }
-        
+
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        let savedDescription = (description.isEmpty ? "No description given" : description)
-        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
-        
-        await stackVM.createStack(for: userID, stackToAdd: newStack)
+        let updatedStack = Stack(
+            id: stack.id,
+            title: title,
+            description: description.isEmpty ? "No description given" : description,
+            creator: stack.creator,
+            creationDate: stack.creationDate,
+            tags: tagArray,
+            cards: cards,
+            isPublic: isPublic
+        )
+
+        await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
+        dismiss()
     }
+    
 }
 
 #Preview {
-    NewStackView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(StackViewModel())
+    EditStackView(stack: Stack(
+        id: "sampleID",
+        title: "Bio babes",
+        description: "I love bio",
+        creator: "BJ Johnson",
+        creationDate: Date(),
+        tags: ["Biology", "Midterm"],
+        cards: [
+            Card(id: UUID().uuidString, front: "What is the powerhouse of the cell?", back: "Mitochondria"),
+            Card(id: UUID().uuidString, front: "What is 2 + 2?", back: "4")
+        ],
+        isPublic: true
+    ))
+    .environmentObject(AuthViewModel())
+    .environmentObject(StackViewModel())
 }
+
