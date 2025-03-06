@@ -22,6 +22,18 @@ struct StackDetailView: View {
                         
                         Spacer()
                         
+                        Menu {
+                                Button(role: .destructive, action: {
+
+                                }) {
+                                    Label("Delete Deck", systemImage: "trash")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                                    .font(.title2)
+                                    .padding()
+                            }
+                        
                         Button(action: {
                             isFavorited.toggle() 
                         }) {

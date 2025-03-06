@@ -16,6 +16,7 @@ class StackViewModel: ObservableObject {
     @Published var creatingStack: Bool = false
     @Published var editingStack: Bool = false
     
+    
     var isLoading: Bool = false
     var errorMessage: String = ""
     
@@ -83,10 +84,13 @@ class StackViewModel: ObservableObject {
                 self.errorMessage = error.localizedDescription
                 print("ERROR: Failed to delete stack: \(error.localizedDescription)")
                 self.isLoading = false
+            } else {
+                Task {
+                    await self.fetchStacks()
+                }
             }
         }
         self.isLoading = false
     }
-    
     
 }
