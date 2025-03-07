@@ -23,7 +23,7 @@ struct EditStackView: View {
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
     
-    var stack: Stack
+    @Binding var stack: Stack
     
     var body: some View {
         NavigationStack {
@@ -236,20 +236,16 @@ struct EditStackView: View {
 }
 
 #Preview {
-    EditStackView(stack: Stack(
-        id: "sampleID",
-        title: "Bio babes",
-        description: "I love bio",
-        creator: "BJ Johnson",
+    EditStackView(stack: .constant(Stack(
+        id: "",
+        title: "",
+        description: "",
+        creator: "",
         creationDate: Date(),
-        tags: ["Biology", "Midterm"],
-        cards: [
-            Card(id: UUID().uuidString, front: "What is the powerhouse of the cell?", back: "Mitochondria"),
-            Card(id: UUID().uuidString, front: "What is 2 + 2?", back: "4")
-        ],
-        isPublic: true
-    ))
+        tags: [],
+        cards: [],
+        isPublic: false
+    )))
     .environmentObject(AuthViewModel())
     .environmentObject(StackViewModel())
 }
-

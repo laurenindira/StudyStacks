@@ -21,8 +21,8 @@ struct Dashboard: View {
                     .padding(.top, 20)
 
                 // List of Stacks
-                List(stackVM.stacks) { stack in
-                    NavigationLink(destination: EditStackView(stack: stack)) {
+                List($stackVM.stacks) { $stack in
+                    NavigationLink(destination: EditStackView(stack: $stack)) {
                         VStack(alignment: .leading) {
                             Text(stack.title)
                                 .font(.headline)
@@ -70,3 +70,5 @@ struct Dashboard: View {
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
 }
+
+
