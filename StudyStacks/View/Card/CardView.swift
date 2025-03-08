@@ -9,10 +9,14 @@
 import SwiftUI
 
 struct CardView: View {
+    @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var stackVM: StackViewModel
+    
+    @ObservedObject var presenter: FlipCardPresenter
+    
     var deckTitle: String
     var term: String
     var definition: String
-    @ObservedObject var presenter: FlipCardPresenter
 
     var body: some View {
         
@@ -117,5 +121,7 @@ struct CardView: View {
 }
 
 #Preview {
-    CardView(deckTitle: "Deck title", term: "Front of Card", definition: "Back of Card", presenter: FlipCardPresenter())
+    CardView(presenter: FlipCardPresenter(), deckTitle: "Deck title", term: "Front of Card", definition: "Back of Card")
+        .environmentObject(AuthViewModel())
+        .environmentObject(StackViewModel())
 }
