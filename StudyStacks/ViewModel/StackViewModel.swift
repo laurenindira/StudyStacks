@@ -22,6 +22,7 @@ class StackViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private var auth = AuthViewModel.shared
     
+    @MainActor
     func fetchStacks() async {
         self.isLoading = true
         
@@ -34,6 +35,7 @@ class StackViewModel: ObservableObject {
         
         do {
             stacks = try await fetchUserStacks(userID: userID)
+            self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed fetch stack - \(String(describing: errorMessage))")

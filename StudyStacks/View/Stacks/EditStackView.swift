@@ -17,8 +17,9 @@ struct EditStackView: View {
     @State private var creator: String = ""
     @State private var creationDate: Date = Date.now
     @State private var tags: String = ""
-    @State private var cards: [Card] = []
+//    @State private var cards: [Card] = []
     @State private var isPublic: Bool = false
+    @State private var editedCards: [Card] = []
    
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
@@ -86,18 +87,18 @@ struct EditStackView: View {
                                 .font(.headline)
                             
                             //EMPTY LIST
-                            if cards.isEmpty {
+                            if editedCards.isEmpty {
                                 //TODO: make prettier error message
                                 Text("No cards here! You should add some")
                                     .padding()
                                     .frame(width: UIScreen.main.bounds.width * 0.9)
                             } else {
                                 LazyVStack(alignment: .leading) {
-                                    ForEach(cards.indices, id: \.self) { index in
+                                    ForEach(editedCards.indices, id: \.self) { index in
                                         HStack(alignment: .center) {
                                             //TEXT
                                             VStack(alignment: .leading) {
-                                                Text(cards[index].front)
+                                                TextField("Front", text: $editedCards[index].front)
                                                     .font(.headline).bold()
                                                     .foregroundStyle(Color.prim)
                                                     .padding(.bottom, 5)
@@ -106,7 +107,7 @@ struct EditStackView: View {
                                                             .frame(height: 1)
                                                             .foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom
                                                     )
-                                                Text(cards[index].back)
+                                                TextField("Back", text: $editedCards[index].back)
                                             }
                                             
                                             Spacer()
@@ -172,13 +173,12 @@ struct EditStackView: View {
                 }
                 .padding()
                 .onAppear {
-                    // Prepopulate stack data
                     title = stack.title
                     description = stack.description
                     creator = stack.creator
                     creationDate = stack.creationDate
                     tags = stack.tags.joined(separator: ", ")
-                    cards = stack.cards
+                    editedCards = stack.cards
                     isPublic = stack.isPublic
                 }
             }
@@ -192,7 +192,7 @@ struct EditStackView: View {
                         stackVM.creatingStack = false
                         dismiss()
                     }
-                    .disabled(title.isEmpty || cards.isEmpty)
+                    .disabled(title.isEmpty || editedCards.isEmpty)
                 }
             }
         }
@@ -201,14 +201,14 @@ struct EditStackView: View {
     //FUNCTIONS
     private func addCard() {
         let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
-        cards.append(newCard)
+        editedCards.append(newCard)
         cardFront = ""
         cardBack = ""
     }
     
     private func deleteCard(at index: Int) {
-        guard index < cards.count else { return }
-        cards.remove(at: index)
+        guard index < editedCards.count else { return }
+        editedCards.remove(at: index)
     }
     
     private func saveStack() async {
@@ -225,9 +225,11 @@ struct EditStackView: View {
             creator: stack.creator,
             creationDate: stack.creationDate,
             tags: tagArray,
-            cards: cards,
+            cards: editedCards,
             isPublic: isPublic
         )
+        
+//        stack.cards = editedCards
 
         await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
         dismiss()
