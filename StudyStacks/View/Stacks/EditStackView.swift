@@ -216,6 +216,13 @@ struct EditStackView: View {
             print("ERROR: User ID is nil")
             return
         }
+        
+        if !cardFront.isEmpty || !cardBack.isEmpty {
+            let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
+            editedCards.append(newCard)
+            cardFront = ""
+            cardBack = ""
+        }
 
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let updatedStack = Stack(
