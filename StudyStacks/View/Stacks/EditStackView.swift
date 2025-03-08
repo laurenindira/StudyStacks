@@ -200,7 +200,7 @@ struct EditStackView: View {
     
     //FUNCTIONS
     private func addCard() {
-        let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
+        let newCard = Card(front: cardFront, back: cardBack)
         editedCards.append(newCard)
         cardFront = ""
         cardBack = ""
