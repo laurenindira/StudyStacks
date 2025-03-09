@@ -60,7 +60,7 @@ struct CardStackView: View {
                 .padding(.top, 20)
             }
         }
-        .navigationTitle(stack.title)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

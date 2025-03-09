@@ -11,6 +11,7 @@ import SwiftUI
 struct CardView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @Environment(\.dismiss) var dismiss
     
     @ObservedObject var presenter: FlipCardPresenter
     
@@ -31,7 +32,7 @@ struct CardView: View {
                     Spacer()
                     
                     Button(action: {
-                        // Add close action, close out to stack detail
+                        dismiss()
                     }) {
                         Image(systemName: "xmark")
                             .font(.title2)
