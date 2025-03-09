@@ -14,9 +14,8 @@ struct CardView: View {
     
     @ObservedObject var presenter: FlipCardPresenter
     
-    var deckTitle: String
-    var term: String
-    var definition: String
+    var card: Card
+    var stack: Stack
 
     var body: some View {
         
@@ -24,7 +23,7 @@ struct CardView: View {
         ZStack(alignment: .topLeading) {
             VStack {
                 HStack {
-                    Text(deckTitle)
+                    Text(stack.title)
                         .customHeading(.title2)
                         .bold()
                         .padding(.leading, 20)
@@ -56,7 +55,7 @@ struct CardView: View {
                 .cornerRadius(20)
                 .frame(width: 340, height: 524)
                 .overlay(
-                    Text(term)
+                    Text(card.front)
                         .font(.title)
                         .foregroundColor(.black)
                         .multilineTextAlignment(.center)
@@ -71,7 +70,7 @@ struct CardView: View {
                 .cornerRadius(20)
                 .frame(width: 340, height: 524)
                 .overlay(
-                    Text(definition)
+                    Text(card.back)
                         .font(.title)
                         .foregroundColor(.black)
                         .multilineTextAlignment(.center)
@@ -121,7 +120,11 @@ struct CardView: View {
 }
 
 #Preview {
-    CardView(presenter: FlipCardPresenter(), deckTitle: "Deck title", term: "Front of Card", definition: "Back of Card")
-        .environmentObject(AuthViewModel())
-        .environmentObject(StackViewModel())
+    CardView(
+        presenter: FlipCardPresenter(),
+        card: Card(id: "1", front: "agile methodologies", back: "scrum"),
+        stack: Stack(id: "1", title: "bj class", description: "project managment", creator: "jane", creationDate: Date(), tags: ["cs"], cards: [], isPublic: true)
+    )
+    .environmentObject(AuthViewModel())
+    .environmentObject(StackViewModel())
 }
