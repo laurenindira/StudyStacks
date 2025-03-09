@@ -17,4 +17,7 @@ struct User: Identifiable, Codable {
     var creationDate: Date
     var lastSignIn: Date?
     var providerRef: String
+    var selectedSubjects: [String]
+    var studyReminderTime: Date
+    var studentType: String
 }
