@@ -24,7 +24,7 @@ struct Dashboard: View {
 
                 // List of Stacks
                 List(stackVM.stacks) { stack in
-                    NavigationLink(destination: CardStackView(stack: stack, cards: stack.cards)){
+                    NavigationLink(destination: CardStackView(swipeVM: SwipeableCardsViewModel(cards: stack.cards))){
                         VStack(alignment: .leading) {
                             Text(stack.title)
                                 .font(.headline)
