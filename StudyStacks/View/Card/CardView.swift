@@ -5,6 +5,7 @@
 //  Created by Raihana Zahra on 3/3/25.
 //
 // medium.com/@nikhil.vinod/create-a-card-flip-animation-in-swiftui-fe14b850b1f5
+// medium.com/@jaredcassoutt/creating-tinder-like-swipeable-cards-in-swiftui-193fab1427b8
 
 import SwiftUI
 
@@ -15,8 +16,16 @@ struct CardView: View {
     
     @ObservedObject var presenter: FlipCardPresenter
     
+    enum SwipeDirection {
+        case left, right, none
+    }
+    
     var card: Card
     var stack: Stack
+    
+    var dragOffset: CGSize
+    var isTopCard: Bool
+    var isSecondCard: Bool
 
     var body: some View {
         
@@ -93,7 +102,7 @@ struct CardView: View {
         // remember it section
         HStack {
             Button(action: {
-                // Add thumbs-down action, save to firebase
+                // TODO: Add thumbs-down action, save to firebase
             }) {
                 Image(systemName: "hand.thumbsdown.circle")
                     .resizable()
@@ -107,7 +116,7 @@ struct CardView: View {
                 .padding(.horizontal)
             
             Button(action: {
-                // Add thumbs-up action, save to firebase
+                // TODO: Add thumbs-up action, save to firebase
             }) {
                 Image(systemName: "hand.thumbsup.circle")
                     .resizable()
@@ -117,6 +126,16 @@ struct CardView: View {
         }
         .padding(.bottom, 40)
     }
+    
+    private func getShadowColor() -> Color {
+        if dragOffset.width > 0 {
+            return Color.green.opacity(0.5) // Right swipe shadow (remember)
+        } else if dragOffset.width < 0 {
+            return Color.red.opacity(0.5) // Left swipe shadow (dont remember)
+        } else {
+            return Color.gray.opacity(0.2)
+        }
+    }
 
 }
 
@@ -124,7 +143,19 @@ struct CardView: View {
     CardView(
         presenter: FlipCardPresenter(),
         card: Card(id: "1", front: "agile methodologies", back: "scrum"),
-        stack: Stack(id: "1", title: "bj class", description: "project managment", creator: "jane", creationDate: Date(), tags: ["cs"], cards: [], isPublic: true)
+        stack: Stack(
+            id: "1",
+            title: "bj class",
+            description: "project management",
+            creator: "jane",
+            creationDate: Date(),
+            tags: ["cs"],
+            cards: [],
+            isPublic: true
+        ),
+        dragOffset: .zero,  // Default to no drag movement
+        isTopCard: true,    // Assume it's the top card for testing
+        isSecondCard: false // Assume it's not the second card
     )
     .environmentObject(AuthViewModel())
     .environmentObject(StackViewModel())
