@@ -13,6 +13,7 @@ struct CardView: View {
     var term: String
     var definition: String
     @ObservedObject var presenter: FlipCardPresenter
+    var onDelete: (() -> Void)?
 
     var body: some View {
         
@@ -26,6 +27,19 @@ struct CardView: View {
                         .padding(.leading, 20)
                     
                     Spacer()
+                    
+                    Menu {
+                        Button(role: .destructive, action: {
+                            onDelete?()
+                        }) {
+                            Label("Delete Flashcard", systemImage: "Trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.title2)
+                            .foregroundColor(.black)
+                            .padding()
+                    }
                     
                     Button(action: {
                         // Add close action, close out to stack detail

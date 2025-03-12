@@ -260,6 +260,20 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    //Delete Flashcard
+    func deleteFlashcard (deckID: String, cardID: String, completion: @escaping (Error?) -> Void) async {
+        let cardRef = db.collection("decks").document(deckID).collection("cards").document(cardID)
+        
+        do {
+                try await cardRef.delete()
+                print("SUCCESS: Flashcard deleted")
+                completion(nil)
+            } catch let error {
+                print("ERROR: Failed to delete flashcard - \(error.localizedDescription)")
+                completion(error)
+            }
+    }
+    
     //MARK: - Local User Caching
     private func loadUserFromCache() -> User? {
         guard let savedUserData = userDefaults.data(forKey: userKey) else { return nil }
