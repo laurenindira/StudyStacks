@@ -44,8 +44,9 @@ struct LibraryView: View {
                     
                     //LIST OF CARDS
                     if searchResults.isEmpty {
-                        //TODO: custom error message
-                        Text("womp womp no stacks")
+                        ErrorView(errorMessage: "Womp womp... Looks like there aren't any stacks here right now :/", imageName: "empty-box", isSystemImage: false)
+                            .frame(maxWidth: .infinity)
+                            .padding()
                     } else {
                         ForEach(searchResults, id: \.self) { stack in
                             //TODO: add in check for if card is favorite
@@ -56,7 +57,6 @@ struct LibraryView: View {
                             }
                             .buttonStyle(.plain)
                         }
-                        
                     }
                 }
                 .padding()
@@ -71,6 +71,9 @@ struct LibraryView: View {
                     await stackVM.fetchPublicStacks()
                 }
             }
+            .refreshable {
+                await refresh()
+            }
         }
     }
     
@@ -78,11 +81,16 @@ struct LibraryView: View {
         if searchText.isEmpty {
             return stackVM.combinedStacks
         } else {
-            //TODO: fix filter so that it can search for tags as well
-            return stackVM.combinedStacks.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.description.localizedCaseInsensitiveContains(searchText) ||
-                $0.creator.localizedCaseInsensitiveContains(searchText) || $0.tags.contains(searchText.lowercased())
+            return stackVM.combinedStacks.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.description.localizedCaseInsensitiveContains(searchText) ||
+                $0.creator.localizedCaseInsensitiveContains(searchText)
             }
         }
+    }
+    
+    private func refresh() async {
+        await stackVM.fetchPublicStacks()
     }
 }
 

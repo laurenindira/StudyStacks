@@ -53,5 +53,5 @@ struct StackCardView: View {
 }
 
 #Preview {
-    StackCardView(stack: Stack(id: "", title: "test time", description: "", creator: "farmer john", creationDate: Date.now, tags: ["biology", "agriculture", "another", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true), isFavorite: true)
+    StackCardView(stack: Stack(id: "", title: "test time", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "agriculture", "another", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true), isFavorite: true)
 }

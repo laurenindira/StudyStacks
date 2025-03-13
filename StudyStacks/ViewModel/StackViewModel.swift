@@ -9,16 +9,15 @@ import Foundation
 import Firebase
 import FirebaseFirestore
 
+@Observable
 class StackViewModel: ObservableObject {
     static var shared = StackViewModel()
-    @Published var stacks: [Stack] = []
-    @Published var userStacks: [Stack] = []
-    @Published var publicStacks: [Stack] = []
     
+    var stacks: [Stack] = []
+    var userStacks: [Stack] = []
+    var publicStacks: [Stack] = []
     var combinedStacks: [Stack] {
-        let userIDs = Set(userStacks.map { $0.id })
-        let filteredPublicStacks = publicStacks.filter { userIDs.contains($0.id) }
-        
+        let filteredPublicStacks = publicStacks.filter({ !userStacks.contains($0) })
         return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
     }
     
@@ -31,27 +30,7 @@ class StackViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private var auth = AuthViewModel.shared
     
-    func fetchStacks() async {
-        self.isLoading = true
-        
-        guard let userID = auth.user?.id else {
-            self.errorMessage = "ERROR: user not logged in"
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return
-        }
-        
-        do {
-            stacks = try await fetchUserStacks(userID: userID)
-        } catch let error as NSError {
-            self.errorMessage = error.localizedDescription
-            print("ERROR: Failed fetch stack - \(String(describing: errorMessage))")
-            self.isLoading = false
-        }
-        self.isLoading = false
-        
-    }
-    
+    //MARK: - Stack Fetching
     func fetchUserStacks(for userID: String) async {
         self.isLoading = true
         
@@ -65,7 +44,7 @@ class StackViewModel: ObservableObject {
         do {
             let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
             let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
-            userStacks = stacks
+            self.userStacks = stacks
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed to fetch user stacks - \(String(describing: errorMessage))")
@@ -79,7 +58,7 @@ class StackViewModel: ObservableObject {
         do {
             let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
             let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
-            publicStacks = stacks
+            self.publicStacks = stacks
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed to fetch public stacks - \(String(describing: errorMessage))")
@@ -87,15 +66,7 @@ class StackViewModel: ObservableObject {
         self.isLoading = false
     }
     
-    private func fetchUserStacks(userID: String) async throws -> [Stack] {
-        let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
-        return querySnapshot.documents.compactMap { document in
-            var stack = try? document.data(as: Stack.self)
-            stack?.id = document.documentID
-            return stack
-        }
-    }
-    
+    //MARK: - Stack Creation
     func createStack(for userID: String, stackToAdd: Stack) async {
         self.isLoading = true
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document()
@@ -103,7 +74,7 @@ class StackViewModel: ObservableObject {
         stackToAddWithID.id = stackRef.documentID
         
         do {
-            try await stackRef.setData(from: stackToAddWithID)
+            try stackRef.setData(from: stackToAddWithID)
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed create stack - \(String(describing: errorMessage))")
@@ -131,6 +102,4 @@ class StackViewModel: ObservableObject {
         }
         self.isLoading = false
     }
-    
-    
 }

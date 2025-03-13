@@ -13,6 +13,7 @@ struct Stack: Identifiable, Codable {
     var title: String
     var description: String
     var creator: String
+    var creatorID: String
     var creationDate: Date
     var tags: [String]
     var cards: [Card]
