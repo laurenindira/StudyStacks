@@ -26,10 +26,24 @@ struct StudyReminderOnboarding: View {
             } label: {
                 GeneralButton(placeholder: "Next", backgroundColor: Color.prim, foregroundColor: Color.lod, imageRight: "arrow.right", isSystemImage: true)
             }
-//            .disabled(user.studyReminderTime)
             .padding(.top, 20)
         }
         .padding()
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button() {
+                    step -= 1
+                } label: {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                            .font(.body)
+                        Text("Back")
+                    }
+                    .foregroundStyle(Color.prim)
+                }
+            }
+        }
     }
 }
 

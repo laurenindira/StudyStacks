@@ -11,8 +11,6 @@ struct OnboardingControl: View {
     @EnvironmentObject var auth: AuthViewModel
     @Binding var user: User
     @State private var step: Int = 1
-//    let onComplete: () -> Void
-    
     var body: some View {
         VStack {
             if step == 1 {

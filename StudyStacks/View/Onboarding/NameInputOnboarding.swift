@@ -24,7 +24,7 @@ struct NameInputOnboarding: View {
                 GeneralButton(placeholder: "Next", backgroundColor: Color.prim, foregroundColor: Color.lod, imageRight: "arrow.right", isSystemImage: true)
             }
             .disabled(user.displayName.isEmpty)
-            .opacity((user.studentType == "") ? 0.5 : 1)
+            .opacity((user.displayName == "") ? 0.5 : 1)
             .padding(.top, 20)
             
         }
