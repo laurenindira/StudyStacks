@@ -19,6 +19,16 @@ struct Stack: Identifiable, Codable {
     var isPublic: Bool
 }
 
+extension Stack: Hashable {
+    static func == (lhs: Stack, rhs: Stack) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
 struct Card: Identifiable, Codable {
     var id: String = UUID().uuidString
     var front: String

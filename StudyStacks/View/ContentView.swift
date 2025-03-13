@@ -23,6 +23,16 @@ struct ContentView: View {
                     Dashboard()
                         .environmentObject(auth)
                         .environmentObject(stackVM)
+                        .tabItem {
+                            Label("Dashboard", systemImage: "house")
+                        }
+                    
+                    LibraryView()
+                        .environmentObject(auth)
+                        .environmentObject(stackVM)
+                        .tabItem {
+                            Label("Library", systemImage: "square.stack.3d.up.fill")
+                        }
                 }
             }
         }

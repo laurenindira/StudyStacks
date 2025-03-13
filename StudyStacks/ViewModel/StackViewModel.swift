@@ -12,6 +12,15 @@ import FirebaseFirestore
 class StackViewModel: ObservableObject {
     static var shared = StackViewModel()
     @Published var stacks: [Stack] = []
+    @Published var userStacks: [Stack] = []
+    @Published var publicStacks: [Stack] = []
+    
+    var combinedStacks: [Stack] {
+        let userIDs = Set(userStacks.map { $0.id })
+        let filteredPublicStacks = publicStacks.filter { userIDs.contains($0.id) }
+        
+        return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
+    }
     
     var creatingStack: Bool = false
     var editingStack: Bool = false
@@ -41,6 +50,41 @@ class StackViewModel: ObservableObject {
         }
         self.isLoading = false
         
+    }
+    
+    func fetchUserStacks(for userID: String) async {
+        self.isLoading = true
+        
+        guard let userID = auth.user?.id else {
+            self.errorMessage = "ERROR: user not logged in"
+            print("ERROR: user not logged in")
+            self.isLoading = false
+            return
+        }
+        
+        do {
+            let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            userStacks = stacks
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to fetch user stacks - \(String(describing: errorMessage))")
+        }
+        self.isLoading = false
+    }
+    
+    func fetchPublicStacks() async {
+        self.isLoading = true
+        
+        do {
+            let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            publicStacks = stacks
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to fetch public stacks - \(String(describing: errorMessage))")
+        }
+        self.isLoading = false
     }
     
     private func fetchUserStacks(userID: String) async throws -> [Stack] {
