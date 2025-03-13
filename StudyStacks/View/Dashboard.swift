@@ -9,6 +9,8 @@ import SwiftUI
 
 struct Dashboard: View {
     @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var stackVM: StackViewModel
+    @State var creatingStack: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -21,6 +23,20 @@ struct Dashboard: View {
                 } label: {
                     GeneralButton(placeholder: "sign out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                 }
+                
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: { creatingStack = true }) {
+                        HStack {
+                            Text("New Stack")
+                            Image(systemName: "plus")
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $creatingStack) {
+                NewStackView()
             }
             .padding()
         }
@@ -31,4 +47,5 @@ struct Dashboard: View {
 #Preview {
     Dashboard()
         .environmentObject(AuthViewModel())
+        .environmentObject(StackViewModel())
 }
