@@ -51,6 +51,8 @@ struct CardStackView: View {
             // when all cards gone, show reset button
             if swipeVM.unswipedCards.isEmpty {
                 VStack {
+                    Spacer()
+                    
                     Text("No Cards Left")
                         .font(.title)
                         .foregroundColor(.gray)
