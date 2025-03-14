@@ -17,7 +17,6 @@ struct EditStackView: View {
     @State private var creator: String = ""
     @State private var creationDate: Date = Date.now
     @State private var tags: String = ""
-//    @State private var cards: [Card] = []
     @State private var isPublic: Bool = false
     @State private var editedCards: [Card] = []
    
@@ -48,6 +47,9 @@ struct EditStackView: View {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
                                 }
+                                .onSubmit {
+                                    Task { await saveStack() }
+                                }
                         }
                         
                         VStack(alignment: .leading, spacing: 5) {
@@ -60,6 +62,9 @@ struct EditStackView: View {
                                 .background {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
+                                }
+                                .onSubmit {
+                                    Task { await saveStack() }
                                 }
                         }
                         //TODO: add tags as dropdown instead of list
@@ -74,10 +79,16 @@ struct EditStackView: View {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
                                 }
+                                .onSubmit {
+                                    Task { await saveStack() }
+                                }
                         }
                         Toggle("Is deck public?", isOn: $isPublic)
                             .font(.headline)
                             .padding(.bottom, 5)
+                            .onSubmit {
+                                Task { await saveStack() }
+                            }
                         
                         Divider()
                         
@@ -107,7 +118,13 @@ struct EditStackView: View {
                                                             .frame(height: 1)
                                                             .foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom
                                                     )
+                                                    .onSubmit {
+                                                        Task { await saveStack() }
+                                                    }
                                                 TextField("Back", text: $editedCards[index].back)
+                                                    .onSubmit {
+                                                        Task { await saveStack() }
+                                                    }
                                             }
                                             
                                             Spacer()
@@ -169,6 +186,11 @@ struct EditStackView: View {
                             .padding(.top, 20)
                         }
                         
+                    }
+                }
+                .onSubmit {
+                    Task {
+                        await saveStack()
                     }
                 }
                 .padding()
@@ -235,10 +257,9 @@ struct EditStackView: View {
             cards: editedCards,
             isPublic: isPublic
         )
-        
-//        stack.cards = editedCards
-
         await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
+        await stackVM.fetchStacks()
+        
         dismiss()
     }
     
