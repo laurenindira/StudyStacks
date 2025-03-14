@@ -21,22 +21,33 @@ struct Dashboard: View {
                     .font(.title)
                     .bold()
                     .padding(.top, 20)
-
-                // List of Stacks
-                List(stackVM.stacks) { stack in
-                    NavigationLink(destination: CardStackView(swipeVM: SwipeableCardsViewModel(cards: stack.cards))){
-                        VStack(alignment: .leading) {
-                            Text(stack.title)
-                                .font(.headline)
-                                .bold()
-                            Text("Created by \(stack.creator)")
-                                .font(.subheadline)
-                                .foregroundStyle(.gray)
+                
+                Text("Stacks Count: \(stackVM.stacks.count)")
+                
+                if stackVM.stacks.isEmpty {
+                    Text("You don't have any stacks yet!")
+                        .font(.body)
+                } else {
+                    // List of Stacks
+                    List(stackVM.stacks) { stack in
+                        NavigationLink(destination: CardStackView(
+                            swipeVM: SwipeableCardsViewModel(cards: stack.cards),
+                            card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                            stack: stack
+                        )){
+                            VStack(alignment: .leading) {
+                                Text(stack.title)
+                                    .font(.headline)
+                                    .bold()
+                                Text("Created by \(stack.creator)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.gray)
+                            }
                         }
                     }
-                }
-                .task {
-                    await stackVM.fetchStacks()
+                    .task {
+                        await stackVM.fetchStacks()
+                    }
                 }
 
                 // Sign Out Button
@@ -60,6 +71,9 @@ struct Dashboard: View {
                 }
             }
             .padding()
+            .onAppear {
+                print("Stacks in ViewModel: \(stackVM.stacks)")
+            }
         }
     }
 }
