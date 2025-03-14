@@ -29,33 +29,29 @@ struct CardView: View {
 
     var body: some View {
         
-        // deck title and close button
-        ZStack(alignment: .topLeading) {
-            VStack {
-                HStack {
-                    Text(stack.title)
-                        .customHeading(.title2)
-                        .bold()
-                        .padding(.leading, 20)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .foregroundColor(.black)
-                            .padding()
-                    }
-                }
-                .padding(.top, 10)
-                
-                Spacer()
-                    .frame(height: 50)
-            }
-        }
-        
+//        // deck title and close button
+//        VStack {
+//            HStack {
+//                Text(stack.title)
+//                    .customHeading(.title2)
+//                    .bold()
+//                    .padding(.leading, 20)
+//                
+//                Spacer()
+//                
+//                Button(action: {
+//                    dismiss()
+//                }) {
+//                    Image(systemName: "xmark")
+//                        .font(.title2)
+//                        .foregroundColor(.black)
+//                        .padding()
+//                }
+//            }
+//            .padding(.top, 10)
+//            
+//            Spacer()
+//        }
         
         // card & card flipping
         ZStack {
@@ -96,35 +92,41 @@ struct CardView: View {
         .onTapGesture {
             presenter.flipButtonTapped()
         }
+        .frame(width: 340, height: 524)
         
-        Spacer()
+//        Spacer()
 
         // remember it section
-        HStack {
-            Button(action: {
-                // TODO: Add thumbs-down action, save to firebase
-            }) {
-                Image(systemName: "hand.thumbsdown.circle")
-                    .resizable()
-                    .frame(width: 50, height: 50)
-                    .foregroundColor(.red)
-            }
-            
-            Text("remember it?")
-                .font(.body)
-                .foregroundColor(.black)
-                .padding(.horizontal)
-            
-            Button(action: {
-                // TODO: Add thumbs-up action, save to firebase
-            }) {
-                Image(systemName: "hand.thumbsup.circle")
-                    .resizable()
-                    .frame(width: 50, height: 50)
-                    .foregroundColor(.green)
-            }
-        }
-        .padding(.bottom, 40)
+//        VStack {
+//            
+//            Spacer()
+//            
+//            HStack {
+//                Button(action: {
+//                    // TODO: Add thumbs-down action, save to firebase
+//                }) {
+//                    Image(systemName: "hand.thumbsdown.circle")
+//                        .resizable()
+//                        .frame(width: 50, height: 50)
+//                        .foregroundColor(.red)
+//                }
+//                
+//                Text("remember it?")
+//                    .font(.body)
+//                    .foregroundColor(.black)
+//                    .padding(.horizontal)
+//                
+//                Button(action: {
+//                    // TODO: Add thumbs-up action, save to firebase
+//                }) {
+//                    Image(systemName: "hand.thumbsup.circle")
+//                        .resizable()
+//                        .frame(width: 50, height: 50)
+//                        .foregroundColor(.green)
+//                }
+//            }
+//            .padding(.bottom, 40)
+//        }
     }
     
     private func getShadowColor() -> Color {
