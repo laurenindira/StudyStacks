@@ -2,10 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>DaysOne-Regular.ttf</string>
-	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -16,6 +14,20 @@
 				<string>com.googleusercontent.apps.576438094613-qts6u43of1ad8dfrfocjpirneki1hqii</string>
 			</array>
 		</dict>
+		<dict/>
+		<dict/>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>DaysOne-Regular.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UILaunchScreen</key>
+		<dict>
+			<key>New item</key>
+			<string></string>
+		</dict>
+	</dict>
 </dict>
 </plist>
