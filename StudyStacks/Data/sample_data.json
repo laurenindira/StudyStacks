@@ -1,0 +1,188 @@
+[
+  {
+    "id": "1",
+    "title": "Chemistry Basics",
+    "description": "Introduction to basic chemistry concepts",
+    "creator": "The StudyStacks Team",
+    "creatorID": "abcdefg",
+    "creationDate": "2025-03-13T12:00:00Z",
+    "tags": ["chemistry", "science"],
+    "cards": [
+      {
+        "id": "1-1",
+        "front": "What is the atomic number of Hydrogen?",
+        "back": "1"
+      },
+      {
+        "id": "1-2",
+        "front": "What is the chemical symbol for Sodium?",
+        "back": "Na"
+      },
+      {
+        "id": "1-3",
+        "front": "What is Avogadro's number?",
+        "back": "6.022 x 10^23"
+      },
+      {
+        "id": "1-4",
+        "front": "What is the pH of a neutral solution?",
+        "back": "7"
+      },
+      {
+        "id": "1-5",
+        "front": "What is the charge of a proton?",
+        "back": "+1"
+      },
+      {
+        "id": "1-6",
+        "front": "What gas is produced when an acid reacts with a metal?",
+        "back": "Hydrogen gas (H2)"
+      },
+      {
+        "id": "1-7",
+        "front": "What is the formula for sulfuric acid?",
+        "back": "H2SO4"
+      },
+      {
+        "id": "1-8",
+        "front": "What type of bond involves the sharing of electrons?",
+        "back": "Covalent bond"
+      },
+      {
+        "id": "1-9",
+        "front": "What is the most abundant gas in Earth's atmosphere?",
+        "back": "Nitrogen (N2)"
+      },
+      {
+        "id": "1-10",
+        "front": "What is the term for a substance that speeds up a chemical reaction?",
+        "back": "Catalyst"
+      }
+    ],
+    "isPublic": true
+  },
+  {
+    "id": "2",
+    "title": "Intro to Computer Science",
+    "description": "Basic concepts in computer science",
+    "creator": "The StudyStacks Team",
+    "creatorID": "abcdefg",
+    "creationDate": "2025-03-13T12:00:00Z",
+    "tags": ["computer science", "programming"],
+    "cards": [
+      {
+        "id": "2-1",
+        "front": "What does CPU stand for?",
+        "back": "Central Processing Unit"
+      },
+      {
+        "id": "2-2",
+        "front": "What is the time complexity of binary search?",
+        "back": "O(log n)"
+      },
+      {
+        "id": "2-3",
+        "front": "What is a linked list?",
+        "back": "A data structure where elements are linked by pointers."
+      },
+      {
+        "id": "2-4",
+        "front": "What is the difference between a compiler and an interpreter?",
+        "back": "A compiler translates code before execution; an interpreter translates code at runtime."
+      },
+      {
+        "id": "2-5",
+        "front": "What is a recursive function?",
+        "back": "A function that calls itself."
+      },
+      {
+        "id": "2-6",
+        "front": "What is a hash table?",
+        "back": "A data structure that maps keys to values using a hash function."
+      },
+      {
+        "id": "2-7",
+        "front": "What is the main purpose of an operating system?",
+        "back": "To manage hardware and software resources."
+      },
+      {
+        "id": "2-8",
+        "front": "What is the difference between a class and an object?",
+        "back": "A class is a blueprint; an object is an instance of a class."
+      },
+      {
+        "id": "2-9",
+        "front": "What does HTTP stand for?",
+        "back": "Hypertext Transfer Protocol"
+      },
+      {
+        "id": "2-10",
+        "front": "What is Big-O notation used for?",
+        "back": "To describe the performance of an algorithm."
+      }
+    ],
+    "isPublic": true
+  },
+  {
+    "id": "3",
+    "title": "Biology Essentials",
+    "description": "Important biological terms and concepts",
+    "creator": "The StudyStacks Team",
+    "creatorID": "abcdefg",
+    "creationDate": "2025-03-13T12:00:00Z",
+    "tags": ["biology", "science"],
+    "cards": [
+      {
+        "id": "3-1",
+        "front": "What is the powerhouse of the cell?",
+        "back": "Mitochondria"
+      },
+      {
+        "id": "3-2",
+        "front": "What is the primary function of ribosomes?",
+        "back": "Protein synthesis"
+      },
+      {
+        "id": "3-3",
+        "front": "What is the process of cell division called?",
+        "back": "Mitosis"
+      },
+      {
+        "id": "3-4",
+        "front": "What is the term for organisms that produce their own food?",
+        "back": "Autotrophs"
+      },
+      {
+        "id": "3-5",
+        "front": "What is the primary molecule that carries genetic information?",
+        "back": "DNA"
+      },
+      {
+        "id": "3-6",
+        "front": "What is the function of chlorophyll?",
+        "back": "To absorb light for photosynthesis"
+      },
+      {
+        "id": "3-7",
+        "front": "What are the building blocks of proteins?",
+        "back": "Amino acids"
+      },
+      {
+        "id": "3-8",
+        "front": "What is homeostasis?",
+        "back": "The maintenance of a stable internal environment"
+      },
+      {
+        "id": "3-9",
+        "front": "What is a virus made of?",
+        "back": "Protein coat and genetic material"
+      },
+      {
+        "id": "3-10",
+        "front": "What type of cell lacks a nucleus?",
+        "back": "Prokaryotic cell"
+      }
+    ],
+    "isPublic": true
+  }
+]

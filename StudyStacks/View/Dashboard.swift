@@ -16,6 +16,8 @@ struct Dashboard: View {
         NavigationStack {
             VStack {
                 Text("This is a dashboard")
+                
+                Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
                 Button {
                     Task {
                         auth.signOut()

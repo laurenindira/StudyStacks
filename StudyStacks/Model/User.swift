@@ -17,4 +17,9 @@ struct User: Identifiable, Codable {
     var creationDate: Date
     var lastSignIn: Date?
     var providerRef: String
+    
+    //STREAKS
+    var currentStreak: Int
+    var longestStreak: Int
+    var lastStudyDate: Date?
 }

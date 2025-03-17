@@ -86,7 +86,7 @@ class AuthViewModel: NSObject, ObservableObject {
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password")
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", currentStreak: 0, longestStreak: 0, lastStudyDate: Date())
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -172,7 +172,7 @@ class AuthViewModel: NSObject, ObservableObject {
                         }
                     } else {
                         let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google")
+                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", currentStreak: 0, longestStreak: 0, lastStudyDate: Date())
                         
                         Task {
                             do {
@@ -203,7 +203,10 @@ class AuthViewModel: NSObject, ObservableObject {
                 "email": user.email,
                 "creationDate": Timestamp(date: user.creationDate),
                 "lastSignIn": Timestamp(date: user.lastSignIn ?? Date()),
-                "providerRef": user.providerRef
+                "providerRef": user.providerRef,
+                "currentStreak": user.currentStreak,
+                "longestStreak": user.longestStreak,
+                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date())
             ])
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -257,6 +260,47 @@ class AuthViewModel: NSObject, ObservableObject {
             self.isLoading = false
             print("ERROR: Deletion Error - \(error.localizedDescription)")
             completion(error)
+        }
+    }
+    
+    //MARK: - Streak Calculations
+    func updateStudyStreak(for userID: String) async {
+        guard let user = user else { return }
+        
+        let calendar = Calendar.current
+        let today = Date.now
+        
+        var currentStreak = user.currentStreak
+        var longestStreak = user.longestStreak
+        
+        //COUNTING CURRENT STREAK
+        if let lastStudyDate = user.lastStudyDate {
+            if calendar.isDateInYesterday(lastStudyDate) {
+                currentStreak = user.currentStreak + 1
+            } else if !calendar.isDateInToday(lastStudyDate) {
+                //ie if streak broke womp womp
+                currentStreak = 1
+            }
+        } else {
+            currentStreak = 1
+        }
+        
+        //UPDATING LONGEST STREAK
+        if user.currentStreak > user.longestStreak {
+            longestStreak = user.currentStreak
+        } else {
+            longestStreak = user.longestStreak
+        }
+        
+        //UPDATING LAST STUDIED
+        let lastStudyDate = today
+        
+        //SAVING CHANGES
+        do {
+            try await db.collection("users").document(user.id).setData(["currentStreak": currentStreak, "longestStreak": longestStreak, "lastStudyDate": lastStudyDate], merge: true)
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Could not update streaks - \(String(describing: errorMessage))")
         }
     }
     
