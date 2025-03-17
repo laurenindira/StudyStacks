@@ -15,7 +15,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if !isSignedIn {
-                SignInView()
+                SplashView()
                     .environmentObject(auth)
                     .environmentObject(stackVM)
             } else {
