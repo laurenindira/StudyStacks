@@ -48,7 +48,7 @@ struct EditStackView: View {
                                         .fill(Color.surface)
                                 }
                                 .onSubmit {
-                                    Task { await saveStack() }
+                                    Task { saveStack() }
                                 }
                         }
                         
@@ -64,7 +64,7 @@ struct EditStackView: View {
                                         .fill(Color.surface)
                                 }
                                 .onSubmit {
-                                    Task { await saveStack() }
+                                    Task { saveStack() }
                                 }
                         }
                         //TODO: add tags as dropdown instead of list
@@ -80,14 +80,14 @@ struct EditStackView: View {
                                         .fill(Color.surface)
                                 }
                                 .onSubmit {
-                                    Task { await saveStack() }
+                                    Task { saveStack() }
                                 }
                         }
                         Toggle("Is deck public?", isOn: $isPublic)
                             .font(.headline)
                             .padding(.bottom, 5)
                             .onSubmit {
-                                Task { await saveStack() }
+                                Task { saveStack() }
                             }
                         
                         Divider()
@@ -119,11 +119,11 @@ struct EditStackView: View {
                                                             .foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom
                                                     )
                                                     .onSubmit {
-                                                        Task { await saveStack() }
+                                                        Task { saveStack() }
                                                     }
                                                 TextField("Back", text: $editedCards[index].back)
                                                     .onSubmit {
-                                                        Task { await saveStack() }
+                                                        Task { saveStack() }
                                                     }
                                             }
                                             
@@ -190,7 +190,7 @@ struct EditStackView: View {
                 }
                 .onSubmit {
                     Task {
-                        await saveStack()
+                        saveStack()
                     }
                 }
                 .padding()
@@ -209,7 +209,7 @@ struct EditStackView: View {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button("Update Stack") {
                         Task {
-                            await saveStack()
+                            await saveStackToFirebase()
                         }
                         stackVM.creatingStack = false
                         dismiss()
@@ -233,17 +233,10 @@ struct EditStackView: View {
         editedCards.remove(at: index)
     }
     
-    private func saveStack() async {
+    private func saveStackToFirebase() async {
         guard let userID = auth.user?.id else {
             print("ERROR: User ID is nil")
             return
-        }
-        
-        if !cardFront.isEmpty || !cardBack.isEmpty {
-            let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
-            editedCards.append(newCard)
-            cardFront = ""
-            cardBack = ""
         }
 
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -257,10 +250,19 @@ struct EditStackView: View {
             cards: editedCards,
             isPublic: isPublic
         )
+
         await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
         await stackVM.fetchStacks()
+    }
+    
+    private func saveStack() {
+        let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
-        dismiss()
+        stack.title = title
+        stack.description = description.isEmpty ? "No description given" : description
+        stack.tags = tagArray
+        stack.cards = editedCards
+        stack.isPublic = isPublic
     }
     
 }
