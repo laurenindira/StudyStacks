@@ -150,6 +150,7 @@ struct CardView: View {
             title: "bj class",
             description: "project management",
             creator: "jane",
+            creatorID: "",
             creationDate: Date(),
             tags: ["cs"],
             cards: [],

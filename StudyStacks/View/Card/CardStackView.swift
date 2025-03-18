@@ -74,7 +74,7 @@ struct CardStackView: View {
                         CardView(
                             presenter: FlipCardPresenter(),
                             card: card,
-                            stack: Stack(id: "", title: "", description: "", creator: "", creationDate: Date(), tags: [], cards: [], isPublic: false),
+                            stack: Stack(id: "", title: "", description: "", creator: "", creatorID: "", creationDate: Date(), tags: [], cards: [], isPublic: false),
                             dragOffset: dragState,
                             isTopCard: isTopCard,
                             isSecondCard: isSecondCard
@@ -162,6 +162,7 @@ struct CardStackView: View {
             title: "bj class",
             description: "project management",
             creator: "jane",
+            creatorID: "",
             creationDate: Date(),
             tags: ["cs"],
             cards: [],
