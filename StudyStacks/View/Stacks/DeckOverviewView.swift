@@ -13,6 +13,8 @@ struct StackDetailView: View {
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
     
+    @Environment(\.presentationMode) var presentationMode
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -138,7 +140,9 @@ struct StackDetailView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        Button(role: .destructive, action: {}) {
+                        Button(role: .destructive, action: {
+                            deleteStack()  
+                        }) {
                             Label("Delete Deck", systemImage: "trash")
                         }
                     } label: {
@@ -159,7 +163,17 @@ struct StackDetailView: View {
             }
         }
     }
+    
+    private func deleteStack() {
+        Task {
+            StackViewModel.shared.deleteStack(stack)
+            await MainActor.run {
+                presentationMode.wrappedValue.dismiss()
+            }
+        }
+    }
 }
+
 
 struct StackDetailView_Previews: PreviewProvider {
     static var previews: some View {
