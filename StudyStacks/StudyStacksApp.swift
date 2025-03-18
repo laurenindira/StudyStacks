@@ -13,12 +13,14 @@ struct StudyStacksApp: App {
     @AppStorage("isSignedIn") var isSignedIn = false
     
     @StateObject private var auth = AuthViewModel.shared
+    @StateObject private var stackVM = StackViewModel.shared
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(StackViewModel())
                 .environmentObject(AuthViewModel())
+                .environmentObject(StackViewModel())
         }
     }
 }

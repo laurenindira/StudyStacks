@@ -14,6 +14,7 @@ import GoogleSignIn
 @Observable
 class AuthViewModel: NSObject, ObservableObject {
     static var shared = AuthViewModel()
+    
     var user: User? {
         didSet {
             if let currentUser = user {
@@ -81,12 +82,12 @@ class AuthViewModel: NSObject, ObservableObject {
     }
     
     //MARK: - Sign up
-    func signUpWithEmail(email: String, password: String, username: String, displayName: String) async throws {
+    func signUpWithEmail(email: String, password: String, username: String, displayName: String, selectedSubjects: [String], studyReminderTime: Date, studentType: String) async throws {
         self.isLoading = true
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password")
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType)
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -95,6 +96,7 @@ class AuthViewModel: NSObject, ObservableObject {
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Sign up failure - \(String(describing: errorMessage))")
+            self.isLoading = false
             throw error
         }
     }
@@ -127,7 +129,7 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
-    func signInWithGoogle(presenting: UIViewController, completion: @escaping(Error?) -> Void) {
+    func signInWithGoogle(tempUser: User, presenting: UIViewController, completion: @escaping(Error?) -> Void) {
         self.isLoading = true
         guard let clientID = FirebaseApp.app()?.options.clientID else { return }
         
@@ -172,9 +174,10 @@ class AuthViewModel: NSObject, ObservableObject {
                         }
                     } else {
                         let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google")
+                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType)
                         
                         Task {
+                            //TODO: add onboarding here
                             do {
                                 try await self.saveUserToFirestore(user: newUser)
                                 self.user = newUser
@@ -203,7 +206,10 @@ class AuthViewModel: NSObject, ObservableObject {
                 "email": user.email,
                 "creationDate": Timestamp(date: user.creationDate),
                 "lastSignIn": Timestamp(date: user.lastSignIn ?? Date()),
-                "providerRef": user.providerRef
+                "providerRef": user.providerRef,
+                "selectedSubjects": user.selectedSubjects,
+                "studyReminderTime": user.studyReminderTime,
+                "studentType": user.studentType
             ])
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription

@@ -2,7 +2,7 @@
 //  Stack.swift
 //  StudyStacks
 //
-//  Created by Raihana Zahra on 3/7/25.
+//  Created by Lauren Indira on 3/4/25.
 //
 
 import Foundation
@@ -13,10 +13,21 @@ struct Stack: Identifiable, Codable {
     var title: String
     var description: String
     var creator: String
+    var creatorID: String
     var creationDate: Date
     var tags: [String]
     var cards: [Card]
     var isPublic: Bool
+}
+
+extension Stack: Hashable {
+    static func == (lhs: Stack, rhs: Stack) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 struct Card: Identifiable, Codable {

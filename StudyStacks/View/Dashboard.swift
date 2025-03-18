@@ -45,9 +45,6 @@ struct Dashboard: View {
                             }
                         }
                     }
-//                    .task {
-//                        await stackVM.fetchStacks()
-//                    }
                 }
 
                 // Sign Out Button
@@ -70,8 +67,8 @@ struct Dashboard: View {
                     }
                 }
             }
-            .task {
-                await stackVM.fetchStacks()
+            .sheet(isPresented: $creatingStack) {
+                NewStackView()
             }
             .padding()
             .onAppear {
