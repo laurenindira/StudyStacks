@@ -252,6 +252,7 @@ struct EditStackView: View {
             title: title,
             description: description.isEmpty ? "No description given" : description,
             creator: stack.creator,
+            creatorID: stack.creatorID,
             creationDate: stack.creationDate,
             tags: tagArray,
             cards: editedCards,
@@ -259,7 +260,7 @@ struct EditStackView: View {
         )
 
         await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
-        await stackVM.fetchStacks()
+        await stackVM.fetchUserStacks(for: userID)
     }
     
     private func saveStack() {
@@ -286,6 +287,7 @@ struct EditStackView: View {
         title: "",
         description: "",
         creator: "",
+        creatorID: "",
         creationDate: Date(),
         tags: [],
         cards: [],

@@ -34,7 +34,9 @@ struct Dashboard: View {
                     }
                 }
                 .task {
-                    await stackVM.fetchStacks()
+                    if let userID = auth.user?.id {
+                        await stackVM.fetchUserStacks(for: userID)
+                    }
                 }
 
                 // Sign Out Button
