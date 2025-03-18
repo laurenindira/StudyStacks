@@ -45,9 +45,9 @@ struct Dashboard: View {
                             }
                         }
                     }
-                    .task {
-                        await stackVM.fetchStacks()
-                    }
+//                    .task {
+//                        await stackVM.fetchStacks()
+//                    }
                 }
 
                 // Sign Out Button
@@ -69,6 +69,9 @@ struct Dashboard: View {
                         }
                     }
                 }
+            }
+            .task {
+                await stackVM.fetchStacks()
             }
             .padding()
             .onAppear {
