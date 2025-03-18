@@ -12,11 +12,13 @@ struct LibraryView: View {
     @EnvironmentObject var stackVM: StackViewModel
     
     @State private var searchText: String = ""
-    @State private var selectedCategory: String? = nil
-    @State private var selectedCreator: String? = nil
+    @State private var selectedCategory: String = "All" // Default to "All" instead of nil
+    @State private var selectedCreator: String = "Anyone" // Default to "Anyone" instead of nil
     
-    let categories = ["English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
-    let creatorFilters = ["Me", "Friends", "Anyone"]
+    // TODO: Revisit this later to create a consistent list of subjects across the app.
+    // Consider using an enum so we can edit color tags to match. Look at in next sprint.
+    let categories = ["All", "English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
+    let creatorFilters = ["Anyone", "Friends", "Me"] // Removed the "Clear Filter" option
     
     var body: some View {
         NavigationStack {
@@ -47,11 +49,11 @@ struct LibraryView: View {
                             .fill(Color.surface)
                     }
                     
-                    // FILTERS
-                    Text("Filters")
-                        .font(.headline)
-                    
-                    HStack {
+                    // FILTERS SECTION (Fixed to be HStack)
+                    HStack(spacing: 15) {
+                        Text("Filters")
+                            .font(.headline)
+                        
                         // Category Filter
                         Menu {
                             ForEach(categories, id: \.self) { category in
@@ -59,12 +61,9 @@ struct LibraryView: View {
                                     Text(category)
                                 }
                             }
-                            Button(action: { selectedCategory = nil }) {
-                                Text("Clear Category")
-                            }
                         } label: {
                             HStack {
-                                Text(selectedCategory ?? "Category")
+                                Text(selectedCategory)
                                     .foregroundStyle(Color.primary)
                                 Image(systemName: "chevron.down")
                             }
@@ -79,12 +78,9 @@ struct LibraryView: View {
                                     Text(creator)
                                 }
                             }
-                            Button(action: { selectedCreator = nil }) {
-                                Text("Clear Filter")
-                            }
                         } label: {
                             HStack {
-                                Text(selectedCreator ?? "Made By")
+                                Text(selectedCreator)
                                     .foregroundStyle(Color.primary)
                                 Image(systemName: "chevron.down")
                             }
@@ -100,6 +96,7 @@ struct LibraryView: View {
                             .padding()
                     } else {
                         ForEach(searchResults, id: \.self) { stack in
+                            // TODO: add in check for if card is favorite
                             NavigationLink {
                                 // link to overview
                             } label: {
@@ -127,27 +124,24 @@ struct LibraryView: View {
     }
     
     var searchResults: [Stack] {
-        stackVM.combinedStacks.filter { stack in
+        // Check all base cases (search text, category, and creator filters)
+        if searchText.isEmpty && selectedCategory == "All" && selectedCreator == "Anyone" {
+            return stackVM.combinedStacks
+        }
+        
+        return stackVM.combinedStacks.filter { stack in
             let matchesSearch = searchText.isEmpty || stack.title.localizedCaseInsensitiveContains(searchText) ||
                 stack.description.localizedCaseInsensitiveContains(searchText) || stack.creator.localizedCaseInsensitiveContains(searchText)
             
-            let matchesCategory = selectedCategory == nil || stack.tags.contains(selectedCategory!)
+            let matchesCategory = selectedCategory == "All" || stack.tags.contains(selectedCategory)
             
-            let matchesCreator: Bool
-            if let selectedCreator = selectedCreator {
-                switch selectedCreator {
-                case "Me":
-                    matchesCreator = stack.creatorID == auth.user?.id
-                case "Friends":
-                    matchesCreator = stack.creatorID != auth.user?.id && stack.isPublic
-                case "Anyone":
-                    matchesCreator = true
-                default:
-                    matchesCreator = true
-                }
-            } else {
-                matchesCreator = true
-            }
+            
+            // TODO: Update this logic once the friend feature is implemented.
+            // Right now, "Friends" only filters by public stacks. When friends are added,
+            // we need to properly check if the creator is in the user's friend list
+            let matchesCreator = selectedCreator == "Anyone" ||
+                (selectedCreator == "Me" && stack.creatorID == auth.user?.id) ||
+                (selectedCreator == "Friends" && stack.creatorID != auth.user?.id && stack.isPublic)
             
             return matchesSearch && matchesCategory && matchesCreator
         }
