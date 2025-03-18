@@ -59,12 +59,7 @@ struct CardStackView: View {
                         .padding()
                     
                     Button(action: swipeVM.reset) {
-                        Text("Reset")
-                            .font(.headline)
-                            .frame(width: 200, height: 50)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                        GeneralButton(placeholder: "Reset", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                     }
                 }
             } else {
