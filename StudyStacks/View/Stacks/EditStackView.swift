@@ -238,6 +238,13 @@ struct EditStackView: View {
             print("ERROR: User ID is nil")
             return
         }
+        
+        if !cardFront.isEmpty || !cardBack.isEmpty {
+            let newCard = Card(front: cardFront, back: cardBack)
+            editedCards.append(newCard)
+            cardFront = ""
+            cardBack = ""
+        }
 
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let updatedStack = Stack(
@@ -257,6 +264,13 @@ struct EditStackView: View {
     
     private func saveStack() {
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+        if !cardFront.isEmpty || !cardBack.isEmpty {
+            let newCard = Card(front: cardFront, back: cardBack)
+            editedCards.append(newCard)
+            cardFront = ""
+            cardBack = ""
+        }
         
         stack.title = title
         stack.description = description.isEmpty ? "No description given" : description
@@ -264,7 +278,6 @@ struct EditStackView: View {
         stack.cards = editedCards
         stack.isPublic = isPublic
     }
-    
 }
 
 #Preview {
