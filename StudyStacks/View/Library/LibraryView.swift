@@ -15,6 +15,9 @@ struct LibraryView: View {
     @State private var selectedCategory: String? = nil
     @State private var selectedCreator: String? = nil
     
+    // Saved Decks
+    @State private var showSavedOnly: Bool = false
+    
     let categories = ["English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
     let creatorFilters = ["Me", "Friends", "Anyone"]
     
@@ -92,6 +95,10 @@ struct LibraryView: View {
                             .background(RoundedRectangle(cornerRadius: 10).fill(Color.surface))
                         }
                     }
+                    
+                    // Saved Decks
+                    Toggle("Saved Decks:", isOn: $showSavedOnly)
+                        .padding(.top, 10)
                     
                     // LIST OF CARDS
                     if searchResults.isEmpty {
