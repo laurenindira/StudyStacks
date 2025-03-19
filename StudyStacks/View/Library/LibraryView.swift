@@ -12,13 +12,12 @@ struct LibraryView: View {
     @EnvironmentObject var stackVM: StackViewModel
     
     @State private var searchText: String = ""
-    @State private var selectedCategory: String = "All" // Default to "All" instead of nil
-    @State private var selectedCreator: String = "Anyone" // Default to "Anyone" instead of nil
+    @State private var selectedCategory: String = "All"
+    @State private var selectedCreator: String = "Anyone"
     
     // TODO: Revisit this later to create a consistent list of subjects across the app.
-    // Consider using an enum so we can edit color tags to match. Look at in next sprint.
     let categories = ["All", "English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
-    let creatorFilters = ["Anyone", "Friends", "Me"] // Removed the "Clear Filter" option
+    let creatorFilters = ["Anyone", "Friends", "Me"] 
     
     var body: some View {
         NavigationStack {
@@ -49,7 +48,7 @@ struct LibraryView: View {
                             .fill(Color.surface)
                     }
                     
-                    // FILTERS SECTION (Fixed to be HStack)
+                    // FILTERS SECTION
                     HStack(spacing: 15) {
                         Text("Filters")
                             .font(.headline)
@@ -124,7 +123,6 @@ struct LibraryView: View {
     }
     
     var searchResults: [Stack] {
-        // Check all base cases (search text, category, and creator filters)
         if searchText.isEmpty && selectedCategory == "All" && selectedCreator == "Anyone" {
             return stackVM.combinedStacks
         }
@@ -136,9 +134,7 @@ struct LibraryView: View {
             let matchesCategory = selectedCategory == "All" || stack.tags.contains(selectedCategory)
             
             
-            // TODO: Update this logic once the friend feature is implemented.
-            // Right now, "Friends" only filters by public stacks. When friends are added,
-            // we need to properly check if the creator is in the user's friend list
+            // TODO: Update this logic once the friend feature is implemented
             let matchesCreator = selectedCreator == "Anyone" ||
                 (selectedCreator == "Me" && stack.creatorID == auth.user?.id) ||
                 (selectedCreator == "Friends" && stack.creatorID != auth.user?.id && stack.isPublic)
