@@ -25,12 +25,32 @@ struct Dashboard: View {
                 NavigationLink(destination: StackCreationView()) {
                     Text("Make a stack")
                 }
+                
+                NavigationLink(destination: StackDetailView(stack: Stack(
+                                    id: UUID().uuidString,
+                                    title: "U.S. States & Capitals",
+                                    creator: "Sarah Cameron",
+                                    creationDate: Date(),
+                                    tags: ["Geography", "States", "Capitals"],
+                                    cards: [
+                                        Card(front: "California", back: "Sacramento"),
+                                        Card(front: "Texas", back: "Austin"),
+                                        Card(front: "Florida", back: "Tallahassee"),
+                                        Card(front: "New York", back: "Albany"),
+                                        Card(front: "Illinois", back: "Springfield")
+                                    ],
+                                    isPublic: true
+                                ))) {
+                                    Text("Preview Deck Overview")
+                                        .padding()
+                                        .foregroundColor(.prim)
+                                }
+                            }
             }
             .padding()
         }
         
     }
-}
 
 #Preview {
     Dashboard()

@@ -12,136 +12,134 @@ struct StackDetailView: View {
     @State private var isFavorited = false
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
+    @State private var isDeleted = false
     
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var stackVM: StackViewModel
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(stack.title)
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    Text("Created by \(stack.creator)")
-                        .font(.body)
-                        .foregroundColor(.gray)
-                }
-                .padding(.horizontal)
-
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 340, height: 200)
-                        .overlay(
-                            ZStack {
-                                
-                                if !isFlipped {
-                                    Text(stack.cards[currentCardIndex].front)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.black)
-                                        .rotation3DEffect(
-                                            .degrees(isFlipped ? 180 : 0),
-                                            axis: (x: 1, y: 0, z: 0) // flip forward
-                                        )
-                                        .opacity(isFlipped ? 0 : 1)
-                                        .rotation3DEffect(
-                                            .degrees(isFlipped ? -180 : 0),
-                                            axis: (x: 1, y: 0, z: 0) // flip the text in opposite direction
-                                        )
-                                }
-                                
-                            
-                                if isFlipped {
-                                    Text(stack.cards[currentCardIndex].back)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.black)
-                                        .rotation3DEffect(
-                                            .degrees(isFlipped ? 0 : -180), // flip back
-                                            axis: (x: 1, y: 0, z: 0) // flip forward
-                                        )
-                                        .opacity(isFlipped ? 1 : 0)
-                                        .rotation3DEffect(
-                                            .degrees(isFlipped ? 180 : 0),
-                                            axis: (x: 1, y: 0, z: 0)
-                                        )
-                                }
-                            }
-                        )
-                        .rotation3DEffect(
-                            .degrees(isFlipped ? 180 : 0),
-                            axis: (x: 1, y: 0, z: 0) // Flip forward
-                        )
-                        .animation(.easeInOut(duration: 0.6), value: isFlipped)
-                        .onTapGesture {
-                            withAnimation {
-                                isFlipped.toggle()  // Flip the card on tap
-                            }
-                        }
-                    
-                    HStack {
-                        Button(action: {
-                            withAnimation {
-                                if currentCardIndex > 0 {
-                                    currentCardIndex -= 1
-                                    isFlipped = false  
-                                }
-                            }
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .font(.title)
-                        }
+                if isDeleted {
+                    Text("The deck has been deleted.")
+                        .foregroundColor(.green)
+                        .font(.headline)
+                        .padding()
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(stack.title)
+                            .font(.title)
+                            .fontWeight(.bold)
                         
-                        Spacer()
-                        
-                        Button(action: {
-                            withAnimation {
-                                if currentCardIndex < stack.cards.count - 1 {
-                                    currentCardIndex += 1
-                                    isFlipped = false
-                                }
-                            }
-                        }) {
-                            Image(systemName: "chevron.right")
-                                .font(.title)
-                        }
+                        Text("Created by \(stack.creator)")
+                            .font(.body)
+                            .foregroundColor(.gray)
                     }
-                    .padding(.horizontal, 24)
-                    .foregroundColor(.gray)
-                }
-                .padding()
-                
-            
-                TermsListView(cards: stack.cards)
                     .padding(.horizontal)
 
-                Button(action: {}) {
-                    Text("Start Studying")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.prim)
-                        .cornerRadius(12)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 340, height: 200)
+                            .overlay(
+                                ZStack {
+                                    if !isFlipped {
+                                        Text(stack.cards[currentCardIndex].front)
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.black)
+                                            .rotation3DEffect(
+                                                .degrees(isFlipped ? 180 : 0),
+                                                axis: (x: 1, y: 0, z: 0) // flip forward
+                                            )
+                                            .opacity(isFlipped ? 0 : 1)
+                                            .rotation3DEffect(
+                                                .degrees(isFlipped ? -180 : 0),
+                                                axis: (x: 1, y: 0, z: 0) // flip the text in opposite direction
+                                            )
+                                    }
+
+                                    if isFlipped {
+                                        Text(stack.cards[currentCardIndex].back)
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.black)
+                                            .rotation3DEffect(
+                                                .degrees(isFlipped ? 0 : -180), // flip back
+                                                axis: (x: 1, y: 0, z: 0) // flip forward
+                                            )
+                                            .opacity(isFlipped ? 1 : 0)
+                                            .rotation3DEffect(
+                                                .degrees(isFlipped ? 180 : 0),
+                                                axis: (x: 1, y: 0, z: 0)
+                                            )
+                                    }
+                                }
+                            )
+                            .rotation3DEffect(
+                                .degrees(isFlipped ? 180 : 0),
+                                axis: (x: 1, y: 0, z: 0) // Flip forward
+                            )
+                            .animation(.easeInOut(duration: 0.6), value: isFlipped)
+                            .onTapGesture {
+                                withAnimation {
+                                    isFlipped.toggle()  // Flip the card on tap
+                                }
+                            }
+                        
+                        HStack {
+                            Button(action: {
+                                withAnimation {
+                                    if currentCardIndex > 0 {
+                                        currentCardIndex -= 1
+                                        isFlipped = false
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.title)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                withAnimation {
+                                    if currentCardIndex < stack.cards.count - 1 {
+                                        currentCardIndex += 1
+                                        isFlipped = false
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "chevron.right")
+                                    .font(.title)
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                        .foregroundColor(.gray)
+                    }
+                    .padding()
+
+                    TermsListView(cards: stack.cards)
+                        .padding(.horizontal)
+
+                    Button(action: {}) {
+                        Text("Start Studying")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.prim)
+                            .cornerRadius(12)
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {}) {
-                        Text("< Back")
-                            .foregroundColor(Color.prim)
-                            .padding()
-                    }
-                }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(role: .destructive, action: {
-                            deleteStack()  
+                            deleteStack()  // Delete deck action
                         }) {
                             Label("Delete Deck", systemImage: "trash")
                         }
@@ -163,21 +161,23 @@ struct StackDetailView: View {
             }
         }
     }
-    
+
     private func deleteStack() {
         Task {
-            StackViewModel.shared.deleteStack(stack)
+            await stackVM.deleteStack(stack)
             await MainActor.run {
-                presentationMode.wrappedValue.dismiss()
+                isDeleted = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    presentationMode.wrappedValue.dismiss()
+                }
             }
         }
     }
 }
 
-
 struct StackDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        StackDetailView(stack: Stack(
+        let mockStack = Stack(
             id: UUID().uuidString,
             title: "U.S. States & Capitals",
             creator: "Sarah Cameron",
@@ -191,6 +191,12 @@ struct StackDetailView_Previews: PreviewProvider {
                 Card(front: "Illinois", back: "Springfield")
             ],
             isPublic: true
-        ))
+        )
+        
+        let mockStackVM = StackViewModel()
+        mockStackVM.stacks = [mockStack]
+        
+        return StackDetailView(stack: mockStack)
+            .environmentObject(mockStackVM)
     }
 }

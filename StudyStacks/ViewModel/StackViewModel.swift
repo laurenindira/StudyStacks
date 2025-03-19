@@ -69,28 +69,27 @@ class StackViewModel: ObservableObject {
         self.isLoading = false
     }
     
-    func deleteStack(_ stack: Stack) {
-        self.isLoading = true
-        
-        guard let userID = auth.user?.id else {
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return
-        }
-        
-        let stackRef = db.collection("allStacks").document(userID).collection("stacks")
-        stackRef.document(stack.id).delete { error in
-            if let error = error {
+    
+    func deleteStack(_ stack: Stack) async {
+            self.isLoading = true
+            
+            guard let userID = auth.user?.id else {
+                print("ERROR: user not logged in")
+                self.isLoading = false
+                return
+            }
+            
+            let stackRef = db.collection("allStacks").document(userID).collection("stacks")
+            do {
+                try await stackRef.document(stack.id).delete()
+                await self.fetchStacks()
+                print("DOCUMENT REMOVED")
+            } catch let error as NSError {
                 self.errorMessage = error.localizedDescription
                 print("ERROR: Failed to delete stack: \(error.localizedDescription)")
                 self.isLoading = false
-            } else {
-                Task {
-                    await self.fetchStacks()
-                }
             }
+            self.isLoading = false
         }
-        self.isLoading = false
-    }
     
 }
