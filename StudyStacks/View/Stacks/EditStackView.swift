@@ -1,13 +1,13 @@
 //
-//  NewStackView.swift
+//  EditStackView.swift
 //  StudyStacks
 //
-//  Created by Lauren Indira on 3/4/25.
+//  Created by Raihana Zahra on 3/5/25.
 //
 
 import SwiftUI
 
-struct NewStackView: View {
+struct EditStackView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
@@ -17,11 +17,13 @@ struct NewStackView: View {
     @State private var creator: String = ""
     @State private var creationDate: Date = Date.now
     @State private var tags: String = ""
-    @State private var cards: [Card] = []
     @State private var isPublic: Bool = false
+    @State private var editedCards: [Card] = []
    
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
+    
+    @Binding var stack: Stack
     
     var body: some View {
         NavigationStack {
@@ -29,7 +31,7 @@ struct NewStackView: View {
                 VStack {
                     VStack(alignment: .leading, spacing: 10) {
                         //TITLE
-                        Text("New Stack")
+                        Text("Edit Stack")
                             .font(.customHeading(.title))
                             .padding(.bottom, 20)
                         
@@ -45,6 +47,9 @@ struct NewStackView: View {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
                                 }
+                                .onSubmit {
+                                    Task { saveStack() }
+                                }
                         }
                         
                         VStack(alignment: .leading, spacing: 5) {
@@ -57,6 +62,9 @@ struct NewStackView: View {
                                 .background {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
+                                }
+                                .onSubmit {
+                                    Task { saveStack() }
                                 }
                         }
                         //TODO: add tags as dropdown instead of list
@@ -71,10 +79,16 @@ struct NewStackView: View {
                                     RoundedRectangle(cornerRadius: 15)
                                         .fill(Color.surface)
                                 }
+                                .onSubmit {
+                                    Task { saveStack() }
+                                }
                         }
                         Toggle("Is deck public?", isOn: $isPublic)
                             .font(.headline)
                             .padding(.bottom, 5)
+                            .onSubmit {
+                                Task { saveStack() }
+                            }
                         
                         Divider()
                         
@@ -84,18 +98,18 @@ struct NewStackView: View {
                                 .font(.headline)
                             
                             //EMPTY LIST
-                            if cards.isEmpty {
+                            if editedCards.isEmpty {
                                 //TODO: make prettier error message
                                 Text("No cards here! You should add some")
                                     .padding()
                                     .frame(width: UIScreen.main.bounds.width * 0.9)
                             } else {
                                 LazyVStack(alignment: .leading) {
-                                    ForEach(cards.indices, id: \.self) { index in
+                                    ForEach(editedCards.indices, id: \.self) { index in
                                         HStack(alignment: .center) {
                                             //TEXT
                                             VStack(alignment: .leading) {
-                                                Text(cards[index].front)
+                                                TextField("Front", text: $editedCards[index].front)
                                                     .font(.headline).bold()
                                                     .foregroundStyle(Color.prim)
                                                     .padding(.bottom, 5)
@@ -104,7 +118,13 @@ struct NewStackView: View {
                                                             .frame(height: 1)
                                                             .foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom
                                                     )
-                                                Text(cards[index].back)
+                                                    .onSubmit {
+                                                        Task { saveStack() }
+                                                    }
+                                                TextField("Back", text: $editedCards[index].back)
+                                                    .onSubmit {
+                                                        Task { saveStack() }
+                                                    }
                                             }
                                             
                                             Spacer()
@@ -168,19 +188,33 @@ struct NewStackView: View {
                         
                     }
                 }
+                .onSubmit {
+                    Task {
+                        saveStack()
+                    }
+                }
                 .padding()
+                .onAppear {
+                    title = stack.title
+                    description = stack.description
+                    creator = stack.creator
+                    creationDate = stack.creationDate
+                    tags = stack.tags.joined(separator: ", ")
+                    editedCards = stack.cards
+                    isPublic = stack.isPublic
+                }
             }
             .scrollContentBackground(.hidden)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Save Stack") {
+                    Button("Update Stack") {
                         Task {
-                            await saveStack()
+                            await saveStackToFirebase()
                         }
                         stackVM.creatingStack = false
                         dismiss()
                     }
-                    .disabled(title.isEmpty || cards.isEmpty)
+                    .disabled(title.isEmpty || editedCards.isEmpty)
                 }
             }
         }
@@ -188,33 +222,77 @@ struct NewStackView: View {
     
     //FUNCTIONS
     private func addCard() {
-        let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
-        cards.append(newCard)
+        let newCard = Card(front: cardFront, back: cardBack)
+        editedCards.append(newCard)
         cardFront = ""
         cardBack = ""
     }
     
     private func deleteCard(at index: Int) {
-        guard index < cards.count else { return }
-        cards.remove(at: index)
+        guard index < editedCards.count else { return }
+        editedCards.remove(at: index)
     }
     
-    private func saveStack() async {
+    private func saveStackToFirebase() async {
         guard let userID = auth.user?.id else {
             print("ERROR: User ID is nil")
             return
         }
         
+        if !cardFront.isEmpty || !cardBack.isEmpty {
+            let newCard = Card(front: cardFront, back: cardBack)
+            editedCards.append(newCard)
+            cardFront = ""
+            cardBack = ""
+        }
+
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        let savedDescription = (description.isEmpty ? "No description given" : description)
-        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: auth.user?.id ?? "", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
+        let updatedStack = Stack(
+            id: stack.id,
+            title: title,
+            description: description.isEmpty ? "No description given" : description,
+            creator: stack.creator,
+            creatorID: stack.creatorID,
+            creationDate: stack.creationDate,
+            tags: tagArray,
+            cards: editedCards,
+            isPublic: isPublic
+        )
+
+        await stackVM.updateStack(for: userID, stackToUpdate: updatedStack)
+        await stackVM.fetchUserStacks(for: userID)
+    }
+    
+    private func saveStack() {
+        let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+        if !cardFront.isEmpty || !cardBack.isEmpty {
+            let newCard = Card(front: cardFront, back: cardBack)
+            editedCards.append(newCard)
+            cardFront = ""
+            cardBack = ""
+        }
         
-        await stackVM.createStack(for: userID, stackToAdd: newStack)
+        stack.title = title
+        stack.description = description.isEmpty ? "No description given" : description
+        stack.tags = tagArray
+        stack.cards = editedCards
+        stack.isPublic = isPublic
     }
 }
 
 #Preview {
-    NewStackView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(StackViewModel())
+    EditStackView(stack: .constant(Stack(
+        id: "",
+        title: "",
+        description: "",
+        creator: "",
+        creatorID: "",
+        creationDate: Date(),
+        tags: [],
+        cards: [],
+        isPublic: false
+    )))
+    .environmentObject(AuthViewModel())
+    .environmentObject(StackViewModel())
 }
