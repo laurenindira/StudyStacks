@@ -14,6 +14,7 @@ import GoogleSignIn
 @Observable
 class AuthViewModel: NSObject, ObservableObject {
     static var shared = AuthViewModel()
+    
     var user: User? {
         didSet {
             if let currentUser = user {
@@ -81,26 +82,21 @@ class AuthViewModel: NSObject, ObservableObject {
     }
     
     //MARK: - Sign up
-    func signUpWithEmail(email: String, password: String, username: String, displayName: String) async throws {
+    func signUpWithEmail(email: String, password: String, username: String, displayName: String, selectedSubjects: [String], studyReminderTime: Date, studentType: String) async throws {
         self.isLoading = true
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
             UserDefaults.standard.set(true, forKey: "isSignedIn")
-            
-            //updating streak value if hadn't been set before
-            if UserDefaults.standard.object(forKey: "lastStreakUpdate") == nil {
-                let yesterday = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date())
-                UserDefaults.standard.set(yesterday, forKey: "lastStreakUpdate")
-            }
             self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Sign up failure - \(String(describing: errorMessage))")
+            self.isLoading = false
             throw error
         }
     }
@@ -124,12 +120,7 @@ class AuthViewModel: NSObject, ObservableObject {
             await updateLastSignIn(for: result.user.uid)
             await loadUserFromFirebase()
             UserDefaults.standard.set(true, forKey: "isSignedIn")
-            
-            //updating streak value if hadn't been set before
-            if UserDefaults.standard.object(forKey: "lastStreakUpdate") == nil {
-                let yesterday = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date())
-                UserDefaults.standard.set(yesterday, forKey: "lastStreakUpdate")
-            }
+            self.createLocalStreak()
             self.isLoading = false
         } catch let error as NSError {
             self.isLoading = false
@@ -139,7 +130,7 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
-    func signInWithGoogle(presenting: UIViewController, completion: @escaping(Error?) -> Void) {
+    func signInWithGoogle(tempUser: User, presenting: UIViewController, completion: @escaping(Error?) -> Void) {
         self.isLoading = true
         guard let clientID = FirebaseApp.app()?.options.clientID else { return }
         
@@ -180,29 +171,24 @@ class AuthViewModel: NSObject, ObservableObject {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
-                                
-                                //updating streak value if hadn't been set before
-                                if UserDefaults.standard.object(forKey: "lastStreakUpdate") == nil {
-                                    let yesterday = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date())
-                                    UserDefaults.standard.set(yesterday, forKey: "lastStreakUpdate")
-                                }
+                                self.createLocalStreak()
                             }
-                        }
-                    } else {
-                        let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
-                        
-                        Task {
-                            do {
-                                try await self.saveUserToFirestore(user: newUser)
-                                self.user = newUser
-                                self.saveUserToCache(newUser)
-                                UserDefaults.standard.set(true, forKey: "isSignedIn")
-                                self.isLoading = false
-                            } catch {
-                                self.isLoading = false
-                                print("ERROR: Could not save Firebase user - \(error.localizedDescription)")
-                                completion(error)
+                        } else {
+                            let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+                            
+                            Task {
+                                do {
+                                    try await self.saveUserToFirestore(user: newUser)
+                                    self.user = newUser
+                                    self.saveUserToCache(newUser)
+                                    UserDefaults.standard.set(true, forKey: "isSignedIn")
+                                    self.isLoading = false
+                                } catch {
+                                    self.isLoading = false
+                                    print("ERROR: Could not save Firebase user - \(error.localizedDescription)")
+                                    completion(error)
+                                }
                             }
                         }
                     }
@@ -222,10 +208,14 @@ class AuthViewModel: NSObject, ObservableObject {
                 "creationDate": Timestamp(date: user.creationDate),
                 "lastSignIn": Timestamp(date: user.lastSignIn ?? Date()),
                 "providerRef": user.providerRef,
+                "selectedSubjects": user.selectedSubjects,
+                "studyReminderTime": user.studyReminderTime,
+                "studentType": user.studentType,
                 "currentStreak": user.currentStreak,
                 "longestStreak": user.longestStreak,
                 "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date())
             ])
+            print("SUCCESS: Saved user to Firestore")
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failure saving to Firestore - \(String(describing: errorMessage))")
@@ -237,6 +227,7 @@ class AuthViewModel: NSObject, ObservableObject {
         if let encodedUser = try? JSONEncoder().encode(user) {
             userDefaults.set(encodedUser, forKey: userKey)
         }
+        self.createLocalStreak()
     }
     
     //MARK: - Sign out and deletion
@@ -283,6 +274,11 @@ class AuthViewModel: NSObject, ObservableObject {
     
     //MARK: - Streak Calculations
     func updateStudyStreak(for userID: String) async {
+        guard let user = user else { return }
+        
+        var currentStreak = user.currentStreak
+        var longestStreak = user.longestStreak
+        
         let calendar = Calendar.current
         let today = Date()
         
@@ -294,17 +290,12 @@ class AuthViewModel: NSObject, ObservableObject {
                 }
             }
         }
-            
-        guard let user = user else { return }
-        
-        var currentStreak = user.currentStreak
-        var longestStreak = user.longestStreak
         
         //COUNTING CURRENT STREAK
         if let lastStudyDate = user.lastStudyDate {
             if calendar.isDateInYesterday(lastStudyDate) {
                 currentStreak = user.currentStreak + 1
-            } else if !calendar.isDateInToday(lastStudyDate) {
+            } else if !calendar.isDateInToday(lastStudyDate) || !calendar.isDateInYesterday(lastStudyDate) {
                 //ie if streak broke womp womp
                 currentStreak = 1
             }
@@ -313,8 +304,8 @@ class AuthViewModel: NSObject, ObservableObject {
         }
         
         //UPDATING LONGEST STREAK
-        if user.currentStreak > user.longestStreak {
-            longestStreak = user.currentStreak
+        if currentStreak > user.longestStreak {
+            longestStreak = currentStreak
         } else {
             longestStreak = user.longestStreak
         }
@@ -333,9 +324,29 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    func createLocalStreak() {
+        //updating streak value if hadn't been set before
+        if UserDefaults.standard.object(forKey: "lastStreakUpdate") == nil {
+            let yesterday = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date())
+            UserDefaults.standard.set(yesterday, forKey: "lastStreakUpdate")
+        }
+    }
+    
     func resetLocalStreak() {
         UserDefaults.standard.removeObject(forKey: "lastStreakUpdate")
     }
+    
+    //TODO: move to relevant page when detail views are created
+//    func endStudySession() async {
+//        guard let userID = auth.user?.id else { return }
+//        
+//        await updateStudyStreak(for: userID)
+//
+            //TO DO: milestones and badges related to streaks
+//        if let streak = auth.user?.currentStreak {
+//            //checkForMilestones(streak: streak)
+//        }
+//    }
     
     //MARK: - Local User Caching
     private func loadUserFromCache() -> User? {

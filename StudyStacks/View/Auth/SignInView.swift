@@ -18,6 +18,8 @@ struct SignInView: View {
     @State var password: String = ""
     @State var showPassword: Bool = false
     
+    @State private var tempUser = User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Date(), studentType: "", currentStreak: 0, longestStreak: 0)
+    
     var showPasswordToggle: Bool {
         get { showPassword }
         set { showPassword = newValue }
@@ -79,7 +81,7 @@ struct SignInView: View {
                     HStack {
                         Text("don't have an account?")
                         NavigationLink("Sign Up") {
-                            SignUpView()
+                            OnboardingControl(user: $tempUser)
                         }
                         .foregroundStyle(Color.prim)
                         .bold()
@@ -116,7 +118,7 @@ struct SignInView: View {
     }
     
     func googleSignIn() {
-        auth.signInWithGoogle(presenting: getRootViewController()) { error in
+        auth.signInWithGoogle(tempUser: tempUser, presenting: getRootViewController()) { error in
             if error != nil {
                 showAlert = true
             }

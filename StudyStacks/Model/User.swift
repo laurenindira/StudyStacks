@@ -18,6 +18,11 @@ struct User: Identifiable, Codable {
     var lastSignIn: Date?
     var providerRef: String
     
+    //ONBOARDING
+    var selectedSubjects: [String]
+    var studyReminderTime: Date
+    var studentType: String
+    
     //STREAKS
     var currentStreak: Int
     var longestStreak: Int

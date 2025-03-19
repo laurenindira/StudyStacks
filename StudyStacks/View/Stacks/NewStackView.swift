@@ -207,8 +207,7 @@ struct NewStackView: View {
         
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let savedDescription = (description.isEmpty ? "No description given" : description)
-        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: "", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
-        
+        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: auth.user?.id ?? "", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
         await stackVM.createStack(for: userID, stackToAdd: newStack)
     }
 }
