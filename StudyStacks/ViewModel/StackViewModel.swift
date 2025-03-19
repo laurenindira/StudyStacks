@@ -59,7 +59,7 @@ class StackViewModel: ObservableObject {
         stackToAddWithID.id = stackRef.documentID
         
         do {
-            try await stackRef.setData(from: stackToAddWithID)
+            try stackRef.setData(from: stackToAddWithID)
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed create stack - \(String(describing: errorMessage))")
