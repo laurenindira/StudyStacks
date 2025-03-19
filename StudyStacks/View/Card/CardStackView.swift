@@ -61,6 +61,7 @@ struct CardStackView: View {
                     Button(action: swipeVM.reset) {
                         GeneralButton(placeholder: "Reset", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                     }
+                    .padding(.horizontal, 80)
                 }
             } else {
                 let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
