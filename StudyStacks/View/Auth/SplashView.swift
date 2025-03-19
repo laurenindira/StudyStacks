@@ -10,7 +10,7 @@ import SwiftUI
 struct SplashView: View {
     @EnvironmentObject var auth: AuthViewModel
     
-    @State private var tempUser = User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 1, hour: 18, minute: 30, second: 0)) ?? Date(), studentType: "")
+    @State private var tempUser = User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 1, hour: 18, minute: 30, second: 0)) ?? Date(), studentType: "", currentStreak: 0, longestStreak: 0)
     
     var body: some View {
         NavigationStack {

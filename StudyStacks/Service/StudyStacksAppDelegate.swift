@@ -8,12 +8,19 @@
 import Foundation
 import SwiftUI
 import FirebaseCore
+import FirebaseFirestore
 import GoogleSignIn
 
 class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        
+        let settings = Firestore.firestore().settings
+        let cacheSettings = PersistentCacheSettings()
+        settings.cacheSettings = cacheSettings
+        Firestore.firestore().settings = settings
+        
         return true
       }
     
