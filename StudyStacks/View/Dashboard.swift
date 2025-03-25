@@ -58,28 +58,6 @@ struct Dashboard: View {
                         }
                     }
                 }
-                
-//                NavigationLink(destination: StackDetailView(stack: Stack(
-//                                    id: UUID().uuidString,
-//                                    title: "U.S. States & Capitals",
-//                                    description: "A deck to learn U.S. states and their capitals",
-//                                    creator: "Sarah Cameron",
-//                                    creatorID: "mockCreatorID",
-//                                    creationDate: Date(),
-//                                    tags: ["Geography", "States", "Capitals"],
-//                                    cards: [
-//                                        Card(front: "California", back: "Sacramento"),
-//                                        Card(front: "Texas", back: "Austin"),
-//                                        Card(front: "Florida", back: "Tallahassee"),
-//                                        Card(front: "New York", back: "Albany"),
-//                                        Card(front: "Illinois", back: "Springfield")
-//                                    ],
-//                                    isPublic: true
-//                                ))) {
-//                                    Text("Preview Deck Overview")
-//                                        .padding()
-//                                        .foregroundColor(.prim)
-//                                }
                             }
             }
             .sheet(isPresented: $creatingStack) {
