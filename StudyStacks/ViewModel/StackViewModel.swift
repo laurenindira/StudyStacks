@@ -9,9 +9,17 @@ import Foundation
 import Firebase
 import FirebaseFirestore
 
+@Observable
 class StackViewModel: ObservableObject {
     static var shared = StackViewModel()
-    @Published var stacks: [Stack] = []
+    
+    var stacks: [Stack] = []
+    var userStacks: [Stack] = []
+    var publicStacks: [Stack] = []
+    var combinedStacks: [Stack] {
+        let filteredPublicStacks = publicStacks.filter({ !userStacks.contains($0) })
+        return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
+    }
     
     var creatingStack: Bool = false
     var editingStack: Bool = false
@@ -22,7 +30,8 @@ class StackViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private var auth = AuthViewModel.shared
     
-    func fetchStacks() async {
+    //MARK: - Stack Fetching
+    func fetchUserStacks(for userID: String) async {
         self.isLoading = true
         
         guard let userID = auth.user?.id else {
@@ -33,25 +42,31 @@ class StackViewModel: ObservableObject {
         }
         
         do {
-            stacks = try await fetchUserStacks(userID: userID)
+            let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            self.userStacks = stacks
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed fetch stack - \(String(describing: errorMessage))")
-            self.isLoading = false
+            print("ERROR: Failed to fetch user stacks - \(String(describing: errorMessage))")
         }
         self.isLoading = false
+    }
+    
+    func fetchPublicStacks() async {
+        self.isLoading = true
         
-    }
-    
-    private func fetchUserStacks(userID: String) async throws -> [Stack] {
-        let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
-        return querySnapshot.documents.compactMap { document in
-            var stack = try? document.data(as: Stack.self)
-            stack?.id = document.documentID
-            return stack
+        do {
+            let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            self.publicStacks = stacks
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to fetch public stacks - \(String(describing: errorMessage))")
         }
+        self.isLoading = false
     }
     
+    //MARK: - Stack Creation
     func createStack(for userID: String, stackToAdd: Stack) async {
         self.isLoading = true
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document()
@@ -59,7 +74,7 @@ class StackViewModel: ObservableObject {
         stackToAddWithID.id = stackRef.documentID
         
         do {
-            try await stackRef.setData(from: stackToAddWithID)
+            try stackRef.setData(from: stackToAddWithID)
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed create stack - \(String(describing: errorMessage))")
@@ -88,5 +103,18 @@ class StackViewModel: ObservableObject {
         self.isLoading = false
     }
     
-    
+    func updateStack(for userID: String, stackToUpdate: Stack) async {
+        self.isLoading = true
+        let stackRef = db.collection("allStacks").document(userID).collection("stacks").document(stackToUpdate.id)
+
+        do {
+            try await stackRef.setData(from: stackToUpdate)
+            print("SUCCESS: Stack updated")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to update stack - \(String(describing: errorMessage))")
+        }
+        
+        self.isLoading = false
+    }
 }
