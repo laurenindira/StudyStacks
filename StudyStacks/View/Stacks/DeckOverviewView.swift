@@ -158,9 +158,19 @@ struct StackDetailView: View {
         }
     }
 
+
+    
     private func deleteStack() {
         Task {
+            
             await stackVM.deleteStack(stack)
+            
+            
+            if let index = stackVM.stacks.firstIndex(where: { $0.id == stack.id }) {
+                stackVM.stacks.remove(at: index)
+            }
+            
+            
             await MainActor.run {
                 isDeleted = true
                 deleteErrorMessage = nil
@@ -170,6 +180,7 @@ struct StackDetailView: View {
             }
         }
     }
+
 }
 
 struct StackDetailView_Previews: PreviewProvider {
