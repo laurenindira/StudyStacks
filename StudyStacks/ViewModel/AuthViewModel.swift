@@ -87,7 +87,7 @@ class AuthViewModel: NSObject, ObservableObject {
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType)
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -120,6 +120,7 @@ class AuthViewModel: NSObject, ObservableObject {
             await updateLastSignIn(for: result.user.uid)
             await loadUserFromFirebase()
             UserDefaults.standard.set(true, forKey: "isSignedIn")
+            self.createLocalStreak()
             self.isLoading = false
         } catch let error as NSError {
             self.isLoading = false
@@ -170,24 +171,24 @@ class AuthViewModel: NSObject, ObservableObject {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
+                                self.createLocalStreak()
                             }
-                        }
-                    } else {
-                        let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                        let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType)
-                        
-                        Task {
-                            //TODO: add onboarding here
-                            do {
-                                try await self.saveUserToFirestore(user: newUser)
-                                self.user = newUser
-                                self.saveUserToCache(newUser)
-                                UserDefaults.standard.set(true, forKey: "isSignedIn")
-                                self.isLoading = false
-                            } catch {
-                                self.isLoading = false
-                                print("ERROR: Could not save Firebase user - \(error.localizedDescription)")
-                                completion(error)
+                        } else {
+                            let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+                            
+                            Task {
+                                do {
+                                    try await self.saveUserToFirestore(user: newUser)
+                                    self.user = newUser
+                                    self.saveUserToCache(newUser)
+                                    UserDefaults.standard.set(true, forKey: "isSignedIn")
+                                    self.isLoading = false
+                                } catch {
+                                    self.isLoading = false
+                                    print("ERROR: Could not save Firebase user - \(error.localizedDescription)")
+                                    completion(error)
+                                }
                             }
                         }
                     }
@@ -209,8 +210,12 @@ class AuthViewModel: NSObject, ObservableObject {
                 "providerRef": user.providerRef,
                 "selectedSubjects": user.selectedSubjects,
                 "studyReminderTime": user.studyReminderTime,
-                "studentType": user.studentType
+                "studentType": user.studentType,
+                "currentStreak": user.currentStreak,
+                "longestStreak": user.longestStreak,
+                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date())
             ])
+            print("SUCCESS: Saved user to Firestore")
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failure saving to Firestore - \(String(describing: errorMessage))")
@@ -222,6 +227,7 @@ class AuthViewModel: NSObject, ObservableObject {
         if let encodedUser = try? JSONEncoder().encode(user) {
             userDefaults.set(encodedUser, forKey: userKey)
         }
+        self.createLocalStreak()
     }
     
     //MARK: - Sign out and deletion
@@ -266,6 +272,82 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    //MARK: - Streak Calculations
+    func updateStudyStreak(for userID: String) async {
+        guard let user = user else { return }
+        
+        var currentStreak = user.currentStreak
+        var longestStreak = user.longestStreak
+        
+        let calendar = Calendar.current
+        let today = Date()
+        
+        if UserDefaults.standard.object(forKey: "lastStreakUpdate") != nil {
+            if let lastUpdate = UserDefaults.standard.object(forKey: "lastStreakUpdate") as? Date {
+                if calendar.isDateInToday(lastUpdate) {
+                    print("OOP: Streak already updated today.")
+                    return
+                }
+            }
+        }
+        
+        //COUNTING CURRENT STREAK
+        if let lastStudyDate = user.lastStudyDate {
+            if calendar.isDateInYesterday(lastStudyDate) {
+                currentStreak = user.currentStreak + 1
+            } else if !calendar.isDateInToday(lastStudyDate) || !calendar.isDateInYesterday(lastStudyDate) {
+                //ie if streak broke womp womp
+                currentStreak = 1
+            }
+        } else {
+            currentStreak = 1
+        }
+        
+        //UPDATING LONGEST STREAK
+        if currentStreak > user.longestStreak {
+            longestStreak = currentStreak
+        } else {
+            longestStreak = user.longestStreak
+        }
+        
+        //UPDATING LAST STUDIED
+        let lastStudyDate = today
+        
+        //SAVING CHANGES
+        do {
+            try await db.collection("users").document(user.id).setData(["currentStreak": currentStreak, "longestStreak": longestStreak, "lastStudyDate": lastStudyDate], merge: true)
+            UserDefaults.standard.set(today, forKey: "lastStreakUpdate")
+            print("SUCCESS: Updated streak")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Could not update streaks - \(String(describing: errorMessage))")
+        }
+    }
+    
+    func createLocalStreak() {
+        //updating streak value if hadn't been set before
+        if UserDefaults.standard.object(forKey: "lastStreakUpdate") == nil {
+            let yesterday = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date())
+            UserDefaults.standard.set(yesterday, forKey: "lastStreakUpdate")
+        }
+    }
+    
+    func resetLocalStreak() {
+        UserDefaults.standard.removeObject(forKey: "lastStreakUpdate")
+    }
+    
+    //TODO: move to relevant page when detail views are created
+//    func endStudySession() async {
+//        guard let userID = auth.user?.id else { return }
+//        
+//        await updateStudyStreak(for: userID)
+//
+            //TO DO: milestones and badges related to streaks
+//        if let streak = auth.user?.currentStreak {
+//            //checkForMilestones(streak: streak)
+//        }
+//    }
+    
     //MARK: - Local User Caching
     private func loadUserFromCache() -> User? {
         guard let savedUserData = userDefaults.data(forKey: userKey) else { return nil }
@@ -274,6 +356,7 @@ class AuthViewModel: NSObject, ObservableObject {
     
     private func clearUserCache() {
         userDefaults.removeObject(forKey: userKey)
+        resetLocalStreak()
         UserDefaults.standard.set(false, forKey: "isSignedIn")
     }
 }

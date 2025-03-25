@@ -15,31 +15,11 @@ struct Dashboard: View {
     var body: some View {
         NavigationStack {
             VStack {
-                Text("My Stacks")
-                    .font(.title)
-                    .bold()
-                    .padding(.top, 20)
 
-                // List of Stacks
-                List($stackVM.stacks) { $stack in
-                    NavigationLink(destination: EditStackView(stack: $stack)) {
-                        VStack(alignment: .leading) {
-                            Text(stack.title)
-                                .font(.headline)
-                                .bold()
-                            Text("Created by \(stack.creator)")
-                                .font(.subheadline)
-                                .foregroundStyle(.gray)
-                        }
-                    }
-                }
-                .task {
-                    if let userID = auth.user?.id {
-                        await stackVM.fetchUserStacks(for: userID)
-                    }
-                }
+                Text("This is a dashboard")
+                
+                Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
 
-                // Sign Out Button
                 Button {
                     Task {
                         auth.signOut()
