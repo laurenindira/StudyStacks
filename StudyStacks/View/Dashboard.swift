@@ -14,6 +14,11 @@ struct Dashboard: View {
         NavigationStack {
             VStack {
                 Text("This is a dashboard")
+                
+                NavigationLink(destination: SettingsView()) {
+                    GeneralButton(placeholder: "Go to Settings", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                }
+                
                 Button {
                     Task {
                         auth.signOut()
@@ -24,7 +29,6 @@ struct Dashboard: View {
             }
             .padding()
         }
-        
     }
 }
 
