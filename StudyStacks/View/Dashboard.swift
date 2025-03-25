@@ -15,6 +15,14 @@ struct Dashboard: View {
     var body: some View {
         NavigationStack {
             VStack {
+
+                Text("This is a dashboard")
+                
+                NavigationLink(destination: SettingsView()) {
+                    GeneralButton(placeholder: "Go to Settings", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                }
+                
+
                 Text("My Stacks")
                     .font(.title)
                     .bold()
@@ -40,6 +48,7 @@ struct Dashboard: View {
                 }
 
                 // Sign Out Button
+
                 Button {
                     Task {
                         auth.signOut()
