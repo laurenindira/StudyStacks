@@ -64,7 +64,7 @@ struct StackDetailView: View {
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.black)
-                                            .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 1, y: 0, z: 0))
+                                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
                                             .opacity(isFlipped ? 1 : 0)
                                     }
                                 }
