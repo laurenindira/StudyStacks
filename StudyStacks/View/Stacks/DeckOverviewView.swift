@@ -13,13 +13,21 @@ struct StackDetailView: View {
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
     @State private var isDeleted = false
-    
+    @State private var showDeleteConfirmation = false
+    @State private var deleteErrorMessage: String?
+
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
+                if let errorMessage = deleteErrorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.headline)
+                        .padding()
+                }
                 if isDeleted {
                     Text("The deck has been deleted.")
                         .foregroundColor(.green)
@@ -30,7 +38,7 @@ struct StackDetailView: View {
                         Text(stack.title)
                             .font(.title)
                             .fontWeight(.bold)
-                        
+
                         Text("Created by \(stack.creator)")
                             .font(.body)
                             .foregroundColor(.gray)
@@ -48,45 +56,27 @@ struct StackDetailView: View {
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.black)
-                                            .rotation3DEffect(
-                                                .degrees(isFlipped ? 180 : 0),
-                                                axis: (x: 1, y: 0, z: 0) // flip forward
-                                            )
+                                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
                                             .opacity(isFlipped ? 0 : 1)
-                                            .rotation3DEffect(
-                                                .degrees(isFlipped ? -180 : 0),
-                                                axis: (x: 1, y: 0, z: 0) // flip the text in opposite direction
-                                            )
                                     }
-
                                     if isFlipped {
                                         Text(stack.cards[currentCardIndex].back)
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.black)
-                                            .rotation3DEffect(
-                                                .degrees(isFlipped ? 0 : -180), // flip back
-                                                axis: (x: 1, y: 0, z: 0) // flip forward
-                                            )
+                                            .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 1, y: 0, z: 0))
                                             .opacity(isFlipped ? 1 : 0)
-                                            .rotation3DEffect(
-                                                .degrees(isFlipped ? 180 : 0),
-                                                axis: (x: 1, y: 0, z: 0)
-                                            )
                                     }
                                 }
                             )
-                            .rotation3DEffect(
-                                .degrees(isFlipped ? 180 : 0),
-                                axis: (x: 1, y: 0, z: 0) // Flip forward
-                            )
+                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
                             .animation(.easeInOut(duration: 0.6), value: isFlipped)
                             .onTapGesture {
                                 withAnimation {
-                                    isFlipped.toggle()  // Flip the card on tap
+                                    isFlipped.toggle()
                                 }
                             }
-                        
+
                         HStack {
                             Button(action: {
                                 withAnimation {
@@ -99,9 +89,9 @@ struct StackDetailView: View {
                                 Image(systemName: "chevron.left")
                                     .font(.title)
                             }
-                            
+
                             Spacer()
-                            
+
                             Button(action: {
                                 withAnimation {
                                     if currentCardIndex < stack.cards.count - 1 {
@@ -139,7 +129,7 @@ struct StackDetailView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(role: .destructive, action: {
-                            deleteStack()  // Delete deck action
+                            showDeleteConfirmation = true
                         }) {
                             Label("Delete Deck", systemImage: "trash")
                         }
@@ -149,7 +139,7 @@ struct StackDetailView: View {
                             .padding()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { isFavorited.toggle() }) {
                         Image(systemName: isFavorited ? "star.fill" : "star")
@@ -159,6 +149,12 @@ struct StackDetailView: View {
                     }
                 }
             }
+            .alert("Delete Deck", isPresented: $showDeleteConfirmation) {
+                Button("Delete", role: .destructive) { deleteStack() }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Are you sure you want to delete this deck? This action cannot be undone.")
+            }
         }
     }
 
@@ -167,6 +163,7 @@ struct StackDetailView: View {
             await stackVM.deleteStack(stack)
             await MainActor.run {
                 isDeleted = true
+                deleteErrorMessage = nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     presentationMode.wrappedValue.dismiss()
                 }
@@ -192,10 +189,10 @@ struct StackDetailView_Previews: PreviewProvider {
             ],
             isPublic: true
         )
-        
+
         let mockStackVM = StackViewModel()
         mockStackVM.stacks = [mockStack]
-        
+
         return StackDetailView(stack: mockStack)
             .environmentObject(mockStackVM)
     }
