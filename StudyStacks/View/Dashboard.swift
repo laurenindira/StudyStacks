@@ -11,21 +11,23 @@ struct Dashboard: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @State var creatingStack: Bool = false
-    
+
     var body: some View {
         NavigationStack {
             VStack {
+
                 Text("This is a dashboard")
                 
                 Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
+
                 Button {
                     Task {
                         auth.signOut()
                     }
                 } label: {
-                    GeneralButton(placeholder: "sign out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                 }
-                
+                .padding(.top, 20)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -42,7 +44,6 @@ struct Dashboard: View {
             }
             .padding()
         }
-        
     }
 }
 
@@ -51,3 +52,5 @@ struct Dashboard: View {
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
 }
+
+
