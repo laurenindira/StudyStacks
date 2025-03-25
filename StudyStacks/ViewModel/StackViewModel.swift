@@ -9,12 +9,20 @@ import Foundation
 import Firebase
 import FirebaseFirestore
 
+@Observable
 class StackViewModel: ObservableObject {
     static var shared = StackViewModel()
-    @Published var stacks: [Stack] = []
     
-    @Published var creatingStack: Bool = false
-    @Published var editingStack: Bool = false
+    var stacks: [Stack] = []
+    var userStacks: [Stack] = []
+    var publicStacks: [Stack] = []
+    var combinedStacks: [Stack] {
+        let filteredPublicStacks = publicStacks.filter({ !userStacks.contains($0) })
+        return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
+    }
+    
+    var creatingStack: Bool = false
+    var editingStack: Bool = false
     
     
     var isLoading: Bool = false
@@ -23,7 +31,8 @@ class StackViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private var auth = AuthViewModel.shared
     
-    func fetchStacks() async {
+    //MARK: - Stack Fetching
+    func fetchUserStacks(for userID: String) async {
         self.isLoading = true
         
         guard let userID = auth.user?.id else {
@@ -34,25 +43,31 @@ class StackViewModel: ObservableObject {
         }
         
         do {
-            stacks = try await fetchUserStacks(userID: userID)
+            let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            self.userStacks = stacks
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed fetch stack - \(String(describing: errorMessage))")
-            self.isLoading = false
+            print("ERROR: Failed to fetch user stacks - \(String(describing: errorMessage))")
         }
         self.isLoading = false
+    }
+    
+    func fetchPublicStacks() async {
+        self.isLoading = true
         
-    }
-    
-    private func fetchUserStacks(userID: String) async throws -> [Stack] {
-        let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
-        return querySnapshot.documents.compactMap { document in
-            var stack = try? document.data(as: Stack.self)
-            stack?.id = document.documentID
-            return stack
+        do {
+            let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
+            let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            self.publicStacks = stacks
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to fetch public stacks - \(String(describing: errorMessage))")
         }
+        self.isLoading = false
     }
     
+    //MARK: - Stack Creation
     func createStack(for userID: String, stackToAdd: Stack) async {
         self.isLoading = true
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document()
@@ -71,25 +86,40 @@ class StackViewModel: ObservableObject {
     
     
     func deleteStack(_ stack: Stack) async {
-            self.isLoading = true
-            
-            guard let userID = auth.user?.id else {
-                print("ERROR: user not logged in")
-                self.isLoading = false
-                return
-            }
-            
-            let stackRef = db.collection("allStacks").document(userID).collection("stacks")
-            do {
-                try await stackRef.document(stack.id).delete()
-                await self.fetchStacks()
-                print("DOCUMENT REMOVED")
-            } catch let error as NSError {
-                self.errorMessage = error.localizedDescription
-                print("ERROR: Failed to delete stack: \(error.localizedDescription)")
-                self.isLoading = false
-            }
+        self.isLoading = true
+        
+        guard let userID = auth.user?.id else {
+            print("ERROR: user not logged in")
             self.isLoading = false
+            return
         }
+        
+        let stackRef = db.collection("allStacks").document(userID).collection("stacks")
+        do {
+            try await stackRef.document(stack.id).delete()
+            await self.fetchUserStacks(for: userID)
+            
+            print("DOCUMENT REMOVED")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to delete stack: \(error.localizedDescription)")
+        }
+        
+        self.isLoading = false
+    }
     
+    func updateStack(for userID: String, stackToUpdate: Stack) async {
+        self.isLoading = true
+        let stackRef = db.collection("allStacks").document(userID).collection("stacks").document(stackToUpdate.id)
+
+        do {
+            try await stackRef.setData(from: stackToUpdate)
+            print("SUCCESS: Stack updated")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to update stack - \(String(describing: errorMessage))")
+        }
+        
+        self.isLoading = false
+    }
 }

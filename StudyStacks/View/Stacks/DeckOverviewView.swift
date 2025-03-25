@@ -177,7 +177,9 @@ struct StackDetailView_Previews: PreviewProvider {
         let mockStack = Stack(
             id: UUID().uuidString,
             title: "U.S. States & Capitals",
+            description: "A deck to learn U.S. states and their capitals",
             creator: "Sarah Cameron",
+            creatorID: "mockCreatorID",
             creationDate: Date(),
             tags: ["Geography", "States", "Capitals"],
             cards: [

@@ -26,16 +26,17 @@ struct TermsListView: View {
                                 Text(card.front)
                                     .font(.headline)
                                     .foregroundColor(Color.prim)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 
                                 Text(card.back)
                                     .font(.body)
                                     .foregroundColor(.gray)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(10)
-                            
-                            Spacer()
+                            .frame(maxWidth: .infinity, minHeight: 100)
                         }
                         .padding(.horizontal, 16)
                     }
