@@ -52,5 +52,3 @@ struct Dashboard: View {
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
 }
-
-
