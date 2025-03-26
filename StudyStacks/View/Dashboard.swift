@@ -10,7 +10,6 @@ import SwiftUI
 struct Dashboard: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
-    
     @State var creatingStack: Bool = false
 
     var body: some View {
@@ -43,23 +42,7 @@ struct Dashboard: View {
             .sheet(isPresented: $creatingStack) {
                 NewStackView()
             }
-        }
-    }
-    var searchResults: [Stack] {
-        if searchText.isEmpty {
-            return stackVM.userStacks
-        } else {
-            return stackVM.userStacks.filter {
-                $0.title.localizedCaseInsensitiveContains(searchText) ||
-                $0.description.localizedCaseInsensitiveContains(searchText) ||
-                $0.creator.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-    }
-    
-    private func refresh() async {
-        if let userID = auth.user?.id {
-            await stackVM.fetchUserStacks(for: userID)
+            .padding()
         }
     }
 }
@@ -69,5 +52,3 @@ struct Dashboard: View {
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
 }
-
-
