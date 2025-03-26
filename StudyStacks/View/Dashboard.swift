@@ -38,6 +38,7 @@ struct Dashboard: View {
                         }
                     }
                 }
+                            }
             }
             .sheet(isPresented: $creatingStack) {
                 NewStackView()
@@ -45,7 +46,6 @@ struct Dashboard: View {
             .padding()
         }
     }
-}
 
 #Preview {
     Dashboard()

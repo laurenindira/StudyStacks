@@ -97,6 +97,8 @@ struct LibraryView: View {
                         ForEach(searchResults, id: \.self) { stack in
                             // TODO: add in check for if card is favorite
                             NavigationLink {
+                                StackDetailView(stack: stack)
+                                    .environmentObject(stackVM)
                                 // link to overview
                             } label: {
                                 StackCardView(stack: stack, isFavorite: true)
