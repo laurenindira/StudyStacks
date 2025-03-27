@@ -1,40 +1,69 @@
-//
-//  ContentView.swift
-//  StudyStacks
-//
-//  Created by Lauren Indira on 2/9/25.
-//
-
 import SwiftUI
+
+enum Page {
+    case dashboard
+    case profile
+    case library
+}
 
 struct ContentView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @AppStorage("isSignedIn") var isSignedIn = false
-    
+
+    @State private var selectedPage: Page = .dashboard
+
     var body: some View {
         Group {
             if !isSignedIn {
                 SplashView()
-                    .environmentObject(auth)
-                    .environmentObject(stackVM)
             } else {
-                TabView() {
-                    Dashboard()
-                        .environmentObject(auth)
-                        .environmentObject(stackVM)
-                        .tabItem {
-                            Label("Dashboard", systemImage: "house")
+                VStack(spacing: 0) {
+                    // Page Content
+                    ZStack {
+                        switch selectedPage {
+                        case .dashboard:
+                            Dashboard()
+                        case .profile:
+                            ProfileView()
+                        case .library:
+                            LibraryView()
                         }
-                    
-                    LibraryView()
-                        .environmentObject(auth)
-                        .environmentObject(stackVM)
-                        .tabItem {
-                            Label("Library", systemImage: "square.stack.3d.up.fill")
-                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    // Custom Bottom Nav Bar
+                    HStack {
+                        Spacer()
+                        bottomNavButton(label: "Dashboard", systemImage: "rectangle.stack.fill", page: .dashboard)
+                        Spacer()
+                        bottomNavButton(label: "Profile", systemImage: "person.crop.circle", page: .profile)
+                        Spacer()
+                        bottomNavButton(label: "Library", systemImage: "book.closed.fill", page: .library)
+                        Spacer()
+                    }
+                    .padding(.vertical, 10)
+                    .background(Color(UIColor.systemGray6))
                 }
+                .environmentObject(auth)
+                .environmentObject(stackVM)
             }
+        }
+    }
+
+    // Custom button for bottom nav
+    @ViewBuilder
+    private func bottomNavButton(label: String, systemImage: String, page: Page) -> some View {
+        Button(action: {
+            selectedPage = page
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 20))
+                Text(label)
+                    .font(.caption)
+            }
+            .foregroundColor(selectedPage == page ? Color.accentColor : .gray)
         }
     }
 }

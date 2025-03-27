@@ -1,10 +1,3 @@
-//
-//  Dashboard.swift
-//  StudyStacks
-//
-//  Created by Lauren Indira on 2/9/25.
-//
-
 import SwiftUI
 
 struct Dashboard: View {
@@ -25,7 +18,12 @@ struct Dashboard: View {
                         auth.signOut()
                     }
                 } label: {
-                    GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    GeneralButton(
+                        placeholder: "Sign Out",
+                        backgroundColor: Color.prim,
+                        foregroundColor: Color.white,
+                        isSystemImage: false
+                    )
                 }
                 .padding(.top, 20)
             }
