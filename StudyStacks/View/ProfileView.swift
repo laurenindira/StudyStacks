@@ -1,3 +1,10 @@
+//
+//  ProfileView.swift
+//  StudyStacks
+//
+//  Created by Brady Katler on 3/25/25.
+//
+
 import SwiftUI
 
 struct ProfileView: View {
@@ -11,8 +18,15 @@ struct ProfileView: View {
         return formatter.string(from: date)
     }
 
+    private var userInitials: String {
+        let name = auth.user?.displayName ?? ""
+        let components = name.split(separator: " ")
+        let initials = components.prefix(2).compactMap { $0.first }
+        return initials.map { String($0) }.joined().uppercased()
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .center, spacing: 20) {
             // Top Bar with Settings
             HStack {
                 Spacer()
@@ -27,88 +41,76 @@ struct ProfileView: View {
             .padding(.top, 12)
 
             // Profile Section
-            HStack {
+            HStack(alignment: .center, spacing: 16) {
                 ZStack {
                     Circle()
-                        .frame(width: 90, height: 90)
-                        .foregroundColor(.white)
-
-                    Image(systemName: "person.fill")
-                        .resizable()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.black)
-                }
-                .overlay(
-                    Circle()
-                        .stroke(Color.black, lineWidth: 4)
-                )
-                .padding(.leading, 12)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(auth.user?.displayName ?? "Display Name")
+                        .fill(Color("background"))
+                        .frame(width: 72, height: 72)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.black.opacity(0.1), lineWidth: 2)
+                        )
+                    Text(userInitials.isEmpty ? "??" : userInitials)
                         .font(.title)
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(.black)
+                }
 
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(auth.user?.displayName ?? "Unknown User")
+                        .font(.system(size: 22, weight: .bold))
                     Text("@\(auth.user?.username ?? "username")")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.black)
-
+                        .font(.system(size: 16, weight: .semibold))
                     Text("Member since \(formattedDate)")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .foregroundStyle(.gray)
                 }
-                .padding(.leading, 30)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal)
-            .padding(.vertical, 8)
 
-            // Stats
-            HStack {
+            // Stats Container
+            HStack(spacing: 40) {
                 VStack {
-                    Image(systemName: "doc.on.doc.fill")
+                    Image(systemName: "sparkles")
                         .resizable()
                         .frame(width: 22, height: 22)
-                        .foregroundColor(Color(red: 134/255, green: 157/255, blue: 234/255))
-                    Text("\(stackVM.stacks.count) stacks")
-                        .font(.footnote)
+                        .foregroundColor(Color("stacksblue"))
+
+                    // TODO: Replace hardcoded streak value with actual user data in future PR
+                    Text("126 days")
+                        .font(.subheadline)
                         .foregroundColor(.black)
                 }
-                .frame(maxWidth: .infinity)
 
                 VStack {
-                    Image(systemName: "clock.arrow.circlepath")
+                    Image(systemName: "square.stack.3d.up")
                         .resizable()
                         .frame(width: 22, height: 22)
-                        .foregroundColor(Color(red: 134/255, green: 157/255, blue: 234/255))
-                    Text("Reminder: \(auth.user?.studyReminderTime.formatted(date: .omitted, time: .shortened) ?? "None")")
-                        .font(.footnote)
+                        .foregroundColor(Color("stacksblue"))
+
+                    // ✅ Corrected: use userStacks
+                    Text("\(stackVM.userStacks.count) stacks")
+                        .font(.subheadline)
                         .foregroundColor(.black)
                 }
-                .frame(maxWidth: .infinity)
 
                 VStack {
-                    Image(systemName: "graduationcap")
+                    Image(systemName: "medal")
                         .resizable()
                         .frame(width: 22, height: 22)
-                        .foregroundColor(Color(red: 134/255, green: 157/255, blue: 234/255))
-                    Text(auth.user?.studentType ?? "Unknown")
-                        .font(.footnote)
+                        .foregroundColor(Color("stacksblue"))
+                    Text("2 badges")
+                        .font(.subheadline)
                         .foregroundColor(.black)
                 }
-                .frame(maxWidth: .infinity)
             }
-            .padding(20)
-            .background(Color(red: 225/255, green: 238/255, blue: 244/255))
-            .cornerRadius(12)
+            .padding()
+            .background(Color("background"))
+            .cornerRadius(20)
             .padding(.horizontal)
-            .padding(.top, 4)
 
             Spacer()
         }
-        .padding(.top, 16)
     }
 }
 
