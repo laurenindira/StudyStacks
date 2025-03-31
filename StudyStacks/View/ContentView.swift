@@ -1,3 +1,10 @@
+//
+//  ContentView.swift
+//  StudyStacks
+//
+//  Created by Lauren Indira on 2/9/25.
+//
+
 import SwiftUI
 
 enum Page {
@@ -18,32 +25,24 @@ struct ContentView: View {
             if !isSignedIn {
                 SplashView()
             } else {
-                VStack(spacing: 0) {
-                    // Page Content
-                    ZStack {
-                        switch selectedPage {
-                        case .dashboard:
-                            Dashboard()
-                        case .profile:
-                            ProfileView()
-                        case .library:
-                            LibraryView()
+                TabView(selection: $selectedPage) {
+                    Dashboard()
+                        .tabItem {
+                            Label("Dashboard", systemImage: "rectangle.stack.fill")
                         }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .tag(Page.dashboard)
 
-                    // Custom Bottom Nav Bar
-                    HStack {
-                        Spacer()
-                        bottomNavButton(label: "Dashboard", systemImage: "rectangle.stack.fill", page: .dashboard)
-                        Spacer()
-                        bottomNavButton(label: "Profile", systemImage: "person.crop.circle", page: .profile)
-                        Spacer()
-                        bottomNavButton(label: "Library", systemImage: "book.closed.fill", page: .library)
-                        Spacer()
-                    }
-                    .padding(.vertical, 10)
-                    .background(Color(UIColor.systemGray6))
+                    ProfileView()
+                        .tabItem {
+                            Label("Profile", systemImage: "person.crop.circle")
+                        }
+                        .tag(Page.profile)
+
+                    LibraryView()
+                        .tabItem {
+                            Label("Library", systemImage: "book.closed.fill")
+                        }
+                        .tag(Page.library)
                 }
                 .environmentObject(auth)
                 .environmentObject(stackVM)
@@ -51,7 +50,7 @@ struct ContentView: View {
         }
     }
 
-    // Custom button for bottom nav
+    // Custom button for bottom nav — no longer used but kept here in case you want to bring it back later
     @ViewBuilder
     private func bottomNavButton(label: String, systemImage: String, page: Page) -> some View {
         Button(action: {
