@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct FriendRow: View {
-    var user: User
+    @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
+    
+    var friend: Friend
     var isRequest: Bool
     
     var body: some View {
@@ -18,20 +22,19 @@ struct FriendRow: View {
                 .frame(width: 50, height: 50)
             
             VStack(alignment: .leading) {
-                Text(user.displayName)
+                Text(friend.displayName)
                     .font(.headline)
-                Text("@\(user.username)")
+                Text("@\(friend.username)")
                     .font(.body)
-                //TODO: add in friend connection
-                Text("friend since XXXX")
-                    .font(.caption)
             }
             Spacer()
             
             //IF REQUESTS
             if isRequest {
                 Button {
-                    //TODO: accept function
+                    Task {
+                        await friendVM.acceptFriendRequest(senderID: friend.id)
+                    }
                 } label: {
                     Text("accept")
                         .font(.callout)
@@ -44,7 +47,9 @@ struct FriendRow: View {
                 }
                 
                 Button {
-                    //TODO: deny function
+                    Task {
+                        await friendVM.rejectFriendRequest(senderID: friend.id)
+                    }
                 } label: {
                     Text("deny")
                         .font(.callout)
@@ -67,5 +72,8 @@ struct FriendRow: View {
 }
 
 #Preview {
-    FriendRow(user: User(id: "", username: "testName", displayName: "john doe", email: "jdoe@gmail.com", profilePicture: "", creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: ["Chemistry", "Biology"], studyReminderTime: Date(), studentType: "Undergraduate", currentStreak: 4, longestStreak: 10, lastStudyDate: Date()), isRequest: false)
+    FriendRow(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5), isRequest: false)
+        .environmentObject(AuthViewModel())
+        .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }

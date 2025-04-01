@@ -10,8 +10,10 @@ import SwiftUI
 struct PublicProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     
-    var user: User
+    var friend: Friend
+    @State var friendCount: Int = 0
     
     var body: some View {
         NavigationStack {
@@ -23,11 +25,11 @@ struct PublicProfileView: View {
                             .font(.system(size: 90))
                         
                         VStack (alignment: .leading) {
-                            Text(user.displayName)
+                            Text(friend.displayName)
                                 .customHeading(.title)
-                            Text("@\(user.username)")
+                            Text("@\(friend.username)")
                                 .font(.headline)
-                            Text("Member since \(user.creationDate.formatted(Date.FormatStyle().year(.defaultDigits)))")
+                            Text("Member since \(friend.creationDate.formatted(Date.FormatStyle().year(.defaultDigits)))")
                         }
                         Spacer()
                     }
@@ -39,7 +41,7 @@ struct PublicProfileView: View {
                             Image(systemName: "fireworks")
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.sec)
-                            Text("\(String(user.currentStreak)) days")
+                            Text("\(String(friend.currentStreak)) days")
                                 .font(.body)
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.25)
@@ -49,18 +51,18 @@ struct PublicProfileView: View {
                             Image(systemName: "square.stack")
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.sec)
-                            //TODO: add in count for how many stacks... figure out a way to do this without making a million and one calls. search public stacks if user.id == creator id?
-                            Text("XX stacks")
+                            Text("\(friendStacks.count) stacks")
                                 .font(.body)
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.25)
                         
-                        //BADGES
+                        //FRIENDS
                         VStack (alignment: .center, spacing: 2) {
-                            Image(systemName: "medal")
+                            Image(systemName: "person.3.fill")
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.sec)
-                            Text("XX badges")
+                                .padding(.vertical, 5)
+                            Text("\(friendCount) friends")
                                 .font(.body)
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.25)
@@ -72,20 +74,46 @@ struct PublicProfileView: View {
                     }
                     
                     //STACKS
-                    Text("\(user.displayName)'s Stacks")
+                    Text("\(friend.displayName)'s Stacks")
                         .customHeading(.title2)
                     VStack {
-                        //TODO: forEach with each user stack. again, add these in once functions are written
+                        if friendStacks.isEmpty {
+                            ErrorView(errorMessage: "Womp womp... Looks like there aren't any stacks here right now :/", imageName: "empty-box", isSystemImage: false)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        } else {
+                            ForEach(friendStacks, id: \.self) { stack in
+                                // TODO: add in check for if card is favorite
+                                NavigationLink {
+                                    StackDetailView(stack: stack)
+                                } label: {
+                                    StackCardView(stack: stack, isFavorite: true)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
                     }
                 }
                 .padding()
+                .onAppear {
+                    Task {
+                        friendCount = await friendVM.getFriendCount(userID: friend.id)
+                    }
+                }
             }
         }
     }
+    
+    
+    var friendStacks: [Stack] {
+        return stackVM.publicStacks.filter { $0.creatorID == friend.id }
+    }
+    
 }
 
 #Preview {
-    PublicProfileView(user: User(id: "", username: "testName", displayName: "john doe", email: "jdoe@gmail.com", profilePicture: "", creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: ["Chemistry", "Biology"], studyReminderTime: Date(), studentType: "Undergraduate", currentStreak: 4, longestStreak: 10, lastStudyDate: Date()))
+    PublicProfileView(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5))
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }

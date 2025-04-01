@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     @AppStorage("isSignedIn") var isSignedIn = false
     
     var body: some View {
@@ -33,6 +34,14 @@ struct ContentView: View {
                         .tabItem {
                             Label("Library", systemImage: "square.stack.3d.up.fill")
                         }
+                    
+                    FriendManagerView()
+                        .environmentObject(auth)
+                        .environmentObject(stackVM)
+                        .environmentObject(friendVM)
+                        .tabItem {
+                            Label("Social", systemImage: "person.3")
+                        }
                 }
             }
         }
@@ -43,4 +52,5 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }
