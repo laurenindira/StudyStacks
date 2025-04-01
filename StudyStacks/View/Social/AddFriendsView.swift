@@ -69,9 +69,11 @@ struct AddFriendsView: View {
         let (success, errorMessage) = await friendVM.sendFriendRequest(toEmail: email)
         
         if success {
+            alertMessage = errorMessage
+            showAlert = true
             dismiss()
         } else {
-            alertMessage = errorMessage ?? ""
+            alertMessage = errorMessage
             showAlert = true
         }
     }

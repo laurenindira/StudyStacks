@@ -53,8 +53,6 @@ class FriendsViewModel: ObservableObject {
             let querySnapshot = try await db.collectionGroup("users").whereField("id", in: friendIDs).getDocuments()
             let friendInfo = querySnapshot.documents.compactMap { try? $0.data(as: Friend.self) }
             self.friends = friendInfo
-            
-            print("FRIENDS: \(friends)")
             self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -83,7 +81,6 @@ class FriendsViewModel: ObservableObject {
             guard let data = snapshot.data() else { return }
             
             if let receivedIDs = data["receivedRequests"] as? [String], !receivedIDs.isEmpty {
-                print("RECEVIED IDS: \(receivedIDs)")
                 let querySnapshot = try await db.collection("users").whereField("id", in: receivedIDs).getDocuments()
                 self.receivedRequests = querySnapshot.documents.compactMap { try? $0.data(as: Friend.self) }
             } else {
@@ -91,7 +88,6 @@ class FriendsViewModel: ObservableObject {
             }
             
             self.sentRequests = data["sentRequests"] as? [String] ?? []
-            print("RECIEVED REQUESTS: \(receivedRequests)")
             self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -101,7 +97,7 @@ class FriendsViewModel: ObservableObject {
     }
     
     //SENDING REQUESTS
-    func sendFriendRequest(toEmail: String) async -> (Bool, String?) {
+    func sendFriendRequest(toEmail: String) async -> (Bool, String) {
         self.isLoading = true
         
         guard let senderID = auth.user?.id else {
@@ -115,6 +111,11 @@ class FriendsViewModel: ObservableObject {
         if let existingFriend = friends.first(where: { $0.email == toEmail }) {
             self.isLoading = false
             return (false, "You are already friends with \(existingFriend.displayName)")
+        }
+        
+        if toEmail == auth.user?.email {
+            self.isLoading = false
+            return(false, "You can't add yourself as a friend... Good try!")
         }
         
         //sending request if not friends already
@@ -134,7 +135,7 @@ class FriendsViewModel: ObservableObject {
             try await senderRef.updateData(["sentRequests": FieldValue.arrayUnion([recipientID])])
             try await recipientRef.updateData(["receivedRequests": FieldValue.arrayUnion([senderID])])
             self.isLoading = false
-            return (true, nil)
+            return (true, "Request sent!")
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed to send friend requests - \(String(describing: errorMessage))")
@@ -200,6 +201,7 @@ class FriendsViewModel: ObservableObject {
             try await userRef.updateData(["receivedRequests": FieldValue.arrayRemove([senderID])])
             try await senderRef.updateData(["sentRequests": FieldValue.arrayRemove([userID])])
             await fetchFriendRequests(userID: userID)
+            print("REJECTED REQUEST")
             self.isLoading = false
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription

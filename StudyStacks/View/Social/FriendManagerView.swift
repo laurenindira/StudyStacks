@@ -75,7 +75,10 @@ struct FriendManagerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { addingFriends = true }) {
-                        Image(systemName: "person.fill.badge.plus")
+                        HStack {
+                            Image(systemName: "person.fill.badge.plus")
+                            Text("Add a friend")
+                        }
                     }
                 }
             }
@@ -84,8 +87,10 @@ struct FriendManagerView: View {
             }
             .onAppear {
                 Task {
+                    await stackVM.fetchPublicStacks()
                     await friendVM.fetchFriends(userID: auth.user?.id)
                     await friendVM.fetchFriendRequests(userID: auth.user?.id)
+                    
                 }
             }
         }

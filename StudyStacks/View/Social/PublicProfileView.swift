@@ -97,6 +97,7 @@ struct PublicProfileView: View {
                 .padding()
                 .onAppear {
                     Task {
+                        
                         friendCount = await friendVM.getFriendCount(userID: friend.id)
                     }
                 }
