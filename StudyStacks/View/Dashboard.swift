@@ -48,7 +48,9 @@ struct Dashboard: View {
             }
             .onAppear {
                 Task {
+                    //TODO: modify this to only load once on app launch instead of every time you go to dashboard
                     await friendVM.fetchFriends(userID: auth.user?.id)
+                    await friendVM.fetchFriendRequests(userID: auth.user?.id)
                     //await stackVM.fetchPublicStacks()
                 }
             }

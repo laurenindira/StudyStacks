@@ -229,6 +229,38 @@ class FriendsViewModel: ObservableObject {
         }
     }
     
+    //REMOVING FRIENDS
+    func removeFriend(toRemove: String) async -> (Bool, String?) {
+        self.isLoading = true
+        
+        guard let userID = auth.user?.id else {
+            self.errorMessage = "ERROR: user not logged in"
+            print("ERROR: user not logged in")
+            self.isLoading = false
+            return (false, "user not logged in")
+        }
+        
+        let userRef = db.collection("friendships").document(userID)
+        let friendRef = db.collection("friendships").document(toRemove)
+        
+        do {
+            try await userRef.updateData(["friends": FieldValue.arrayRemove([toRemove])])
+            try await friendRef.updateData(["friends": FieldValue.arrayRemove([userID])])
+            
+            DispatchQueue.main.async {
+                self.friends.removeAll { $0.id == toRemove }
+            }
+            
+            self.isLoading = false
+            return (true, "friend removed")
+        } catch let error as NSError {
+            self.isLoading = false
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to remove friend -\(String(describing: errorMessage))")
+            return (false, "Whoops, we couldn't remove this friend")
+        }
+    }
+    
     //CLEARING FRIENDS ON SIGN OUT
     func clearFriendshipLocally() {
         friends = []

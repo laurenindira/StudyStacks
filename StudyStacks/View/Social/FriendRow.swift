@@ -15,6 +15,9 @@ struct FriendRow: View {
     var friend: Friend
     var isRequest: Bool
     
+    @State private var showAlert = false
+    @State private var friendToRemove: Friend?
+    
     var body: some View {
         HStack(spacing: 15) {
             //USER INFO
@@ -60,6 +63,15 @@ struct FriendRow: View {
                                 .stroke()
                         }
                 }
+            } else {
+                Button {
+                    friendToRemove = friend
+                    showAlert = true
+                } label: {
+                    Image(systemName: "trash.circle")
+                        .foregroundStyle(Color.error)
+                        .font(.title2)
+                }
             }
         }
         .padding()
@@ -67,6 +79,19 @@ struct FriendRow: View {
         .background {
             RoundedRectangle(cornerRadius: 20)
                 .fill(.surface)
+        }
+        .alert("Remove Friend", isPresented: $showAlert, presenting: friendToRemove) { removal in
+            Button("Cancel", role: .cancel) {}
+            Button("Remove", role: .destructive) {
+                Task {
+                    let (success, errorMessage) = await friendVM.removeFriend(toRemove: removal.id)
+                    if !success {
+                        print(errorMessage ?? "unknown error")
+                    }
+                }
+            }
+        } message: { removal in
+            Text("Are you sure you want to remove \(removal.displayName) from your friends?")
         }
     }
 }
