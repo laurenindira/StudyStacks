@@ -7,34 +7,62 @@
 
 import SwiftUI
 
+enum Page {
+    case dashboard
+    case profile
+    case library
+}
+
 struct ContentView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @AppStorage("isSignedIn") var isSignedIn = false
-    
+
+    @State private var selectedPage: Page = .dashboard
+
     var body: some View {
         Group {
             if !isSignedIn {
                 SplashView()
-                    .environmentObject(auth)
-                    .environmentObject(stackVM)
             } else {
-                TabView() {
+                TabView(selection: $selectedPage) {
                     Dashboard()
-                        .environmentObject(auth)
-                        .environmentObject(stackVM)
                         .tabItem {
-                            Label("Dashboard", systemImage: "house")
+                            Label("Dashboard", systemImage: "rectangle.stack.fill")
                         }
-                    
+                        .tag(Page.dashboard)
+
+                    ProfileView()
+                        .tabItem {
+                            Label("Profile", systemImage: "person.crop.circle")
+                        }
+                        .tag(Page.profile)
+
                     LibraryView()
-                        .environmentObject(auth)
-                        .environmentObject(stackVM)
                         .tabItem {
-                            Label("Library", systemImage: "square.stack.3d.up.fill")
+                            Label("Library", systemImage: "book.closed.fill")
                         }
+                        .tag(Page.library)
                 }
+                .environmentObject(auth)
+                .environmentObject(stackVM)
             }
+        }
+    }
+
+    // Custom button for bottom nav — no longer used but kept here in case you want to bring it back later
+    @ViewBuilder
+    private func bottomNavButton(label: String, systemImage: String, page: Page) -> some View {
+        Button(action: {
+            selectedPage = page
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 20))
+                Text(label)
+                    .font(.caption)
+            }
+            .foregroundColor(selectedPage == page ? Color.accentColor : .gray)
         }
     }
 }
