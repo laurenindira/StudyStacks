@@ -91,6 +91,11 @@ struct CardStackView: View {
                         .zIndex(isTopCard ? 1 : 0)
                         .offset(x: isTopCard ? dragState.width : 0)
                         .rotationEffect(.degrees(isTopCard ? Double(dragState.width) / rotationFactor : 0))
+                        .shadow(
+                            color: getShadowColor(for: dragState),
+                            radius: isTopCard ? 10 : 0,
+                            x: 0, y: 5
+                        )
                         .gesture(
                             DragGesture()
                                 .onChanged { gesture in
@@ -209,9 +214,17 @@ struct CardStackView: View {
                 stackID: stack.id
             )
         }
-
-        // no animation to remove
         swipeVM.removeTopCard()
+    }
+    
+    private func getShadowColor(for offset: CGSize) -> Color {
+        if offset.width > 0 {
+            return Color.green.opacity(0.3)
+        } else if offset.width < 0 {
+            return Color.red.opacity(0.3)
+        } else {
+            return Color.clear
+        }
     }
 
 }

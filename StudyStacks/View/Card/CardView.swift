@@ -68,52 +68,7 @@ struct CardView: View {
             presenter.flipButtonTapped()
         }
         .frame(width: 340, height: 524)
-        
-//        Spacer()
-
-        // remember it section
-//        VStack {
-//            
-//            Spacer()
-//            
-//            HStack {
-//                Button(action: {
-//                    // TODO: Add thumbs-down action, save to firebase
-//                }) {
-//                    Image(systemName: "hand.thumbsdown.circle")
-//                        .resizable()
-//                        .frame(width: 50, height: 50)
-//                        .foregroundColor(.red)
-//                }
-//                
-//                Text("remember it?")
-//                    .font(.body)
-//                    .foregroundColor(.black)
-//                    .padding(.horizontal)
-//                
-//                Button(action: {
-//                    // TODO: Add thumbs-up action, save to firebase
-//                }) {
-//                    Image(systemName: "hand.thumbsup.circle")
-//                        .resizable()
-//                        .frame(width: 50, height: 50)
-//                        .foregroundColor(.green)
-//                }
-//            }
-//            .padding(.bottom, 40)
-//        }
     }
-    
-    private func getShadowColor() -> Color {
-        if dragOffset.width > 0 {
-            return Color.green.opacity(0.5) // Right swipe shadow (remember)
-        } else if dragOffset.width < 0 {
-            return Color.red.opacity(0.5) // Left swipe shadow (dont remember)
-        } else {
-            return Color.gray.opacity(0.2)
-        }
-    }
-
 }
 
 #Preview {
