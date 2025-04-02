@@ -16,7 +16,6 @@ struct CardStackView: View {
     @ObservedObject var swipeVM: SwipeableCardsViewModel
     @ObservedObject var forgottenCardsVM: ForgottenCardsViewModel
 
-    @State private var isFlippingCard = false
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
     @State private var forgottenCount: Int = 0
@@ -63,7 +62,7 @@ struct CardStackView: View {
                     
                     NavigationLink(destination: StackDetailView(stack: stack)) {
                         GeneralButton(
-                            placeholder: "Return to Main",
+                            placeholder: "Return to Stack Overview",
                             backgroundColor: Color.prim,
                             foregroundColor: Color.white,
                             isSystemImage: false
@@ -82,7 +81,6 @@ struct CardStackView: View {
                         
                         CardView(
                             presenter: FlipCardPresenter(),
-                            isFlipping: $isFlippingCard,
                             card: card,
                             stack: stack,
                             dragOffset: dragState,
@@ -96,37 +94,35 @@ struct CardStackView: View {
                         .gesture(
                             DragGesture()
                                 .onChanged { gesture in
-                                    if isTopCard && !isFlippingCard {
+                                    if isTopCard {
                                         dragState = gesture.translation
                                     }
                                 }
                                 .onEnded { _ in
-                                    if isTopCard && !isFlippingCard {
-                                        if abs(dragState.width) > swipeThreshold {
-                                            let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
-                                            let remembered = direction == .right
+                                    if abs(dragState.width) > swipeThreshold {
+                                        let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
+                                        let remembered = direction == .right
 
-                                            print("🧠 Swiped \(remembered ? "REMEMBERED" : "FORGOTTEN") → \(card.front)")
+                                        print("🧠 Swiped \(remembered ? "REMEMBERED" : "FORGOTTEN") → \(card.front)")
 
-                                            withAnimation(.easeOut(duration: 0.5)) {
-                                                dragState.width = dragState.width > 0 ? 1000 : -1000
-                                            }
+                                        withAnimation(.easeOut(duration: 0.5)) {
+                                            dragState.width = dragState.width > 0 ? 1000 : -1000
+                                        }
 
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                                if (auth.user?.id) != nil {
-                                                    forgottenCardsVM.updateCardStatus(
-                                                        cardID: card.id,
-                                                        remembered: remembered,
-                                                        stackID: stack.id
-                                                    )
-                                                }
-                                                swipeVM.removeTopCard()
-                                                dragState = .zero
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            if (auth.user?.id) != nil {
+                                                forgottenCardsVM.updateCardStatus(
+                                                    cardID: card.id,
+                                                    remembered: remembered,
+                                                    stackID: stack.id
+                                                )
                                             }
-                                        } else {
-                                            withAnimation {
-                                                dragState = .zero
-                                            }
+                                            swipeVM.removeTopCard()
+                                            dragState = .zero
+                                        }
+                                    } else {
+                                        withAnimation {
+                                            dragState = .zero
                                         }
                                     }
                                 }
@@ -137,13 +133,13 @@ struct CardStackView: View {
             }
             Spacer()
             
-            //remember it section
+            // remember it section
             VStack {
                 Spacer()
 
                 HStack {
                     Button(action: {
-                        // TODO: Add thumbs-down action, save to firebase
+                        handleButtonSwipe(direction: .left)
                     }) {
                         Image(systemName: "hand.thumbsdown.circle")
                             .resizable()
@@ -157,7 +153,7 @@ struct CardStackView: View {
                         .padding(.horizontal)
 
                     Button(action: {
-                        // TODO: Add thumbs-up action, save to firebase
+                        handleButtonSwipe(direction: .right)
                     }) {
                         Image(systemName: "hand.thumbsup.circle")
                             .resizable()
@@ -198,6 +194,24 @@ struct CardStackView: View {
         } else {
             print("⚠️ No user ID available")
         }
+    }
+    
+    private func handleButtonSwipe(direction: CardView.SwipeDirection) {
+        guard let topCard = swipeVM.unswipedCards.first else { return }
+
+        let remembered = direction == .right
+        print("Button tapped → \(remembered ? "REMEMBERED ✅" : "FORGOTTEN ❌") for \(topCard.front)")
+
+        if let _ = auth.user?.id {
+            forgottenCardsVM.updateCardStatus(
+                cardID: topCard.id,
+                remembered: remembered,
+                stackID: stack.id
+            )
+        }
+
+        // no animation to remove
+        swipeVM.removeTopCard()
     }
 
 }

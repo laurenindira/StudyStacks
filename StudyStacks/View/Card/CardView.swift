@@ -16,8 +16,6 @@ struct CardView: View {
     
     @ObservedObject var presenter: FlipCardPresenter
     
-    @Binding var isFlipping: Bool
-    
     enum SwipeDirection {
         case left, right, none
     }
@@ -67,13 +65,7 @@ struct CardView: View {
         .rotation3DEffect(.degrees(presenter.isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
         .animation(.default, value: presenter.isFlipped)
         .onTapGesture {
-            isFlipping = true
             presenter.flipButtonTapped()
-            
-        // Swiping works after flip animation finishes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                isFlipping = false
-            }
         }
         .frame(width: 340, height: 524)
         
@@ -112,7 +104,6 @@ struct CardView: View {
 //        }
     }
     
-    // TODO: fix shadow color swipes
     private func getShadowColor() -> Color {
         if dragOffset.width > 0 {
             return Color.green.opacity(0.5) // Right swipe shadow (remember)
@@ -128,7 +119,6 @@ struct CardView: View {
 #Preview {
     CardView(
         presenter: FlipCardPresenter(),
-        isFlipping: .constant(false), // fixed
         card: Card(id: "1", front: "agile methodologies", back: "scrum"),
         stack: Stack(
             id: "1",
@@ -148,4 +138,3 @@ struct CardView: View {
     .environmentObject(AuthViewModel())
     .environmentObject(StackViewModel())
 }
-

@@ -19,10 +19,10 @@ struct StudyStacksApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(stackVM)
-                .environmentObject(auth)
-//                .environmentObject(StackViewModel())
-                .environmentObject(forgottenCardsVM)
+                .environmentObject(StackViewModel())
+                .environmentObject(AuthViewModel())
+                .environmentObject(StackViewModel())
+                .environmentObject(ForgottenCardsViewModel())
         }
     }
 }
