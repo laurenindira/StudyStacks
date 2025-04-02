@@ -71,13 +71,17 @@ struct CardStackView: View {
                     .padding(.horizontal, 80)
                 }
             } else {
-                let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
+//                let topCardID = swipeVM.unswipedCards.first?.id
+//                let secondCardID = swipeVM.unswipedCards.dropFirst().first?.id
+//                let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
                 
                 ZStack(alignment: .top) {
-                    ForEach(reversedIndices, id: \.self) { index in
-                        let isTopCard = index == reversedIndices.last
-                        let isSecondCard = index == swipeVM.unswipedCards.indices.dropLast().last
-                        let card = swipeVM.unswipedCards[index]
+                    ForEach(swipeVM.unswipedCards.reversed(), id: \.id) { card in
+                        let isTopCard = card.id == swipeVM.unswipedCards.first?.id
+                        let isSecondCard = card.id == swipeVM.unswipedCards.dropFirst().first?.id
+//                        let isTopCard = index == reversedIndices.last
+//                        let isSecondCard = index == swipeVM.unswipedCards.indices.dropLast().last
+//                        let card = swipeVM.unswipedCards[index]
                         
                         CardView(
                             presenter: FlipCardPresenter(),
@@ -107,22 +111,22 @@ struct CardStackView: View {
                                     if abs(dragState.width) > swipeThreshold {
                                         let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
                                         let remembered = direction == .right
-
-                                        print("🧠 Swiped \(remembered ? "REMEMBERED" : "FORGOTTEN") → \(card.front)")
+                                        swipeVM.updateTopCardSwipeDirection(direction)
 
                                         withAnimation(.easeOut(duration: 0.5)) {
                                             dragState.width = dragState.width > 0 ? 1000 : -1000
                                         }
-
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            if (auth.user?.id) != nil {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            // BROKEN, won't swipe to the next card
+                                            if let topCard = swipeVM.unswipedCards.first {
+                                                swipeVM.removeTopCard()
                                                 forgottenCardsVM.updateCardStatus(
-                                                    cardID: card.id,
+                                                    cardID: topCard.id,
                                                     remembered: remembered,
                                                     stackID: stack.id
                                                 )
                                             }
-                                            swipeVM.removeTopCard()
+//                                            swipeVM.removeTopCard()
                                             dragState = .zero
                                         }
                                     } else {
@@ -206,24 +210,39 @@ struct CardStackView: View {
 
         let remembered = direction == .right
         print("Button tapped → \(remembered ? "REMEMBERED ✅" : "FORGOTTEN ❌") for \(topCard.front)")
-
-        if let _ = auth.user?.id {
-            forgottenCardsVM.updateCardStatus(
-                cardID: topCard.id,
-                remembered: remembered,
-                stackID: stack.id
-            )
+        
+        withAnimation(.easeOut(duration: 0.3)) {
+            swipeVM.removeTopCard()
         }
-        swipeVM.removeTopCard()
+        
+        // Wait for animation to complete before updating status
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            updateCardMemory(card: topCard, remembered: remembered)
+        }
+        
+//        updateCardMemory(card: topCard, remembered: remembered)
+//        withAnimation(.easeOut(duration: 0.3)) {
+//            swipeVM.removeTopCard()
+//        }
     }
     
     private func getShadowColor(for offset: CGSize) -> Color {
         if offset.width > 0 {
-            return Color.green.opacity(0.3)
+            return Color.green.opacity(0.5)
         } else if offset.width < 0 {
-            return Color.red.opacity(0.3)
+            return Color.red.opacity(0.5)
         } else {
-            return Color.clear
+            return Color.gray.opacity(0.2)
+        }
+    }
+    
+    private func updateCardMemory(card: Card, remembered: Bool) {
+        if (auth.user?.id) != nil {
+            forgottenCardsVM.updateCardStatus(
+                cardID: card.id,
+                remembered: remembered,
+                stackID: stack.id
+            )
         }
     }
 

@@ -11,7 +11,7 @@ class ForgottenCardsViewModel: ObservableObject {
     @Published var localForgottenCards: [String: Set<String>] = [:]
     private var userID: String = ""
 
-    // Load cards for a user (usually called on login or onAppear)
+    // Load cards for a user
     func load(for userID: String) {
         self.userID = userID
         let key = "forgottenCards_\(userID)"
@@ -32,7 +32,7 @@ class ForgottenCardsViewModel: ObservableObject {
         print("Loaded: \(localForgottenCards)")
     }
 
-    // Save to UserDefaults
+    // Locally save to UserDefaults
     private func save() {
         let key = "forgottenCards_\(userID)"
         do {
@@ -44,7 +44,7 @@ class ForgottenCardsViewModel: ObservableObject {
         }
     }
 
-    // Update card status (remembered / not remembered)
+    // Remembered / not remembered
     func updateCardStatus(cardID: String, remembered: Bool, stackID: String) {
         if localForgottenCards[stackID] == nil {
             localForgottenCards[stackID] = []
@@ -52,8 +52,10 @@ class ForgottenCardsViewModel: ObservableObject {
 
         if remembered {
             localForgottenCards[stackID]?.remove(cardID)
+            print("remember card, please remove")
         } else {
             localForgottenCards[stackID]?.insert(cardID)
+            print("forgot cards, please add")
         }
         
         print("📝 Updating card status for cardID: \(cardID), remembered: \(remembered), stackID: \(stackID)")
@@ -66,11 +68,5 @@ class ForgottenCardsViewModel: ObservableObject {
     func getForgottenCards(from allCards: [Card], for stackID: String) -> [Card] {
         let ids = localForgottenCards[stackID] ?? []
         return allCards.filter { ids.contains($0.id) }
-    }
-
-    // Optional: Clear forgotten cards (e.g. on logout)
-    func clear() {
-        localForgottenCards = [:]
-        save()
     }
 }
