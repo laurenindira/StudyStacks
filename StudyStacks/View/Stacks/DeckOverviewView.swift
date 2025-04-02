@@ -18,6 +18,7 @@ struct StackDetailView: View {
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
+    @StateObject private var forgottenCardsVM = ForgottenCardsViewModel()
 
     var body: some View {
         NavigationStack {
@@ -112,10 +113,13 @@ struct StackDetailView: View {
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
 
+                    // Start Studying entire stack
                     NavigationLink(destination: CardStackView(
                         swipeVM: SwipeableCardsViewModel(cards: stack.cards),
+                        forgottenCardsVM: forgottenCardsVM,
                         card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-                        stack: stack)) {
+                        stack: stack
+                    )) {
                         Text("Start Studying")
                             .font(.headline)
                             .foregroundColor(.white)
@@ -125,6 +129,54 @@ struct StackDetailView: View {
                             .cornerRadius(12)
                     }
                     .padding()
+                    
+                    // Forgotten Cards Button
+                    let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+
+                    if forgotten.isEmpty {
+                        Text("Haven't forgotten anything yet!")
+                            .font(.subheadline)
+                            .foregroundColor(Color.prim)
+                    } else {
+                        NavigationLink(destination:
+                            CardStackView(
+                                swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                                forgottenCardsVM: forgottenCardsVM,
+                                card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                stack: stack
+                            )
+                        ) {
+                            Text("Review Forgotten Cards")
+                                .font(.headline)
+                                .foregroundColor(Color.prim)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.prim, lineWidth: 2)
+                                )
+                        }
+                        .padding(.horizontal)
+                    }
+
+//                    NavigationLink(destination: CardStackView(
+//                        swipeVM: SwipeableCardsViewModel(cards: forgottenCardsVM.getForgottenCards(from: stack.cards)),
+//                        forgottenCardsVM: forgottenCardsVM,
+//                        card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+//                        stack: stack
+//                    )) {
+//                        Text("Review Forgotten Cards")
+//                            .font(.headline)
+//                            .foregroundColor(Color.prim)
+//                            .frame(maxWidth: .infinity)
+//                            .padding()
+//                            .background(.white)
+//                            .overlay(
+//                                RoundedRectangle(cornerRadius: 12)
+//                                    .stroke(Color.prim, lineWidth: 2)
+//                            )
+//                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -158,6 +210,12 @@ struct StackDetailView: View {
             } message: {
                 Text("Are you sure you want to delete this deck? This action cannot be undone.")
             }
+            
+            .onAppear {
+                if let userID = AuthViewModel.shared.user?.id {
+                    forgottenCardsVM.load(for: userID)
+                }
+            }
         }
     }
 
@@ -186,6 +244,57 @@ struct StackDetailView: View {
 
 }
 
+//struct StackDetailView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        let mockUser = User(
+//            id: "previewUser123",
+//            username: "preview_user",
+//            displayName: "Preview User",
+//            email: "preview@example.com",
+//            profilePicture: nil,
+//            creationDate: Date(),
+//            lastSignIn: nil,
+//            providerRef: "preview_provider",
+//            selectedSubjects: ["Math", "History"],
+//            studyReminderTime: Date(),
+//            studentType: "College",
+//            currentStreak: 3,
+//            longestStreak: 10,
+//            lastStudyDate: Date()
+//        )
+//
+//        let mockAuth = AuthViewModel()
+//        mockAuth.user = mockUser
+//
+//        let mockStack = Stack(
+//            id: UUID().uuidString,
+//            title: "U.S. States & Capitals",
+//            description: "A deck to learn U.S. states and their capitals",
+//            creator: "Sarah Cameron",
+//            creatorID: "mockCreatorID",
+//            creationDate: Date(),
+//            tags: ["Geography", "States", "Capitals"],
+//            cards: [
+//                Card(id: "1", front: "California", back: "Sacramento"),
+//                Card(id: "2", front: "Texas", back: "Austin"),
+//                Card(id: "3", front: "Florida", back: "Tallahassee"),
+//                Card(id: "4", front: "New York", back: "Albany"),
+//                Card(id: "5", front: "Illinois", back: "Springfield")
+//            ],
+//            isPublic: true
+//        )
+//
+//        let mockStackVM = StackViewModel()
+//        mockStackVM.stacks = [mockStack]
+//
+//        return StackDetailView(stack: mockStack)
+//            .environmentObject(mockStackVM)
+//            .environmentObject(mockAuth)
+//    }
+//}
+
+
+
 struct StackDetailView_Previews: PreviewProvider {
     static var previews: some View {
         let mockStack = Stack(
@@ -213,3 +322,4 @@ struct StackDetailView_Previews: PreviewProvider {
             .environmentObject(mockStackVM)
     }
 }
+

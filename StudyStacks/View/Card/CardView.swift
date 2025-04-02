@@ -16,6 +16,8 @@ struct CardView: View {
     
     @ObservedObject var presenter: FlipCardPresenter
     
+    @Binding var isFlipping: Bool
+    
     enum SwipeDirection {
         case left, right, none
     }
@@ -28,31 +30,6 @@ struct CardView: View {
     var isSecondCard: Bool
 
     var body: some View {
-        
-//        // deck title and close button
-//        VStack {
-//            HStack {
-//                Text(stack.title)
-//                    .customHeading(.title2)
-//                    .bold()
-//                    .padding(.leading, 20)
-//                
-//                Spacer()
-//                
-//                Button(action: {
-//                    dismiss()
-//                }) {
-//                    Image(systemName: "xmark")
-//                        .font(.title2)
-//                        .foregroundColor(.black)
-//                        .padding()
-//                }
-//            }
-//            .padding(.top, 10)
-//            
-//            Spacer()
-//        }
-        
         // card & card flipping
         ZStack {
             // front side, term
@@ -90,7 +67,13 @@ struct CardView: View {
         .rotation3DEffect(.degrees(presenter.isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
         .animation(.default, value: presenter.isFlipped)
         .onTapGesture {
+            isFlipping = true
             presenter.flipButtonTapped()
+            
+        // Swiping works after flip animation finishes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                isFlipping = false
+            }
         }
         .frame(width: 340, height: 524)
         
@@ -129,6 +112,7 @@ struct CardView: View {
 //        }
     }
     
+    // TODO: fix shadow color swipes
     private func getShadowColor() -> Color {
         if dragOffset.width > 0 {
             return Color.green.opacity(0.5) // Right swipe shadow (remember)
@@ -144,6 +128,7 @@ struct CardView: View {
 #Preview {
     CardView(
         presenter: FlipCardPresenter(),
+        isFlipping: .constant(false), // fixed
         card: Card(id: "1", front: "agile methodologies", back: "scrum"),
         stack: Stack(
             id: "1",
@@ -156,10 +141,11 @@ struct CardView: View {
             cards: [],
             isPublic: true
         ),
-        dragOffset: .zero,  // Default to no drag movement
-        isTopCard: true,    // Assume it's the top card for testing
-        isSecondCard: false // Assume it's not the second card
+        dragOffset: .zero,
+        isTopCard: true,
+        isSecondCard: false
     )
     .environmentObject(AuthViewModel())
     .environmentObject(StackViewModel())
 }
+

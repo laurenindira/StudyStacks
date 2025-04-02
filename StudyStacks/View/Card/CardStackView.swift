@@ -14,7 +14,9 @@ struct CardStackView: View {
     @Environment(\.dismiss) var dismiss
 
     @ObservedObject var swipeVM: SwipeableCardsViewModel
+    @ObservedObject var forgottenCardsVM: ForgottenCardsViewModel
 
+    @State private var isFlippingCard = false
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
     
@@ -48,7 +50,7 @@ struct CardStackView: View {
 
             Spacer()
             
-            // when all cards gone, show reset button
+            // when all cards gone, return back to stack overview page
             if swipeVM.unswipedCards.isEmpty {
                 VStack {
                     Spacer()
@@ -58,8 +60,13 @@ struct CardStackView: View {
                         .foregroundColor(.gray)
                         .padding()
                     
-                    Button(action: swipeVM.reset) {
-                        GeneralButton(placeholder: "Reset", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    NavigationLink(destination: StackDetailView(stack: stack)) {
+                        GeneralButton(
+                            placeholder: "Return to Main",
+                            backgroundColor: Color.prim,
+                            foregroundColor: Color.white,
+                            isSystemImage: false
+                        )
                     }
                     .padding(.horizontal, 80)
                 }
@@ -74,6 +81,7 @@ struct CardStackView: View {
                         
                         CardView(
                             presenter: FlipCardPresenter(),
+                            isFlipping: $isFlippingCard,
                             card: card,
                             stack: Stack(id: "", title: "", description: "", creator: "", creatorID: "", creationDate: Date(), tags: [], cards: [], isPublic: false),
                             dragOffset: dragState,
@@ -87,25 +95,37 @@ struct CardStackView: View {
                         .gesture(
                             DragGesture()
                                 .onChanged { gesture in
-                                    if isTopCard {
+                                    if isTopCard && !isFlippingCard {
                                         dragState = gesture.translation
                                     }
                                 }
                                 .onEnded { _ in
-                                    if abs(dragState.width) > swipeThreshold {
-                                        let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
-                                        swipeVM.updateTopCardSwipeDirection(direction)
+                                    if isTopCard && !isFlippingCard {
+                                        if abs(dragState.width) > swipeThreshold {
+                                            let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
+                                            let remembered = direction == .right
 
-                                        withAnimation(.easeOut(duration: 0.5)) {
-                                            dragState.width = dragState.width > 0 ? 1000 : -1000
-                                        }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            swipeVM.removeTopCard()
-                                            dragState = .zero
-                                        }
-                                    } else {
-                                        withAnimation {
-                                            dragState = .zero
+                                            print("🧠 Swiped \(remembered ? "REMEMBERED" : "FORGOTTEN") → \(card.front)")
+
+                                            withAnimation(.easeOut(duration: 0.5)) {
+                                                dragState.width = dragState.width > 0 ? 1000 : -1000
+                                            }
+
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                if (auth.user?.id) != nil {
+                                                    forgottenCardsVM.updateCardStatus(
+                                                        cardID: card.id,
+                                                        remembered: remembered,
+                                                        stackID: stack.id
+                                                    )
+                                                }
+                                                swipeVM.removeTopCard()
+                                                dragState = .zero
+                                            }
+                                        } else {
+                                            withAnimation {
+                                                dragState = .zero
+                                            }
                                         }
                                     }
                                 }
@@ -157,7 +177,7 @@ struct CardStackView: View {
             Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
             Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
         ]),
-        card: Card(id: "1", front: "agile methodologies", back: "scrum"),
+        forgottenCardsVM: ForgottenCardsViewModel(), card: Card(id: "1", front: "agile methodologies", back: "scrum"),
         stack: Stack(
             id: "1",
             title: "bj class",
