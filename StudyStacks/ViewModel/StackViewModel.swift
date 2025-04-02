@@ -16,6 +16,7 @@ class StackViewModel: ObservableObject {
     var stacks: [Stack] = []
     var userStacks: [Stack] = []
     var publicStacks: [Stack] = []
+    var favorites: [String] = []
     var combinedStacks: [Stack] {
         let filteredPublicStacks = publicStacks.filter({ !userStacks.contains($0) })
         return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
@@ -106,6 +107,19 @@ class StackViewModel: ObservableObject {
         }
         
         self.isLoading = false
+    }
+    
+    func isFavorite(_ stack: Stack) -> Bool {
+        return favorites.contains(stack.id)
+    }
+    
+    func toggleFavorite(for stack: Stack) {
+        if isFavorite(stack) {
+            favorites.removeAll { $0 == stack.id }
+        } else {
+            favorites.append(stack.id)
+        }
+       
     }
     
     func updateStack(for userID: String, stackToUpdate: Stack) async {

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct StackDetailView: View {
     var stack: Stack
-    @State private var isFavorited = false
+    @State private var isFavorited: Bool
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
     @State private var isDeleted = false
@@ -18,7 +18,12 @@ struct StackDetailView: View {
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
-
+    
+    init(stack: Stack) {
+        self.stack = stack
+        _isFavorited = State(initialValue: false)
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -141,9 +146,12 @@ struct StackDetailView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { isFavorited.toggle() }) {
+                    Button(action: {
+                        isFavorited.toggle()
+                        stackVM.toggleFavorite(for: stack)
+                    }) {
                         Image(systemName: isFavorited ? "star.fill" : "star")
-                            .foregroundColor(isFavorited ? Color.yellow : Color.gray)
+                            .foregroundColor(isFavorited ? .yellow : .gray)
                             .font(.title2)
                             .padding()
                     }
@@ -155,6 +163,9 @@ struct StackDetailView: View {
             } message: {
                 Text("Are you sure you want to delete this deck? This action cannot be undone.")
             }
+        }
+        .onAppear() {
+            isFavorited = stackVM.isFavorite(stack)
         }
     }
 
