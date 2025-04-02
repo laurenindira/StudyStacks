@@ -112,7 +112,10 @@ struct StackDetailView: View {
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
 
-                    Button(action: {}) {
+                    NavigationLink(destination: CardStackView(
+                        swipeVM: SwipeableCardsViewModel(cards: stack.cards),
+                        card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                        stack: stack)) {
                         Text("Start Studying")
                             .font(.headline)
                             .foregroundColor(.white)
