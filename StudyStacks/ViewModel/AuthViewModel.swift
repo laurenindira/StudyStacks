@@ -18,9 +18,11 @@ class AuthViewModel: NSObject, ObservableObject {
     var user: User? {
         didSet {
             if let currentUser = user {
+                print("✅ Auth user set: \(currentUser.id)")
                 saveUserToCache(currentUser)
                 userDefaults.set(currentUser != nil , forKey: "isSignedIn")
             } else {
+                print("❌ Auth user cleared.")
                 clearUserCache()
             }
         }
@@ -37,18 +39,37 @@ class AuthViewModel: NSObject, ObservableObject {
     var isLoading: Bool = false
     var errorMessage: String?
     
+//    override init() {
+//        guard auth.currentUser != nil else {
+//            self.user = nil
+//            return
+//        }
+//        
+//        if let savedUserData = userDefaults.data(forKey: userKey),
+//           let savedUser = try? JSONDecoder().decode(User.self, from: savedUserData) {
+//            user = savedUser
+//            UserDefaults.standard.set(true, forKey: "isSignedIn")
+//        }
+//    }
+    
     override init() {
-        guard auth.currentUser != nil else {
-            self.user = nil
-            return
-        }
-        
+        super.init()
+
         if let savedUserData = userDefaults.data(forKey: userKey),
            let savedUser = try? JSONDecoder().decode(User.self, from: savedUserData) {
-            user = savedUser
+            self.user = savedUser
             UserDefaults.standard.set(true, forKey: "isSignedIn")
+            print("📦 Cached user loaded: \(savedUser.id)")
+        } else if auth.currentUser != nil {
+            print("🔄 No cached user — fetching from Firebase")
+            Task {
+                await self.loadUserFromFirebase()
+            }
+        } else {
+            print("❌ No logged-in Firebase user found.")
         }
     }
+
     
     //MARK: - Loading User
     private func loadSession() async {

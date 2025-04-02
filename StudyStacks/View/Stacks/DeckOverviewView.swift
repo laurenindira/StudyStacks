@@ -18,7 +18,8 @@ struct StackDetailView: View {
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
-    @StateObject private var forgottenCardsVM = ForgottenCardsViewModel()
+    @EnvironmentObject var forgottenCardsVM: ForgottenCardsViewModel
+    @EnvironmentObject var auth: AuthViewModel
 
     var body: some View {
         NavigationStack {
@@ -159,24 +160,6 @@ struct StackDetailView: View {
                         }
                         .padding(.horizontal)
                     }
-
-//                    NavigationLink(destination: CardStackView(
-//                        swipeVM: SwipeableCardsViewModel(cards: forgottenCardsVM.getForgottenCards(from: stack.cards)),
-//                        forgottenCardsVM: forgottenCardsVM,
-//                        card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-//                        stack: stack
-//                    )) {
-//                        Text("Review Forgotten Cards")
-//                            .font(.headline)
-//                            .foregroundColor(Color.prim)
-//                            .frame(maxWidth: .infinity)
-//                            .padding()
-//                            .background(.white)
-//                            .overlay(
-//                                RoundedRectangle(cornerRadius: 12)
-//                                    .stroke(Color.prim, lineWidth: 2)
-//                            )
-//                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -212,10 +195,35 @@ struct StackDetailView: View {
             }
             
             .onAppear {
-                if let userID = AuthViewModel.shared.user?.id {
+                print("📦 View appeared for stack \(stack.id)")
+                if let userID = auth.user?.id {
+                    print("✅ User already set: \(userID)")
+                    forgottenCardsVM.load(for: userID)
+                } else {
+                    print("⏳ Waiting for user...")
+                }
+            }
+
+            .onChange(of: auth.user?.id) {
+                if let userID = auth.user?.id {
+                    print("✅ User ID now available (onChange): \(userID)")
                     forgottenCardsVM.load(for: userID)
                 }
             }
+
+
+            
+//            .onAppear {
+//                print("StackDetailView appeared for stack: \(stack.id)")
+//                if let userID = auth.user?.id {
+//                    print("Loading forgotten cards for user: \(userID)")
+//                    forgottenCardsVM.load(for: userID)
+//                    let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+//                    print("Found \(forgotten.count) forgotten cards for stack: \(stack.id)")
+//                } else {
+//                    print("No user ID available")
+//                }
+//            }
         }
     }
 
@@ -223,14 +231,11 @@ struct StackDetailView: View {
     
     private func deleteStack() {
         Task {
-            
             await stackVM.deleteStack(stack)
-            
             
             if let index = stackVM.stacks.firstIndex(where: { $0.id == stack.id }) {
                 stackVM.stacks.remove(at: index)
             }
-            
             
             await MainActor.run {
                 isDeleted = true

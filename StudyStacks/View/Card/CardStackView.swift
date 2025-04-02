@@ -19,6 +19,7 @@ struct CardStackView: View {
     @State private var isFlippingCard = false
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
+    @State private var forgottenCount: Int = 0
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -83,7 +84,7 @@ struct CardStackView: View {
                             presenter: FlipCardPresenter(),
                             isFlipping: $isFlippingCard,
                             card: card,
-                            stack: Stack(id: "", title: "", description: "", creator: "", creatorID: "", creationDate: Date(), tags: [], cards: [], isPublic: false),
+                            stack: stack,
                             dragOffset: dragState,
                             isTopCard: isTopCard,
                             isSecondCard: isSecondCard
@@ -168,28 +169,113 @@ struct CardStackView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            print("📦 CardStackView appeared for stack \(stack.id)")
+            if let userID = auth.user?.id {
+                print("✅ User already set: \(userID)")
+                forgottenCardsVM.load(for: userID)
+            } else {
+                print("⏳ Waiting for user...")
+            }
+        }
+        .onChange(of: auth.user?.id) {
+            if let userID = auth.user?.id {
+                print("✅ User ID now available (onChange): \(userID)")
+                forgottenCardsVM.load(for: userID)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            loadForgottenCards()
+        }
     }
+
+    private func loadForgottenCards() {
+        if let userID = auth.user?.id {
+            forgottenCardsVM.load(for: userID)
+            let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+            forgottenCount = forgotten.count
+            print("🧠 Forgotten cards loaded: \(forgottenCount)")
+        } else {
+            print("⚠️ No user ID available")
+        }
+    }
+
 }
 
 #Preview {
-    CardStackView(
-        swipeVM: SwipeableCardsViewModel(cards: [
-            Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
-            Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
-        ]),
-        forgottenCardsVM: ForgottenCardsViewModel(), card: Card(id: "1", front: "agile methodologies", back: "scrum"),
-        stack: Stack(
-            id: "1",
-            title: "bj class",
-            description: "project management",
-            creator: "jane",
-            creatorID: "",
-            creationDate: Date(),
-            tags: ["cs"],
-            cards: [],
-            isPublic: true
-        )
+    let mockCards = [
+        Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
+        Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
+    ]
+
+    let mockStack = Stack(
+        id: "1",
+        title: "bj class",
+        description: "project management",
+        creator: "jane",
+        creatorID: "",
+        creationDate: Date(),
+        tags: ["cs"],
+        cards: mockCards,
+        isPublic: true
     )
-    .environmentObject(AuthViewModel())
+
+    let mockSwipeVM = SwipeableCardsViewModel(cards: mockCards)
+
+    let mockForgottenVM = ForgottenCardsViewModel()
+    mockForgottenVM.localForgottenCards = [
+        "1": ["2"]
+    ]
+
+    let mockAuth = AuthViewModel()
+    mockAuth.user = User(
+        id: "previewUser123",
+        username: "preview_user",
+        displayName: "Preview User",
+        email: "preview@example.com",
+        profilePicture: nil,
+        creationDate: Date(),
+        lastSignIn: nil,
+        providerRef: "preview_provider",
+        selectedSubjects: ["Math", "CS"],
+        studyReminderTime: Date(),
+        studentType: "College",
+        currentStreak: 1,
+        longestStreak: 2,
+        lastStudyDate: Date()
+    )
+
+    return CardStackView(
+        swipeVM: mockSwipeVM,
+        forgottenCardsVM: mockForgottenVM,
+        card: mockCards.first!,
+        stack: mockStack
+    )
+    .environmentObject(mockAuth)
     .environmentObject(StackViewModel())
 }
+
+
+
+//#Preview {
+//    CardStackView(
+//        swipeVM: SwipeableCardsViewModel(cards: [
+//            Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
+//            Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
+//        ]),
+//        forgottenCardsVM: ForgottenCardsViewModel(), card: Card(id: "1", front: "agile methodologies", back: "scrum"),
+//        stack: Stack(
+//            id: "1",
+//            title: "bj class",
+//            description: "project management",
+//            creator: "jane",
+//            creatorID: "",
+//            creationDate: Date(),
+//            tags: ["cs"],
+//            cards: [],
+//            isPublic: true
+//        )
+//    )
+//    .environmentObject(AuthViewModel())
+//    .environmentObject(StackViewModel())
+//}

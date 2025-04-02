@@ -14,13 +14,15 @@ struct StudyStacksApp: App {
     
     @StateObject private var auth = AuthViewModel.shared
     @StateObject private var stackVM = StackViewModel.shared
+    @StateObject private var forgottenCardsVM = ForgottenCardsViewModel()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(StackViewModel())
-                .environmentObject(AuthViewModel())
-                .environmentObject(StackViewModel())
+                .environmentObject(stackVM)
+                .environmentObject(auth)
+//                .environmentObject(StackViewModel())
+                .environmentObject(forgottenCardsVM)
         }
     }
 }

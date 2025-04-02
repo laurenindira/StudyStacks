@@ -29,6 +29,7 @@ class ForgottenCardsViewModel: ObservableObject {
             print("ℹ️ No existing forgotten cards for user \(userID)")
             self.localForgottenCards = [:]
         }
+        print("Loaded: \(localForgottenCards)")
     }
 
     // Save to UserDefaults
@@ -54,6 +55,9 @@ class ForgottenCardsViewModel: ObservableObject {
         } else {
             localForgottenCards[stackID]?.insert(cardID)
         }
+        
+        print("📝 Updating card status for cardID: \(cardID), remembered: \(remembered), stackID: \(stackID)")
+        print("Saved: \(localForgottenCards)")
 
         save()
     }
