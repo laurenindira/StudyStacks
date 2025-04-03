@@ -210,20 +210,14 @@ struct CardStackView: View {
 
         let remembered = direction == .right
         print("Button tapped → \(remembered ? "REMEMBERED ✅" : "FORGOTTEN ❌") for \(topCard.front)")
-        
+
         withAnimation(.easeOut(duration: 0.3)) {
-            swipeVM.removeTopCard()
+            swipeVM.removeTopCard(remembered: remembered)
         }
-        
-        // Wait for animation to complete before updating status
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             updateCardMemory(card: topCard, remembered: remembered)
         }
-        
-//        updateCardMemory(card: topCard, remembered: remembered)
-//        withAnimation(.easeOut(duration: 0.3)) {
-//            swipeVM.removeTopCard()
-//        }
     }
     
     private func getShadowColor(for offset: CGSize) -> Color {
