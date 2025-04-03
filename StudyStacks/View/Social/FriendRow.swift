@@ -68,8 +68,8 @@ struct FriendRow: View {
                     friendToRemove = friend
                     showAlert = true
                 } label: {
-                    Image(systemName: "trash.circle")
-                        .foregroundStyle(Color.error)
+                    Image(systemName: "trash")
+                        .foregroundStyle(Color.red)
                         .font(.title2)
                 }
             }

@@ -75,10 +75,7 @@ struct FriendManagerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { addingFriends = true }) {
-                        HStack {
-                            Image(systemName: "person.fill.badge.plus")
-                            Text("Add a friend")
-                        }
+                        Image(systemName: "person.fill.badge.plus")
                     }
                 }
             }

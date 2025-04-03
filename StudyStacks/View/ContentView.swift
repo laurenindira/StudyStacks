@@ -34,14 +34,6 @@ struct ContentView: View {
                         .tabItem {
                             Label("Library", systemImage: "square.stack.3d.up.fill")
                         }
-                    
-                    FriendManagerView()
-                        .environmentObject(auth)
-                        .environmentObject(stackVM)
-                        .environmentObject(friendVM)
-                        .tabItem {
-                            Label("Social", systemImage: "person.3")
-                        }
                 }
             }
         }

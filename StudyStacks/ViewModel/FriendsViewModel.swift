@@ -33,7 +33,6 @@ class FriendsViewModel: ObservableObject {
         guard let id = auth.user?.id else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
-            print("ERROR IN FETCHING FRIENDS")
             self.isLoading = false
             return
         }
@@ -68,7 +67,6 @@ class FriendsViewModel: ObservableObject {
         guard let id = auth.user?.id else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
-            print("ERROR IN FETCHING REQUESTS")
             self.isLoading = false
             return
         }

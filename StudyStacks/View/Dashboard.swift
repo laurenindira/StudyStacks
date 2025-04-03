@@ -35,10 +35,18 @@ struct Dashboard: View {
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { creatingStack = true }) {
-                        HStack {
-                            Text("New Stack")
-                            Image(systemName: "plus")
+                    HStack {
+                        Button(action: { creatingStack = true }) {
+                            Image(systemName: "plus.circle")
+                        }
+                        NavigationLink {
+                            FriendManagerView()
+                        } label: {
+                            if friendVM.receivedRequests.isEmpty {
+                                Image(systemName: "bell")
+                            } else {
+                                Image(systemName: "bell.badge")
+                            }
                         }
                     }
                 }
