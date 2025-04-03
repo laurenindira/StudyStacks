@@ -19,6 +19,25 @@ struct Dashboard: View {
                 Text("This is a dashboard")
                 
                 Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
+                
+                Text("Points: \(auth.user?.points ?? 0)")
+                    .font(.title)
+                    .padding()
+
+                if let lastReset = auth.user?.lastPointsResetDate {
+                    let nextReset = lastReset.addingTimeInterval(7 * 24 * 60 * 60)
+                    let now = Date()
+                    let calendar = Calendar.current
+                    let components = calendar.dateComponents([.day, .hour], from: now, to: nextReset)
+                    
+                    if let days = components.day, let hours = components.hour {
+                        Text("Resets in \(days)d \(hours)h")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                                
+
 
                 Button {
                     Task {
@@ -44,7 +63,9 @@ struct Dashboard: View {
                 NewStackView()
             }
             .padding()
+        
         }
+    
     }
 
 #Preview {

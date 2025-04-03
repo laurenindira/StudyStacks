@@ -33,6 +33,9 @@ class AuthViewModel: NSObject, ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let userKey = "cachedUser"
     
+    // reset 7 days
+    private let pointsResetInterval: TimeInterval = 7 * 24 * 60 * 60 // 7 days in seconds
+    
     //loading and errors
     var isLoading: Bool = false
     var errorMessage: String?
@@ -74,6 +77,9 @@ class AuthViewModel: NSObject, ObservableObject {
                 let currentUser = try Firestore.Decoder().decode(User.self, from: userData)
                 self.user = currentUser
                 saveUserToCache(currentUser)
+                
+                //CHECK TO RESET?
+                await checkAndResetPointsIfNeeded()
             }
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -81,13 +87,108 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    //points
+    func addPoints(_ amount: Int) async {
+        guard let user = user else {
+            print("ERROR: No user logged in")
+            return
+        }
+        
+        do {
+            let newPoints = user.points + amount
+            
+            var updatedUser = user
+            updatedUser.points = newPoints
+            DispatchQueue.main.async {
+                self.user = updatedUser
+                self.saveUserToCache(updatedUser)
+                print("DEBUG: Updated local user points to \(newPoints)")
+            }
+            
+            try await db.collection("users").document(user.id).setData([
+                "points": newPoints,
+                "lastStudyDate": FieldValue.serverTimestamp()  
+            ], merge: true)
+            
+            print("SUCCESS: Added \(amount) points (Total: \(newPoints))")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Could not add points - \(error.localizedDescription)")
+        }
+    }
+    
+    
+    // POINTS RESET EVERY 7 DAYS
+    func checkAndResetPointsIfNeeded() async {
+        guard let user = user else { return }
+        
+        let now = Date()
+        let calendar = Calendar.current
+        
+        guard let lastReset = user.lastPointsResetDate else {
+            await updateLastPointsResetDate(now)
+            return
+        }
+        
+        let timeSinceLastReset = now.timeIntervalSince(lastReset)
+        
+        if timeSinceLastReset >= pointsResetInterval {
+            await resetPoints()
+            await updateLastPointsResetDate(now)
+        }
+    }
+
+    private func resetPoints() async {
+        guard let user = user else { return }
+        
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "points": 0
+            ])
+            
+            var updatedUser = user
+            updatedUser.points = 0
+            DispatchQueue.main.async {
+                self.user = updatedUser
+                self.saveUserToCache(updatedUser)
+            }
+            
+            print("SUCCESS: Reset points to 0")
+        } catch {
+            print("ERROR: Could not reset points - \(error.localizedDescription)")
+        }
+    }
+
+    private func updateLastPointsResetDate(_ date: Date) async {
+        guard let user = user else { return }
+        
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "lastPointsResetDate": date
+            ])
+            
+            var updatedUser = user
+            updatedUser.lastPointsResetDate = date
+            DispatchQueue.main.async {
+                self.user = updatedUser
+                self.saveUserToCache(updatedUser)
+            }
+        } catch {
+            print("ERROR: Could not update last points reset date - \(error.localizedDescription)")
+        }
+    }
+    
+    
+    
+    
+    
     //MARK: - Sign up
     func signUpWithEmail(email: String, password: String, username: String, displayName: String, selectedSubjects: [String], studyReminderTime: Date, studentType: String) async throws {
         self.isLoading = true
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0)
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -175,7 +276,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             }
                         } else {
                             let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0)
                             
                             Task {
                                 do {
@@ -213,7 +314,8 @@ class AuthViewModel: NSObject, ObservableObject {
                 "studentType": user.studentType,
                 "currentStreak": user.currentStreak,
                 "longestStreak": user.longestStreak,
-                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date())
+                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date()),
+                "points": user.points
             ])
             print("SUCCESS: Saved user to Firestore")
         } catch let error as NSError {
