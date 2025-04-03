@@ -34,7 +34,7 @@ class AuthViewModel: NSObject, ObservableObject {
     private let userKey = "cachedUser"
     
     // reset 7 days
-    private let pointsResetInterval: TimeInterval = 7 * 24 * 60 * 60 // 7 days in seconds
+    //private let pointsResetInterval: TimeInterval = 7 * 24 * 60 * 60 // 7 days in seconds
     
     //loading and errors
     var isLoading: Bool = false
@@ -77,110 +77,15 @@ class AuthViewModel: NSObject, ObservableObject {
                 let currentUser = try Firestore.Decoder().decode(User.self, from: userData)
                 self.user = currentUser
                 saveUserToCache(currentUser)
-                
+                print("CURRENT USER DATA: \(String(describing: self.user))")
                 //CHECK TO RESET?
-                await checkAndResetPointsIfNeeded()
+                //await checkAndResetPointsIfNeeded()
             }
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Cannot load user - \(String(describing: errorMessage))")
         }
     }
-    
-    //points
-    func addPoints(_ amount: Int) async {
-        guard let user = user else {
-            print("ERROR: No user logged in")
-            return
-        }
-        
-        do {
-            let newPoints = user.points + amount
-            
-            var updatedUser = user
-            updatedUser.points = newPoints
-            DispatchQueue.main.async {
-                self.user = updatedUser
-                self.saveUserToCache(updatedUser)
-                print("DEBUG: Updated local user points to \(newPoints)")
-            }
-            
-            try await db.collection("users").document(user.id).setData([
-                "points": newPoints,
-                "lastStudyDate": FieldValue.serverTimestamp()  
-            ], merge: true)
-            
-            print("SUCCESS: Added \(amount) points (Total: \(newPoints))")
-        } catch let error as NSError {
-            self.errorMessage = error.localizedDescription
-            print("ERROR: Could not add points - \(error.localizedDescription)")
-        }
-    }
-    
-    
-    // POINTS RESET EVERY 7 DAYS
-    func checkAndResetPointsIfNeeded() async {
-        guard let user = user else { return }
-        
-        let now = Date()
-        let calendar = Calendar.current
-        
-        guard let lastReset = user.lastPointsResetDate else {
-            await updateLastPointsResetDate(now)
-            return
-        }
-        
-        let timeSinceLastReset = now.timeIntervalSince(lastReset)
-        
-        if timeSinceLastReset >= pointsResetInterval {
-            await resetPoints()
-            await updateLastPointsResetDate(now)
-        }
-    }
-
-    private func resetPoints() async {
-        guard let user = user else { return }
-        
-        do {
-            try await db.collection("users").document(user.id).updateData([
-                "points": 0
-            ])
-            
-            var updatedUser = user
-            updatedUser.points = 0
-            DispatchQueue.main.async {
-                self.user = updatedUser
-                self.saveUserToCache(updatedUser)
-            }
-            
-            print("SUCCESS: Reset points to 0")
-        } catch {
-            print("ERROR: Could not reset points - \(error.localizedDescription)")
-        }
-    }
-
-    private func updateLastPointsResetDate(_ date: Date) async {
-        guard let user = user else { return }
-        
-        do {
-            try await db.collection("users").document(user.id).updateData([
-                "lastPointsResetDate": date
-            ])
-            
-            var updatedUser = user
-            updatedUser.lastPointsResetDate = date
-            DispatchQueue.main.async {
-                self.user = updatedUser
-                self.saveUserToCache(updatedUser)
-            }
-        } catch {
-            print("ERROR: Could not update last points reset date - \(error.localizedDescription)")
-        }
-    }
-    
-    
-    
-    
     
     //MARK: - Sign up
     func signUpWithEmail(email: String, password: String, username: String, displayName: String, selectedSubjects: [String], studyReminderTime: Date, studentType: String) async throws {
@@ -189,6 +94,7 @@ class AuthViewModel: NSObject, ObservableObject {
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
             let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0)
+            print("USER: \(user)")
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -221,6 +127,7 @@ class AuthViewModel: NSObject, ObservableObject {
             await updateLastSignIn(for: result.user.uid)
             await loadUserFromFirebase()
             UserDefaults.standard.set(true, forKey: "isSignedIn")
+            updateCachedUser(user: self.user!)
             self.createLocalStreak()
             self.isLoading = false
         } catch let error as NSError {
@@ -271,6 +178,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
+                                self.updateCachedUser(user: self.user!)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
                                 self.createLocalStreak()
                             }
@@ -325,18 +233,12 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func saveUserToCache(_ user: User) {
-        if let encodedUser = try? JSONEncoder().encode(user) {
-            userDefaults.set(encodedUser, forKey: userKey)
-        }
-        self.createLocalStreak()
-    }
-    
     //MARK: - Sign out and deletion
-    func signOut() {
+    func signOut() async {
         do {
             self.isLoading = true
             if auth.currentUser?.uid != nil {
+                await updatePointsInFirebase()
                 try auth.signOut()
                 self.user = nil
                 clearUserCache()
@@ -450,16 +352,160 @@ class AuthViewModel: NSObject, ObservableObject {
 //        }
 //    }
     
+    //MARK: - Tracking points
+    func updatePointsInFirebase() async {
+        guard let user = user else {
+            print("ERROR: No user logged in")
+            return
+        }
+        
+        let currentPoints = PointsManager.shared.loadPoints()
+        
+        do {
+            try await db.collection("users").document(user.id).updateData(["points": currentPoints])
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Could not update points - \(String(describing: errorMessage))")
+        }
+    }
+    
+    func createLocalPointTracking() {
+        guard let user = user else {
+            print("ERROR: No user logged in")
+            return
+        }
+        
+        let currentPoints = user.points
+        
+        if UserDefaults.standard.object(forKey: "userPoints") == nil {
+            UserDefaults.standard.set(currentPoints, forKey: "userPoints")
+        }
+    }
+    
+    func resetLocalPointTracking() {
+        UserDefaults.standard.removeObject(forKey: "userPoints")
+    }
+    
+    //points
+//    func addPoints(_ amount: Int) async {
+//        guard let user = user else {
+//            print("ERROR: No user logged in")
+//            return
+//        }
+//        
+//        do {
+//            let newPoints = user.points + amount
+//            
+//            var updatedUser = user
+//            updatedUser.points = newPoints
+//            DispatchQueue.main.async {
+//                self.user = updatedUser
+//                self.saveUserToCache(updatedUser)
+//                print("DEBUG: Updated local user points to \(newPoints)")
+//            }
+//            
+//            try await db.collection("users").document(user.id).setData([
+//                "points": newPoints,
+//                "lastStudyDate": FieldValue.serverTimestamp()
+//            ], merge: true)
+//            
+//            print("SUCCESS: Added \(amount) points (Total: \(newPoints))")
+//        } catch let error as NSError {
+//            self.errorMessage = error.localizedDescription
+//            print("ERROR: Could not add points - \(error.localizedDescription)")
+//        }
+//    }
+    
+    
+    // POINTS RESET EVERY 7 DAYS
+//    func checkAndResetPointsIfNeeded() async {
+//        guard let user = user else { return }
+//        
+//        let now = Date()
+//        let calendar = Calendar.current
+//        
+//        guard let lastReset = user.lastPointsResetDate else {
+//            await updateLastPointsResetDate(now)
+//            return
+//        }
+//        
+//        let timeSinceLastReset = now.timeIntervalSince(lastReset)
+//        
+//        if timeSinceLastReset >= pointsResetInterval {
+//            await resetPoints()
+//            await updateLastPointsResetDate(now)
+//        }
+//    }
+
+//    private func resetPoints() async {
+//        guard let user = user else { return }
+//        
+//        do {
+//            try await db.collection("users").document(user.id).updateData([
+//                "points": 0
+//            ])
+//            
+//            var updatedUser = user
+//            updatedUser.points = 0
+//            DispatchQueue.main.async {
+//                self.user = updatedUser
+//                self.saveUserToCache(updatedUser)
+//            }
+//            
+//            print("SUCCESS: Reset points to 0")
+//        } catch {
+//            print("ERROR: Could not reset points - \(error.localizedDescription)")
+//        }
+//    }
+
+//    private func updateLastPointsResetDate(_ date: Date) async {
+//        guard let user = user else { return }
+//        
+//        do {
+//            try await db.collection("users").document(user.id).updateData([
+//                "lastPointsResetDate": date
+//            ])
+//            
+//            var updatedUser = user
+//            updatedUser.lastPointsResetDate = date
+//            DispatchQueue.main.async {
+//                self.user = updatedUser
+//                self.saveUserToCache(updatedUser)
+//            }
+//        } catch {
+//            print("ERROR: Could not update last points reset date - \(error.localizedDescription)")
+//        }
+//    }
+    
     //MARK: - Local User Caching
+    private func saveUserToCache(_ user: User) {
+        if let encodedUser = try? JSONEncoder().encode(user) {
+            userDefaults.set(encodedUser, forKey: userKey)
+        }
+        self.createLocalStreak()
+        self.createLocalPointTracking()
+        print("USER IN CACHE ONCE SAVED: \(String(describing: userDefaults.data(forKey: userKey)))")
+    }
+    
+    private func updateCachedUser(user: User) {
+        if let encodedUser = try? JSONEncoder().encode(user) {
+            userDefaults.set(encodedUser, forKey: userKey)
+        }
+        print("USER IN CACHE ONCE UPDATED: \(String(describing: userDefaults.data(forKey: userKey)))")
+    }
+    
     private func loadUserFromCache() -> User? {
         guard let savedUserData = userDefaults.data(forKey: userKey) else { return nil }
+        print("USER IN CACHE ONCE LOADED: \(savedUserData)")
         return try? JSONDecoder().decode(User.self, from: savedUserData)
     }
     
     private func clearUserCache() {
         userDefaults.removeObject(forKey: userKey)
         resetLocalStreak()
+        resetLocalPointTracking()
         UserDefaults.standard.set(false, forKey: "isSignedIn")
+        print("USER IN DEFAULTS: \(String(describing: userDefaults.data(forKey: userKey)))")
     }
 }
 

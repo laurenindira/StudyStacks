@@ -73,8 +73,9 @@ struct CardStackView: View {
                         showingPointsEarned = true
                         
                         Task {
-                            await auth.addPoints(pointsEarned)
-                            await auth.loadUserFromFirebase()
+                            PointsManager.shared.addPoints(points: pointsEarned)
+                            //await auth.addPoints(pointsEarned)
+                            //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 showingPointsEarned = false
                                 swipeVM.reset()

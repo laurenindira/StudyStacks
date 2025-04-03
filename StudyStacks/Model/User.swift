@@ -29,6 +29,5 @@ struct User: Identifiable, Codable {
     var lastStudyDate: Date?
     
     //points
-    var points: Int = 0
-    var lastPointsResetDate: Date?
+    var points: Int
 }

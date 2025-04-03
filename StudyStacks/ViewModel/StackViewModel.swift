@@ -35,7 +35,7 @@ class StackViewModel: ObservableObject {
     func fetchUserStacks(for userID: String) async {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
+        guard let _ = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
