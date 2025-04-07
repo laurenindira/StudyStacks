@@ -14,6 +14,8 @@ struct StackDetailView: View {
     @State private var isDeleted = false
     @State private var showDeleteConfirmation = false
     @State private var deleteErrorMessage: String?
+    
+    @State private var isFavorite: Bool = false
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
@@ -124,6 +126,9 @@ struct StackDetailView: View {
                     .padding()
                 }
             }
+            .onAppear {
+                self.isFavorite = stackVM.isFavorite(stack)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -142,11 +147,12 @@ struct StackDetailView: View {
                         
                         Button {
                             Task {
+                                isFavorite.toggle()
                                 await stackVM.toggleFavorite(for: stack.id)
                             }
                         } label: {
-                            Image(systemName: stackVM.isFavorite(stack) ? "star.fill" : "star")
-                                .foregroundColor(stackVM.isFavorite(stack) ? Color.prim : .gray)
+                            Image(systemName: isFavorite ? "star.fill" : "star")
+                                .foregroundColor(isFavorite ? Color.prim : .gray)
                                 .font(.title2)
                                 .padding(.vertical)
                         }
