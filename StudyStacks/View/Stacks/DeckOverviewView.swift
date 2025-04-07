@@ -9,7 +9,6 @@ import SwiftUI
 
 struct StackDetailView: View {
     var stack: Stack
-    @State private var isFavorited: Bool
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
     @State private var isDeleted = false
@@ -18,11 +17,7 @@ struct StackDetailView: View {
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
-    
-    init(stack: Stack) {
-        self.stack = stack
-        _isFavorited = State(initialValue: false)
-    }
+    @EnvironmentObject var auth: AuthViewModel
     
     var body: some View {
         NavigationStack {
@@ -81,7 +76,7 @@ struct StackDetailView: View {
                                     isFlipped.toggle()
                                 }
                             }
-
+                        
                         HStack {
                             Button(action: {
                                 withAnimation {
@@ -94,9 +89,9 @@ struct StackDetailView: View {
                                 Image(systemName: "chevron.left")
                                     .font(.title)
                             }
-
+                            
                             Spacer()
-
+                            
                             Button(action: {
                                 withAnimation {
                                     if currentCardIndex < stack.cards.count - 1 {
@@ -113,10 +108,10 @@ struct StackDetailView: View {
                         .foregroundColor(.gray)
                     }
                     .padding()
-
+                    
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
-
+                    
                     Button(action: {}) {
                         Text("Start Studying")
                             .font(.headline)
@@ -132,28 +127,29 @@ struct StackDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(role: .destructive, action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Label("Delete Deck", systemImage: "trash")
+                    HStack {
+                        Menu {
+                            Button(role: .destructive, action: {
+                                showDeleteConfirmation = true
+                            }) {
+                                Label("Delete Deck", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.title2)
+                                .padding(.vertical)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title2)
-                            .padding()
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        isFavorited.toggle()
-                        stackVM.toggleFavorite(for: stack)
-                    }) {
-                        Image(systemName: isFavorited ? "star.fill" : "star")
-                            .foregroundColor(isFavorited ? .yellow : .gray)
-                            .font(.title2)
-                            .padding()
+                        
+                        Button {
+                            Task {
+                                await stackVM.toggleFavorite(for: stack.id)
+                            }
+                        } label: {
+                            Image(systemName: stackVM.isFavorite(stack) ? "star.fill" : "star")
+                                .foregroundColor(stackVM.isFavorite(stack) ? Color.prim : .gray)
+                                .font(.title2)
+                                .padding(.vertical)
+                        }
                     }
                 }
             }
@@ -164,23 +160,15 @@ struct StackDetailView: View {
                 Text("Are you sure you want to delete this deck? This action cannot be undone.")
             }
         }
-        .onAppear() {
-            isFavorited = stackVM.isFavorite(stack)
-        }
     }
-
-
     
     private func deleteStack() {
         Task {
-            
             await stackVM.deleteStack(stack)
-            
             
             if let index = stackVM.stacks.firstIndex(where: { $0.id == stack.id }) {
                 stackVM.stacks.remove(at: index)
             }
-            
             
             await MainActor.run {
                 isDeleted = true
@@ -191,33 +179,26 @@ struct StackDetailView: View {
             }
         }
     }
-
 }
 
-struct StackDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        let mockStack = Stack(
-            id: UUID().uuidString,
-            title: "U.S. States & Capitals",
-            description: "A deck to learn U.S. states and their capitals",
-            creator: "Sarah Cameron",
-            creatorID: "mockCreatorID",
-            creationDate: Date(),
-            tags: ["Geography", "States", "Capitals"],
-            cards: [
-                Card(front: "California", back: "Sacramento"),
-                Card(front: "Texas", back: "Austin"),
-                Card(front: "Florida", back: "Tallahassee"),
-                Card(front: "New York", back: "Albany"),
-                Card(front: "Illinois", back: "Springfield")
-            ],
-            isPublic: true
-        )
-
-        let mockStackVM = StackViewModel()
-        mockStackVM.stacks = [mockStack]
-
-        return StackDetailView(stack: mockStack)
-            .environmentObject(mockStackVM)
-    }
+#Preview {
+    StackDetailView(stack: Stack(
+        id: UUID().uuidString,
+        title: "U.S. States & Capitals",
+        description: "A deck to learn U.S. states and their capitals",
+        creator: "Sarah Cameron",
+        creatorID: "mockCreatorID",
+        creationDate: Date(),
+        tags: ["Geography", "States", "Capitals"],
+        cards: [
+            Card(front: "California", back: "Sacramento"),
+            Card(front: "Texas", back: "Austin"),
+            Card(front: "Florida", back: "Tallahassee"),
+            Card(front: "New York", back: "Albany"),
+            Card(front: "Illinois", back: "Springfield")
+        ],
+        isPublic: true
+    ))
+    .environmentObject(StackViewModel())
+    .environmentObject(AuthViewModel())
 }

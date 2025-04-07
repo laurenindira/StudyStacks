@@ -92,7 +92,7 @@ struct LibraryView: View {
                     
                     Toggle("Show Favorites Only", isOn: $showFavoritesOnly)
                         .padding(.horizontal)
-                        .toggleStyle(SwitchToggleStyle(tint: .yellow))
+                        .toggleStyle(SwitchToggleStyle(tint: Color.prim))
                     
                     // LIST OF CARDS
                     if searchResults.isEmpty {
@@ -101,11 +101,9 @@ struct LibraryView: View {
                             .padding()
                     } else {
                         ForEach(searchResults, id: \.self) { stack in
-                            // TODO: add in check for if card is favorite
                             NavigationLink {
                                 StackDetailView(stack: stack)
                                     .environmentObject(stackVM)
-                                // link to overview
                             } label: {
                                 StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
                             }
@@ -120,6 +118,7 @@ struct LibraryView: View {
                 Task {
                     if let userID = auth.user?.id {
                         await stackVM.fetchUserStacks(for: userID)
+                        await stackVM.fetchUserFavorites()
                     }
                     await stackVM.fetchPublicStacks()
                 }
@@ -152,16 +151,16 @@ struct LibraryView: View {
         
         if showFavoritesOnly {
             return filteredStacks.filter { stack in
-                stackVM.isFavorite(stack)
+                stackVM.favoriteStackIDs.contains(stack.id)
             }
         }
         
         return filteredStacks
     }
     
-    
     private func refresh() async {
         await stackVM.fetchPublicStacks()
+        await stackVM.fetchUserFavorites()
     }
 }
 

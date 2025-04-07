@@ -87,7 +87,7 @@ class AuthViewModel: NSObject, ObservableObject {
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), favoriteStackIDs: [])
             self.user = user
             try await saveUserToFirestore(user: user)
             saveUserToCache(user)
@@ -120,6 +120,7 @@ class AuthViewModel: NSObject, ObservableObject {
             await updateLastSignIn(for: result.user.uid)
             await loadUserFromFirebase()
             UserDefaults.standard.set(true, forKey: "isSignedIn")
+            updateCachedUser(user: self.user!)
             self.createLocalStreak()
             self.isLoading = false
         } catch let error as NSError {
@@ -170,12 +171,13 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
+                                self.updateCachedUser(user: self.user!)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
                                 self.createLocalStreak()
                             }
                         } else {
                             let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), favoriteStackIDs: [])
                             
                             Task {
                                 do {
@@ -213,7 +215,8 @@ class AuthViewModel: NSObject, ObservableObject {
                 "studentType": user.studentType,
                 "currentStreak": user.currentStreak,
                 "longestStreak": user.longestStreak,
-                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date())
+                "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date()),
+                "favoriteStackIDs": user.favoriteStackIDs
             ])
             print("SUCCESS: Saved user to Firestore")
         } catch let error as NSError {
@@ -231,7 +234,7 @@ class AuthViewModel: NSObject, ObservableObject {
     }
     
     //MARK: - Sign out and deletion
-    func signOut() {
+    func signOut() async {
         do {
             self.isLoading = true
             if auth.currentUser?.uid != nil {
@@ -349,6 +352,13 @@ class AuthViewModel: NSObject, ObservableObject {
 //    }
     
     //MARK: - Local User Caching
+    private func updateCachedUser(user: User) {
+        if let encodedUser = try? JSONEncoder().encode(user) {
+            userDefaults.set(encodedUser, forKey: userKey)
+        }
+        print("USER IN CACHE ONCE UPDATED: \(String(describing: userDefaults.data(forKey: userKey)))")
+    }
+    
     private func loadUserFromCache() -> User? {
         guard let savedUserData = userDefaults.data(forKey: userKey) else { return nil }
         return try? JSONDecoder().decode(User.self, from: savedUserData)

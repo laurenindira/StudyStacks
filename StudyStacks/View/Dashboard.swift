@@ -22,7 +22,7 @@ struct Dashboard: View {
 
                 Button {
                     Task {
-                        auth.signOut()
+                        await auth.signOut()
                     }
                 } label: {
                     GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)

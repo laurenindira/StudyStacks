@@ -30,6 +30,6 @@ struct OnboardingControl: View {
 }
 
 #Preview {
-    OnboardingControl(user: .constant(User(id: "", username: "", displayName: "", email: "", creationDate: Date.now, providerRef: "", selectedSubjects: [], studyReminderTime: Date.now, studentType: "", currentStreak: 0, longestStreak: 0)))
+    OnboardingControl(user: .constant(User(id: "", username: "", displayName: "", email: "", creationDate: Date.now, providerRef: "", selectedSubjects: [], studyReminderTime: Date.now, studentType: "", currentStreak: 0, longestStreak: 0, favoriteStackIDs: [])))
         .environmentObject(AuthViewModel())
 }
