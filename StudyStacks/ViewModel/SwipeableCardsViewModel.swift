@@ -12,58 +12,20 @@ class SwipeableCardsViewModel: ObservableObject {
     private var originalCards: [Card]
     @Published var unswipedCards: [Card]
     @Published var swipedCards: [Card]
-    
-    @Published var forgottenCardsDeck: [Card]
-    @Published var unswipedForgottenCards: [Card]
-    @Published var swipedForgottenCards: [Card]
 
     init(cards: [Card]) {
         self.originalCards = cards
         self.unswipedCards = cards
         self.swipedCards = []
-        self.forgottenCardsDeck = []
-        self.unswipedForgottenCards = []
-        self.swipedForgottenCards = []
     }
-    
-    func removeTopCard(remembered: Bool) {
-        guard let topCard = unswipedCards.first else { return }
 
-        unswipedCards.removeFirst()
-        swipedCards.append(topCard)
-        
-        print("UNSWIPED")
-        print(unswipedCards)
-
-        if !remembered {
-            forgottenCardsDeck.append(topCard)
-            unswipedForgottenCards.append(topCard)
+    func removeTopCard() {
+        if !unswipedCards.isEmpty {
+            guard let card = unswipedCards.first else { return }
+            unswipedCards.removeFirst()
+            swipedCards.append(card)
         }
     }
-    
-    func removeTopForgottenCard() {
-        guard let topCard = unswipedForgottenCards.first else { return }
-        unswipedForgottenCards.removeFirst()
-        swipedForgottenCards.append(topCard)
-    }
-
-    func resetOriginalDeck() {
-        unswipedCards = originalCards
-        swipedCards = []
-    }
-
-    func resetForgottenDeck() {
-        unswipedForgottenCards = forgottenCardsDeck
-        swipedForgottenCards = []
-    }
-
-//    func removeTopCard() {
-//        if !unswipedCards.isEmpty {
-//            guard let card = unswipedCards.first else { return }
-//            unswipedCards.removeFirst()
-//            swipedCards.append(card)
-//        }
-//    }
 
     func updateTopCardSwipeDirection(_ direction: CardView.SwipeDirection) {
         if !unswipedCards.isEmpty {
