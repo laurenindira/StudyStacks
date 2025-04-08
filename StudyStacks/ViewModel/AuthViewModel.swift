@@ -97,6 +97,7 @@ class AuthViewModel: NSObject, ObservableObject {
             print("USER: \(user)")
             self.user = user
             try await saveUserToFirestore(user: user)
+            try await createFriendshipCollection(user: user)
             saveUserToCache(user)
             UserDefaults.standard.set(true, forKey: "isSignedIn")
             self.isLoading = false
@@ -129,6 +130,8 @@ class AuthViewModel: NSObject, ObservableObject {
             UserDefaults.standard.set(true, forKey: "isSignedIn")
             updateCachedUser(user: self.user!)
             self.createLocalStreak()
+            print("USER: \(user?.id ?? "not known") and \(user?.displayName ?? "not known")")
+            //await self.loadFriendshipData(userID: user?.id)
             self.isLoading = false
         } catch let error as NSError {
             self.isLoading = false
@@ -179,6 +182,7 @@ class AuthViewModel: NSObject, ObservableObject {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
                                 self.updateCachedUser(user: self.user!)
+                                //await self.loadFriendshipData(userID: uid)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
                                 self.createLocalStreak()
                             }
@@ -189,6 +193,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 do {
                                     try await self.saveUserToFirestore(user: newUser)
+                                    try await self.createFriendshipCollection(user: newUser)
                                     self.user = newUser
                                     self.saveUserToCache(newUser)
                                     UserDefaults.standard.set(true, forKey: "isSignedIn")
@@ -242,6 +247,7 @@ class AuthViewModel: NSObject, ObservableObject {
                 try auth.signOut()
                 self.user = nil
                 clearUserCache()
+                FriendsViewModel.shared.clearFriendshipLocally()
             }
             self.isLoading = false
         } catch let error {
@@ -351,7 +357,7 @@ class AuthViewModel: NSObject, ObservableObject {
 //            //checkForMilestones(streak: streak)
 //        }
 //    }
-    
+
     //MARK: - Tracking points
     func updatePointsInFirebase() async {
         guard let user = user else {
@@ -386,95 +392,27 @@ class AuthViewModel: NSObject, ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userPoints")
     }
     
-    //points
-//    func addPoints(_ amount: Int) async {
-//        guard let user = user else {
-//            print("ERROR: No user logged in")
-//            return
-//        }
-//        
-//        do {
-//            let newPoints = user.points + amount
-//            
-//            var updatedUser = user
-//            updatedUser.points = newPoints
-//            DispatchQueue.main.async {
-//                self.user = updatedUser
-//                self.saveUserToCache(updatedUser)
-//                print("DEBUG: Updated local user points to \(newPoints)")
-//            }
-//            
-//            try await db.collection("users").document(user.id).setData([
-//                "points": newPoints,
-//                "lastStudyDate": FieldValue.serverTimestamp()
-//            ], merge: true)
-//            
-//            print("SUCCESS: Added \(amount) points (Total: \(newPoints))")
-//        } catch let error as NSError {
-//            self.errorMessage = error.localizedDescription
-//            print("ERROR: Could not add points - \(error.localizedDescription)")
-//        }
-//    }
+    //MARK: -  Friendship data
+    func createFriendshipCollection(user: User) async throws {
+        do {
+            try await db.collection("friendships").document(user.id).setData([
+                "userID": user.id,
+                "friends": [],
+                "receivedRequests": [],
+                "sentRequests": []
+            ])
+            
+            //await loadFriendshipData(userID: user.id)
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to add friendship collection - \(String(describing: errorMessage))")
+            throw error
+        }
+    }
     
-    
-    // POINTS RESET EVERY 7 DAYS
-//    func checkAndResetPointsIfNeeded() async {
-//        guard let user = user else { return }
-//        
-//        let now = Date()
-//        let calendar = Calendar.current
-//        
-//        guard let lastReset = user.lastPointsResetDate else {
-//            await updateLastPointsResetDate(now)
-//            return
-//        }
-//        
-//        let timeSinceLastReset = now.timeIntervalSince(lastReset)
-//        
-//        if timeSinceLastReset >= pointsResetInterval {
-//            await resetPoints()
-//            await updateLastPointsResetDate(now)
-//        }
-//    }
-
-//    private func resetPoints() async {
-//        guard let user = user else { return }
-//        
-//        do {
-//            try await db.collection("users").document(user.id).updateData([
-//                "points": 0
-//            ])
-//            
-//            var updatedUser = user
-//            updatedUser.points = 0
-//            DispatchQueue.main.async {
-//                self.user = updatedUser
-//                self.saveUserToCache(updatedUser)
-//            }
-//            
-//            print("SUCCESS: Reset points to 0")
-//        } catch {
-//            print("ERROR: Could not reset points - \(error.localizedDescription)")
-//        }
-//    }
-
-//    private func updateLastPointsResetDate(_ date: Date) async {
-//        guard let user = user else { return }
-//        
-//        do {
-//            try await db.collection("users").document(user.id).updateData([
-//                "lastPointsResetDate": date
-//            ])
-//            
-//            var updatedUser = user
-//            updatedUser.lastPointsResetDate = date
-//            DispatchQueue.main.async {
-//                self.user = updatedUser
-//                self.saveUserToCache(updatedUser)
-//            }
-//        } catch {
-//            print("ERROR: Could not update last points reset date - \(error.localizedDescription)")
-//        }
+//    func loadFriendshipData(userID: String) async {
+//        await FriendsViewModel.shared.fetchFriends(userID: user?.id)
+//        await FriendsViewModel.shared.fetchFriendRequests(userID: user?.id)
 //    }
     
     //MARK: - Local User Caching
