@@ -14,7 +14,7 @@ struct Dashboard: View {
     
     @State var creatingStack: Bool = false
    
-    var currentPoints: Int = UserDefaults.standard.integer(forKey: "userPoints")
+    @AppStorage("userPoints") var currentPoints: Int = 0
   
     var body: some View {
         NavigationStack {
@@ -31,7 +31,7 @@ struct Dashboard: View {
 
                     Button {
                         Task {
-                            auth.signOut()
+                            await auth.signOut()
                         }
                     } label: {
                         GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)

@@ -35,7 +35,9 @@ class PointsManager {
         user?.points = currentPoints
         
         if UserDefaults.standard.data(forKey: "cachedUser") != nil {
-            UserDefaults.standard.set(user, forKey: "cachedUser")
+            if let encodedUser = try? JSONEncoder().encode(user) {
+                UserDefaults.standard.set(encodedUser, forKey: "cachedUser")
+            }
         }
     }
 }

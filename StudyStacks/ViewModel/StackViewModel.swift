@@ -88,16 +88,16 @@ class StackViewModel: ObservableObject {
     func deleteStack(_ stack: Stack) async {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
+        guard let user = auth.user else {
             print("ERROR: user not logged in")
             self.isLoading = false
             return
         }
         
-        let stackRef = db.collection("allStacks").document(userID).collection("stacks")
+        let stackRef = db.collection("allStacks").document(user.id).collection("stacks")
         do {
             try await stackRef.document(stack.id).delete()
-            await self.fetchUserStacks(for: userID)
+            await self.fetchUserStacks(for: user.id)
             
             print("DOCUMENT REMOVED")
         } catch let error as NSError {
@@ -113,7 +113,7 @@ class StackViewModel: ObservableObject {
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document(stackToUpdate.id)
 
         do {
-            try await stackRef.setData(from: stackToUpdate)
+            try stackRef.setData(from: stackToUpdate)
             print("SUCCESS: Stack updated")
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
