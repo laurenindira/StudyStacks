@@ -45,7 +45,7 @@ class AuthViewModel: NSObject, ObservableObject {
         
         if let savedUserData = userDefaults.data(forKey: userKey),
            let savedUser = try? JSONDecoder().decode(User.self, from: savedUserData) {
-            user = savedUser
+            self.user = savedUser
             UserDefaults.standard.set(true, forKey: "isSignedIn")
         }
     }
@@ -74,6 +74,7 @@ class AuthViewModel: NSObject, ObservableObject {
                 let currentUser = try Firestore.Decoder().decode(User.self, from: userData)
                 self.user = currentUser
                 saveUserToCache(currentUser)
+                print("CURRENT USER DATA: \(String(describing: self.user))")
             }
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
@@ -87,7 +88,9 @@ class AuthViewModel: NSObject, ObservableObject {
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), favoriteStackIDs: [])
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [])
+            print("USER: \(user)")
+            
             self.user = user
             try await saveUserToFirestore(user: user)
             try await createFriendshipCollection(user: user)
@@ -181,7 +184,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             }
                         } else {
                             let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), favoriteStackIDs: [])
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [])
                             
                             Task {
                                 do {
@@ -221,6 +224,7 @@ class AuthViewModel: NSObject, ObservableObject {
                 "currentStreak": user.currentStreak,
                 "longestStreak": user.longestStreak,
                 "lastStudyDate": Timestamp(date: user.lastStudyDate ?? Date()),
+                "points": user.points,
                 "favoriteStackIDs": user.favoriteStackIDs
             ])
             print("SUCCESS: Saved user to Firestore")
@@ -231,22 +235,17 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func saveUserToCache(_ user: User) {
-        if let encodedUser = try? JSONEncoder().encode(user) {
-            userDefaults.set(encodedUser, forKey: userKey)
-        }
-        self.createLocalStreak()
-    }
-    
     //MARK: - Sign out and deletion
     func signOut() async {
         do {
             self.isLoading = true
             if auth.currentUser?.uid != nil {
+                await updatePointsInFirebase()
+                StackViewModel.shared.clearFavorites()
+                FriendsViewModel.shared.clearFriendshipLocally()
+                clearUserCache()
                 try auth.signOut()
                 self.user = nil
-                clearUserCache()
-                FriendsViewModel.shared.clearFriendshipLocally()
             }
             self.isLoading = false
         } catch let error {
@@ -356,6 +355,40 @@ class AuthViewModel: NSObject, ObservableObject {
 //            //checkForMilestones(streak: streak)
 //        }
 //    }
+
+    //MARK: - Tracking points
+    func updatePointsInFirebase() async {
+        guard let user = user else {
+            print("ERROR: No user logged in")
+            return
+        }
+        
+        let currentPoints = PointsManager.shared.loadPoints()
+        
+        do {
+            try await db.collection("users").document(user.id).updateData(["points": currentPoints])
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Could not update points - \(String(describing: errorMessage))")
+        }
+    }
+    
+    func createLocalPointTracking() {
+        guard let user = user else {
+            print("ERROR: No user logged in")
+            return
+        }
+        
+        let currentPoints = user.points
+        
+        if UserDefaults.standard.object(forKey: "userPoints") == nil {
+            UserDefaults.standard.set(currentPoints, forKey: "userPoints")
+        }
+    }
+    
+    func resetLocalPointTracking() {
+        UserDefaults.standard.removeObject(forKey: "userPoints")
+    }
     
     //MARK: -  Friendship data
     func createFriendshipCollection(user: User) async throws {
@@ -381,6 +414,15 @@ class AuthViewModel: NSObject, ObservableObject {
 //    }
     
     //MARK: - Local User Caching
+    private func saveUserToCache(_ user: User) {
+        if let encodedUser = try? JSONEncoder().encode(user) {
+            userDefaults.set(encodedUser, forKey: userKey)
+        }
+        self.createLocalStreak()
+        self.createLocalPointTracking()
+        print("USER IN CACHE ONCE SAVED: \(String(describing: userDefaults.data(forKey: userKey)))")
+    }
+
     private func updateCachedUser(user: User) {
         if let encodedUser = try? JSONEncoder().encode(user) {
             userDefaults.set(encodedUser, forKey: userKey)
@@ -390,6 +432,7 @@ class AuthViewModel: NSObject, ObservableObject {
     
     private func loadUserFromCache() -> User? {
         guard let savedUserData = userDefaults.data(forKey: userKey) else { return nil }
+        print("USER IN CACHE ONCE LOADED: \(savedUserData)")
         return try? JSONDecoder().decode(User.self, from: savedUserData)
     }
     
@@ -397,7 +440,9 @@ class AuthViewModel: NSObject, ObservableObject {
         userDefaults.removeObject(forKey: userKey)
         resetLocalStreak()
         StackViewModel.shared.clearFavorites()
+        resetLocalPointTracking()
         UserDefaults.standard.set(false, forKey: "isSignedIn")
+        print("USER IN DEFAULTS: \(String(describing: userDefaults.data(forKey: userKey)))")
     }
 }
 

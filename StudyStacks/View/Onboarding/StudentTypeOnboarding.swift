@@ -77,5 +77,5 @@ struct StudentTypeOnboarding: View {
 }
 
 #Preview {
-    StudentTypeOnboarding(user: .constant(User(id: "", username: "", displayName: "", email: "", creationDate: Date.now, providerRef: "", selectedSubjects: [], studyReminderTime: Date.now, studentType: "", currentStreak: 0, longestStreak: 0, favoriteStackIDs: [])), step: .constant(4))
+    StudentTypeOnboarding(user: .constant(User(id: "", username: "", displayName: "", email: "", creationDate: Date.now, providerRef: "", selectedSubjects: [], studyReminderTime: Date.now, studentType: "", currentStreak: 0, longestStreak: 0, points: 0, favoriteStackIDs: [])), step: .constant(4))
 }

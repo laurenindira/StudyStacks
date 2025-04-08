@@ -42,7 +42,9 @@ struct AddFriendsView: View {
                             }
                         
                         Button {
-                            Task { await sendFriendRequest() }
+                            Task {
+                                await sendFriendRequest()
+                            }
                         } label: {
                             GeneralButton(placeholder: "send request!", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
                         }
@@ -65,16 +67,19 @@ struct AddFriendsView: View {
             showAlert = true
             return
         }
-        
-        let (success, errorMessage) = await friendVM.sendFriendRequest(toEmail: email)
-        
-        if success {
-            alertMessage = errorMessage
-            showAlert = true
-            dismiss()
-        } else {
-            alertMessage = errorMessage
-            showAlert = true
+        if let currentUserID = auth.user?.id {
+            if let currentUserEmail = auth.user?.email {
+                let (success, errorMessage) = await friendVM.sendFriendRequest(toEmail: email, senderID: currentUserID, senderEmail: currentUserEmail)
+                
+                if success {
+                    alertMessage = errorMessage
+                    showAlert = true
+                    dismiss()
+                } else {
+                    alertMessage = errorMessage
+                    showAlert = true
+                }
+            }
         }
     }
     

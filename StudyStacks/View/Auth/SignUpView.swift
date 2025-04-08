@@ -160,7 +160,7 @@ extension SignUpView: AuthenticationFormProtocol {
 }
 
 #Preview {
-    SignUpView(tempUser: User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Date(), studentType: "", currentStreak: 0, longestStreak: 0, favoriteStackIDs: []))
+    SignUpView(tempUser: User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Date(), studentType: "", currentStreak: 0, longestStreak: 0, points: 0, favoriteStackIDs: []))
         .environmentObject(AuthViewModel())
 }
 

@@ -13,7 +13,9 @@ struct Dashboard: View {
     @EnvironmentObject var friendVM: FriendsViewModel
     
     @State var creatingStack: Bool = false
-    
+   
+    @AppStorage("userPoints") var currentPoints: Int = 0
+  
     var body: some View {
         NavigationStack {
 
@@ -24,6 +26,10 @@ struct Dashboard: View {
                     
                     Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
                     
+                  Text("Points: \(currentPoints)")
+                    .font(.title)
+                    .padding()
+
                     Button {
                         Task {
                             await auth.signOut()
@@ -58,14 +64,16 @@ struct Dashboard: View {
             .onAppear {
                 Task {
                     //TODO: modify this to only load once on app launch instead of every time you go to dashboard
-                    await friendVM.fetchFriends(userID: auth.user?.id)
-                    await friendVM.fetchFriendRequests(userID: auth.user?.id)
-                    //await stackVM.fetchPublicStacks()
+                    if let currentUser = auth.user {
+                        await friendVM.fetchFriends(userID: currentUser.id)
+                        await friendVM.fetchFriendRequests(userID: currentUser.id)
+                    }
+                    await stackVM.fetchPublicStacks()
                 }
             }
             .padding()
-            
         }
+    
     }
 }
 

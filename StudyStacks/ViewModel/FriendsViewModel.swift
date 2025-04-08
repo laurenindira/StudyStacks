@@ -22,7 +22,6 @@ class FriendsViewModel: ObservableObject {
     var showAlert: Bool = false
     
     private let db = Firestore.firestore()
-    private var auth = AuthViewModel.shared
     
     //MARK: - Friend functions
     
@@ -30,7 +29,7 @@ class FriendsViewModel: ObservableObject {
     func fetchFriends(userID: String?) async {
         self.isLoading = true
         
-        guard let id = auth.user?.id else {
+        guard let user = AuthViewModel.shared.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
@@ -38,7 +37,7 @@ class FriendsViewModel: ObservableObject {
         }
         
         let documentID: String
-        if userID != nil { documentID = userID! } else { documentID = id }
+        if userID != nil { documentID = userID! } else { documentID = user.id }
         
         do {
             //FETCHING ALL USER FRIENDS
@@ -64,7 +63,7 @@ class FriendsViewModel: ObservableObject {
     func fetchFriendRequests(userID: String?) async {
         self.isLoading = true
         
-        guard let id = auth.user?.id else {
+        guard let user = AuthViewModel.shared.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
@@ -72,7 +71,7 @@ class FriendsViewModel: ObservableObject {
         }
         
         let documentID: String
-        if userID != nil { documentID = userID! } else { documentID = id }
+        if userID != nil { documentID = userID! } else { documentID = user.id }
         
         do {
             let snapshot = try await db.collection("friendships").document(documentID).getDocument()
@@ -95,15 +94,9 @@ class FriendsViewModel: ObservableObject {
     }
     
     //SENDING REQUESTS
-    func sendFriendRequest(toEmail: String) async -> (Bool, String) {
+    func sendFriendRequest(toEmail: String, senderID: String, senderEmail: String) async -> (Bool, String) {
         self.isLoading = true
-        
-        guard let senderID = auth.user?.id else {
-            self.errorMessage = "ERROR: user not logged in"
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return (false, "ERROR: user not logged in")
-        }
+        let senderID = senderID
         
         //checking if friend is in list
         if let existingFriend = friends.first(where: { $0.email == toEmail }) {
@@ -111,7 +104,8 @@ class FriendsViewModel: ObservableObject {
             return (false, "You are already friends with \(existingFriend.displayName)")
         }
         
-        if toEmail == auth.user?.email {
+        if toEmail == senderEmail {
+            print("TO EMAIL: \(toEmail) and USER EMAIL: \(senderEmail)")
             self.isLoading = false
             return(false, "You can't add yourself as a friend... Good try!")
         }
@@ -143,15 +137,10 @@ class FriendsViewModel: ObservableObject {
     }
     
     //ACCEPTING REQUESTS
-    func acceptFriendRequest(senderID: String) async {
+    func acceptFriendRequest(senderID: String, currentUserID: String) async {
         self.isLoading = true
-        
-        guard let userID = auth.user?.id else {
-            self.errorMessage = "ERROR: user not logged in"
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return
-        }
+
+        let userID = currentUserID
         
         let userRef = db.collection("friendships").document(userID)
         let senderRef = db.collection("friendships").document(senderID)
@@ -165,32 +154,29 @@ class FriendsViewModel: ObservableObject {
                 
                 transaction.updateData([
                     "friends": FieldValue.arrayUnion([userID]),
-                    "receivedRequests": FieldValue.arrayRemove([userID])
+                    "sentRequests": FieldValue.arrayRemove([userID])
                 ], forDocument: senderRef)
                 return nil
             }
-            
+            print("SUCCESS: accepted friend request")
             await fetchFriends(userID: userID)
             await fetchFriendRequests(userID: userID)
+            
             self.isLoading = false
             
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed to accept friend request - \(String(describing: errorMessage))")
+            
             self.isLoading = false
         }
     }
     
     //REJECTING REQUESTS
-    func rejectFriendRequest(senderID: String) async {
+    func rejectFriendRequest(senderID: String, currentUserID: String) async {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
-            self.errorMessage = "ERROR: user not logged in"
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return
-        }
+        let userID = currentUserID
         
         let userRef = db.collection("friendships").document(userID)
         let senderRef = db.collection("friendships").document(senderID)
@@ -228,25 +214,21 @@ class FriendsViewModel: ObservableObject {
     }
     
     //REMOVING FRIENDS
-    func removeFriend(toRemove: String) async -> (Bool, String?) {
+    func removeFriend(friendIDToRemove: String, currentUserID: String) async -> (Bool, String?) {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
-            self.errorMessage = "ERROR: user not logged in"
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return (false, "user not logged in")
-        }
+        let userID = currentUserID
         
         let userRef = db.collection("friendships").document(userID)
-        let friendRef = db.collection("friendships").document(toRemove)
+        let friendRef = db.collection("friendships").document(friendIDToRemove)
         
         do {
-            try await userRef.updateData(["friends": FieldValue.arrayRemove([toRemove])])
+            try await userRef.updateData(["friends": FieldValue.arrayRemove([friendIDToRemove])])
             try await friendRef.updateData(["friends": FieldValue.arrayRemove([userID])])
+            print("SUCCESS: Removed from both friend lists")
             
             DispatchQueue.main.async {
-                self.friends.removeAll { $0.id == toRemove }
+                self.friends.removeAll { $0.id == friendIDToRemove }
             }
             
             self.isLoading = false

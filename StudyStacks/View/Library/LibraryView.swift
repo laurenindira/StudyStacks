@@ -119,7 +119,7 @@ struct LibraryView: View {
                 Task {
                     if let userID = auth.user?.id {
                         await stackVM.fetchUserStacks(for: userID)
-                        await stackVM.fetchUserFavorites()
+                        await stackVM.fetchUserFavorites(for: userID)
                     }
                     await stackVM.fetchPublicStacks()
                 }
@@ -160,7 +160,9 @@ struct LibraryView: View {
     
     private func refresh() async {
         await stackVM.fetchPublicStacks()
-        await stackVM.fetchUserFavorites()
+        if let userID = auth.user?.id {
+            await stackVM.fetchUserFavorites(for: userID)
+        }
     }
 }
 

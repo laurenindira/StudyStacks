@@ -28,6 +28,10 @@ struct User: Identifiable, Codable {
     var longestStreak: Int
     var lastStudyDate: Date?
     
+    //points
+    var points: Int
+
     //FAVORITES
     var favoriteStackIDs: [String]
+
 }
