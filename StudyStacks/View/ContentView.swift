@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     @AppStorage("isSignedIn") var isSignedIn = false
     
     var body: some View {
@@ -43,4 +44,5 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }
