@@ -181,6 +181,11 @@ class StackViewModel: ObservableObject {
         }
     }
     
+    func clearFavorites() {
+        self.favoriteStackIDs = []
+        print("SUCCESS: Cleared favorite data locally")
+    }
+    
     //TODO: revisit these later on in order to delay the sync for the favorites
 //    private func scheduleFavoritesSync() {
 //        syncTimer?.invalidate()

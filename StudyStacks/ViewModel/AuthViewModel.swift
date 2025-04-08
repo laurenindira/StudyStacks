@@ -396,6 +396,7 @@ class AuthViewModel: NSObject, ObservableObject {
     private func clearUserCache() {
         userDefaults.removeObject(forKey: userKey)
         resetLocalStreak()
+        StackViewModel.shared.clearFavorites()
         UserDefaults.standard.set(false, forKey: "isSignedIn")
     }
 }
