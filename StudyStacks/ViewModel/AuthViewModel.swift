@@ -90,6 +90,7 @@ class AuthViewModel: NSObject, ObservableObject {
             let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()))
             self.user = user
             try await saveUserToFirestore(user: user)
+            try await createFriendshipCollection(user: user)
             saveUserToCache(user)
             UserDefaults.standard.set(true, forKey: "isSignedIn")
             self.isLoading = false
@@ -121,6 +122,8 @@ class AuthViewModel: NSObject, ObservableObject {
             await loadUserFromFirebase()
             UserDefaults.standard.set(true, forKey: "isSignedIn")
             self.createLocalStreak()
+            print("USER: \(user?.id ?? "not known") and \(user?.displayName ?? "not known")")
+            //await self.loadFriendshipData(userID: user?.id)
             self.isLoading = false
         } catch let error as NSError {
             self.isLoading = false
@@ -170,6 +173,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 await self.loadUserFromFirebase()
                                 await self.updateLastSignIn(for: uid)
+                                //await self.loadFriendshipData(userID: uid)
                                 UserDefaults.standard.set(true, forKey: "isSignedIn")
                                 self.createLocalStreak()
                             }
@@ -180,6 +184,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             Task {
                                 do {
                                     try await self.saveUserToFirestore(user: newUser)
+                                    try await self.createFriendshipCollection(user: newUser)
                                     self.user = newUser
                                     self.saveUserToCache(newUser)
                                     UserDefaults.standard.set(true, forKey: "isSignedIn")
@@ -238,6 +243,7 @@ class AuthViewModel: NSObject, ObservableObject {
                 try auth.signOut()
                 self.user = nil
                 clearUserCache()
+                FriendsViewModel.shared.clearFriendshipLocally()
             }
             self.isLoading = false
         } catch let error {
@@ -346,6 +352,29 @@ class AuthViewModel: NSObject, ObservableObject {
 //        if let streak = auth.user?.currentStreak {
 //            //checkForMilestones(streak: streak)
 //        }
+//    }
+    
+    //MARK: -  Friendship data
+    func createFriendshipCollection(user: User) async throws {
+        do {
+            try await db.collection("friendships").document(user.id).setData([
+                "userID": user.id,
+                "friends": [],
+                "receivedRequests": [],
+                "sentRequests": []
+            ])
+            
+            //await loadFriendshipData(userID: user.id)
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to add friendship collection - \(String(describing: errorMessage))")
+            throw error
+        }
+    }
+    
+//    func loadFriendshipData(userID: String) async {
+//        await FriendsViewModel.shared.fetchFriends(userID: user?.id)
+//        await FriendsViewModel.shared.fetchFriendRequests(userID: user?.id)
 //    }
     
     //MARK: - Local User Caching
