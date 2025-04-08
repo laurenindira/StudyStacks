@@ -29,4 +29,17 @@ class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
       return GIDSignIn.sharedInstance.handle(url)
     }
+    
+    //saves points to firebase at EOD AND resets points every week
+    func scheduleEndOfDayPointUpdate() {
+        let timer = Timer(fire: Calendar.current.nextDate(after: Date(), matching: DateComponents(hour: 23, minute: 59), matchingPolicy: .nextTime) ?? Date(), interval: 86400, repeats: true) { _ in
+            Task {
+                if PointsManager.shared.shouldResetPoints() {
+                    PointsManager.shared.savePointsLocally(points: 0)
+                }
+                await AuthViewModel.shared.updatePointsInFirebase()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+    }
 }

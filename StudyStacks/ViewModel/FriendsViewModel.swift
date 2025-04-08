@@ -30,7 +30,7 @@ class FriendsViewModel: ObservableObject {
     func fetchFriends(userID: String?) async {
         self.isLoading = true
         
-        guard let id = auth.user?.id else {
+        guard let user = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
@@ -38,7 +38,7 @@ class FriendsViewModel: ObservableObject {
         }
         
         let documentID: String
-        if userID != nil { documentID = userID! } else { documentID = id }
+        if userID != nil { documentID = userID! } else { documentID = user.id }
         
         do {
             //FETCHING ALL USER FRIENDS
@@ -64,7 +64,7 @@ class FriendsViewModel: ObservableObject {
     func fetchFriendRequests(userID: String?) async {
         self.isLoading = true
         
-        guard let id = auth.user?.id else {
+        guard let user = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
@@ -72,7 +72,7 @@ class FriendsViewModel: ObservableObject {
         }
         
         let documentID: String
-        if userID != nil { documentID = userID! } else { documentID = id }
+        if userID != nil { documentID = userID! } else { documentID = user.id }
         
         do {
             let snapshot = try await db.collection("friendships").document(documentID).getDocument()
@@ -98,12 +98,14 @@ class FriendsViewModel: ObservableObject {
     func sendFriendRequest(toEmail: String) async -> (Bool, String) {
         self.isLoading = true
         
-        guard let senderID = auth.user?.id else {
+        guard let sender = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
             return (false, "ERROR: user not logged in")
         }
+        
+        let senderID = sender.id
         
         //checking if friend is in list
         if let existingFriend = friends.first(where: { $0.email == toEmail }) {
@@ -146,12 +148,14 @@ class FriendsViewModel: ObservableObject {
     func acceptFriendRequest(senderID: String) async {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
+        guard let user = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
             return
         }
+        
+        let userID = user.id
         
         let userRef = db.collection("friendships").document(userID)
         let senderRef = db.collection("friendships").document(senderID)
@@ -185,12 +189,14 @@ class FriendsViewModel: ObservableObject {
     func rejectFriendRequest(senderID: String) async {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
+        guard let user = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
             return
         }
+        
+        let userID = user.id
         
         let userRef = db.collection("friendships").document(userID)
         let senderRef = db.collection("friendships").document(senderID)
@@ -231,12 +237,14 @@ class FriendsViewModel: ObservableObject {
     func removeFriend(toRemove: String) async -> (Bool, String?) {
         self.isLoading = true
         
-        guard let userID = auth.user?.id else {
+        guard let user = auth.user else {
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
             return (false, "user not logged in")
         }
+        
+        let userID = user.id
         
         let userRef = db.collection("friendships").document(userID)
         let friendRef = db.collection("friendships").document(toRemove)

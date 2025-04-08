@@ -13,7 +13,9 @@ struct Dashboard: View {
     @EnvironmentObject var friendVM: FriendsViewModel
     
     @State var creatingStack: Bool = false
-    
+   
+    @AppStorage("userPoints") var currentPoints: Int = 0
+  
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -23,9 +25,13 @@ struct Dashboard: View {
                     
                     Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
                     
+                  Text("Points: \(currentPoints)")
+                    .font(.title)
+                    .padding()
+
                     Button {
                         Task {
-                            auth.signOut()
+                            await auth.signOut()
                         }
                     } label: {
                         GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
@@ -63,8 +69,8 @@ struct Dashboard: View {
                 }
             }
             .padding()
-            
         }
+    
     }
 }
 

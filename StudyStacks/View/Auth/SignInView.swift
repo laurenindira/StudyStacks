@@ -18,7 +18,7 @@ struct SignInView: View {
     @State var password: String = ""
     @State var showPassword: Bool = false
     
-    @State private var tempUser = User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Date(), studentType: "", currentStreak: 0, longestStreak: 0)
+    @State private var tempUser = User(id: "", username: "", displayName: "", email: "", creationDate: Date(), providerRef: "", selectedSubjects: [], studyReminderTime: Date(), studentType: "", currentStreak: 0, longestStreak: 0, points: 0)
     
     var showPasswordToggle: Bool {
         get { showPassword }

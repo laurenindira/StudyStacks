@@ -17,6 +17,8 @@ struct CardStackView: View {
 
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
+    @State private var showingPointsEarned = false
+    @State private var pointsEarned = 0
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -53,16 +55,42 @@ struct CardStackView: View {
                 VStack {
                     Spacer()
                     
+                    if showingPointsEarned {
+                                Text("+\(pointsEarned) points!")
+                                    .font(.title)
+                                    .foregroundColor(.green)
+                                    .padding()
+                                    .transition(.scale)
+                            }
+                    
                     Text("No Cards Left")
                         .font(.title)
                         .foregroundColor(.gray)
                         .padding()
                     
-                    Button(action: swipeVM.reset) {
-                        GeneralButton(placeholder: "Reset", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    Button(action: {
+                        pointsEarned = swipeVM.originalCards.count
+                        showingPointsEarned = true
+                        
+                        Task {
+                            PointsManager.shared.addPoints(points: pointsEarned)
+                            //await auth.addPoints(pointsEarned)
+                            //await auth.loadUserFromFirebase()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                showingPointsEarned = false
+                                swipeVM.reset()
+                            }
+                        }
+                    }) {
+                        GeneralButton(
+                            placeholder: "Reset (+\(swipeVM.originalCards.count) pts)",
+                            backgroundColor: Color.prim,
+                            foregroundColor: Color.white,
+                            isSystemImage: false)
                     }
                     .padding(.horizontal, 80)
                 }
+                .animation(.easeInOut, value: showingPointsEarned)
             } else {
                 let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
                 

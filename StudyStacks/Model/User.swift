@@ -27,4 +27,7 @@ struct User: Identifiable, Codable {
     var currentStreak: Int
     var longestStreak: Int
     var lastStudyDate: Date?
+    
+    //points
+    var points: Int
 }
