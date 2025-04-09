@@ -23,14 +23,13 @@ struct CardPreview: View {
                 .bold()
                 .foregroundColor(Color.text)
 
-            Text("\(String(stack.cards.count)) terms")
-                .font(.caption)
-                .foregroundColor(.secondaryText)
+            SmallSubjectTags(subjectTags: stack.tags)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: 140)
     }
 }
 
 #Preview {
-    CardPreview(stack: Stack(id: "", title: "test time", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "agriculture", "another", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
+    CardPreview(stack: Stack(id: "", title: "test time", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "geography", "computer science", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
 }
