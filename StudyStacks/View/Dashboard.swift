@@ -19,25 +19,22 @@ struct Dashboard: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack {
-                    
-                    Text("This is a dashboard")
-                    
-                    Text("\(auth.user?.displayName ?? "this user") has a \(String(auth.user?.currentStreak ?? 0)) day streak")
-                    
-                  Text("Points: \(currentPoints)")
-                    .font(.title)
-                    .padding()
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    Text("Welcome back, \(auth.user?.displayName ?? "user")!")
+                        .font(.customHeading(.title2))
 
-                    Button {
-                        Task {
-                            await auth.signOut()
-                        }
-                    } label: {
-                        GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                    // Weekly Progress Card
+                    WeeklyProgressView(rank: "1st", cardsStudied: currentPoints)
+
+                    // Streaks + Cards Studied
+                    HStack(alignment: .center, spacing: 16) {
+                        StatCardView(number: 6, text: "day streak")
+                        StatCardView(number: 2345, text: "cards studied lifetime")
                     }
-                    .padding(.top, 20)
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
+
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
