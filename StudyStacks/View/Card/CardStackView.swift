@@ -174,36 +174,6 @@ struct CardStackView: View {
                     .padding(.bottom, 40)
                 }
             }
-
-//            VStack {
-//                Spacer()
-//
-//                HStack {
-//                    Button(action: {
-//                        handleButtonSwipe(direction: .left)
-//                    }) {
-//                        Image(systemName: "hand.thumbsdown.circle")
-//                            .resizable()
-//                            .frame(width: 50, height: 50)
-//                            .foregroundColor(.red)
-//                    }
-//
-//                    Text("remember it?")
-//                        .font(.body)
-//                        .foregroundColor(.black)
-//                        .padding(.horizontal)
-//
-//                    Button(action: {
-//                        handleButtonSwipe(direction: .right)
-//                    }) {
-//                        Image(systemName: "hand.thumbsup.circle")
-//                            .resizable()
-//                            .frame(width: 50, height: 50)
-//                            .foregroundColor(.green)
-//                    }
-//                }
-//                .padding(.bottom, 40)
-//            }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
