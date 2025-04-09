@@ -9,10 +9,11 @@ import SwiftUI
 
 struct RecommendedStacksView: View {
     var stack: [Stack]
+    var title: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Heard you were interested in...")
+            Text(title)
                 .font(.customHeading(.headline))
                 .bold()
 
@@ -25,7 +26,7 @@ struct RecommendedStacksView: View {
                 .padding(.horizontal, 4)
             }
         }
-        .padding(.vertical)
+//        .padding(.vertical)
         .padding(.horizontal)
     }
 }
@@ -36,5 +37,5 @@ struct RecommendedStacksView: View {
     RecommendedStacksView(stack: [
         Stack(id: "1", title: "Test Time", description: "", creator: "Farmer John", creatorID: "", creationDate: .now, tags: ["biology", "agriculture"], cards: [], isPublic: true),
         Stack(id: "2", title: "Photosynthesis", description: "", creator: "Farmer Jane", creatorID: "", creationDate: .now, tags: ["science"], cards: [], isPublic: true)
-    ])
+    ], title: "please")
 }

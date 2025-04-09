@@ -35,6 +35,22 @@ struct Dashboard: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     
                     // Recommended Stacks
+                    if let selectedSubjects = auth.user?.selectedSubjects {
+                        ForEach(selectedSubjects, id: \.self) { subject in
+                            let subjectStacks = stackVM.publicStacks.filter { stack in
+                                stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
+                            }
+
+                            Group {
+                                if !subjectStacks.isEmpty {
+                                    RecommendedStacksView(
+                                        stack: subjectStacks,
+                                        title: "So you're interested in \(subject)..."
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 Button {
@@ -83,8 +99,71 @@ struct Dashboard: View {
 }
 
 #Preview {
-    Dashboard()
-        .environmentObject(AuthViewModel())
-        .environmentObject(StackViewModel())
-        .environmentObject(FriendsViewModel())
+    // Mock user
+    let mockUser = User(
+        id: "1",
+        username: "raihana_z",
+        displayName: "Raihana",
+        email: "rai@study.com",
+        profilePicture: nil,
+        creationDate: .now,
+        lastSignIn: nil,
+        providerRef: "",
+        selectedSubjects: ["biology", "computer science", "geography"],
+        studyReminderTime: .now,
+        studentType: "college",
+        currentStreak: 6,
+        longestStreak: 15,
+        lastStudyDate: nil,
+        points: 2345
+    )
+
+    // Mock stacks
+    let mockStacks = [
+        Stack(
+            id: "1",
+            title: "Intro to Biology",
+            description: "Learn the basics of life",
+            creator: "Raihana",
+            creatorID: "1",
+            creationDate: .now,
+            tags: ["biology"],
+            cards: [],
+            isPublic: true
+        ),
+        Stack(
+            id: "2",
+            title: "SwiftUI Essentials",
+            description: "Study core SwiftUI components",
+            creator: "Raihana",
+            creatorID: "1",
+            creationDate: .now,
+            tags: ["computer science"],
+            cards: [],
+            isPublic: true
+        ),
+        Stack(
+            id: "3",
+            title: "World Maps & More",
+            description: "Explore geography flashcards",
+            creator: "Raihana",
+            creatorID: "1",
+            creationDate: .now,
+            tags: ["geography"],
+            cards: [],
+            isPublic: true
+        )
+    ]
+
+    // Mock view models
+    let mockAuth = AuthViewModel()
+    mockAuth.user = mockUser
+
+    let mockStackVM = StackViewModel()
+    mockStackVM.publicStacks = mockStacks
+
+    return Dashboard()
+        .environmentObject(mockAuth)
+        .environmentObject(mockStackVM)
+        .environmentObject(FriendsViewModel()) // Or mock this too if needed
 }
