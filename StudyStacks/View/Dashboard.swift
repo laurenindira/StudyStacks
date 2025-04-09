@@ -99,7 +99,6 @@ struct Dashboard: View {
 }
 
 #Preview {
-    // Mock user
     let mockUser = User(
         id: "1",
         username: "raihana_z",
@@ -118,44 +117,23 @@ struct Dashboard: View {
         points: 2345
     )
 
-    // Mock stacks
-    let mockStacks = [
-        Stack(
-            id: "1",
-            title: "Intro to Biology",
-            description: "Learn the basics of life",
-            creator: "Raihana",
-            creatorID: "1",
-            creationDate: .now,
-            tags: ["biology"],
-            cards: [],
-            isPublic: true
-        ),
-        Stack(
-            id: "2",
-            title: "SwiftUI Essentials",
-            description: "Study core SwiftUI components",
-            creator: "Raihana",
-            creatorID: "1",
-            creationDate: .now,
-            tags: ["computer science"],
-            cards: [],
-            isPublic: true
-        ),
-        Stack(
-            id: "3",
-            title: "World Maps & More",
-            description: "Explore geography flashcards",
-            creator: "Raihana",
-            creatorID: "1",
-            creationDate: .now,
-            tags: ["geography"],
-            cards: [],
-            isPublic: true
-        )
-    ]
+    // 5 stacks for each selected subject
+    let mockStacks: [Stack] = mockUser.selectedSubjects.flatMap { subject in
+        (1...5).map { index in
+            Stack(
+                id: "\(subject)-\(index)",
+                title: "\(subject.capitalized) Stack \(index)",
+                description: "Preview stack for \(subject)",
+                creator: "Raihana",
+                creatorID: "1",
+                creationDate: .now,
+                tags: [subject],
+                cards: [],
+                isPublic: true
+            )
+        }
+    }
 
-    // Mock view models
     let mockAuth = AuthViewModel()
     mockAuth.user = mockUser
 
@@ -165,5 +143,5 @@ struct Dashboard: View {
     return Dashboard()
         .environmentObject(mockAuth)
         .environmentObject(mockStackVM)
-        .environmentObject(FriendsViewModel()) // Or mock this too if needed
+        .environmentObject(FriendsViewModel())
 }
