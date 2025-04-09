@@ -20,13 +20,15 @@ struct RecommendedStacksView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(stack) { stack in
-                        CardPreview(stack: stack)
+                        NavigationLink(destination: StackDetailView(stack: stack)) {
+                            CardPreview(stack: stack)
+                        }
                     }
+
                 }
                 .padding(.horizontal, 4)
             }
         }
-//        .padding(.vertical)
         .padding(.horizontal)
     }
 }

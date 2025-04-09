@@ -20,8 +20,9 @@ struct CardPreview: View {
             // Stack Details
             Text(stack.title)
                 .font(.headline)
-                .bold()
                 .foregroundColor(Color.text)
+                .lineLimit(1)
+                .truncationMode(.tail)
 
             SmallSubjectTags(subjectTags: stack.tags)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,5 +32,5 @@ struct CardPreview: View {
 }
 
 #Preview {
-    CardPreview(stack: Stack(id: "", title: "test time", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "geography", "computer science", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
+    CardPreview(stack: Stack(id: "", title: "test time bleep bloop blap", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "geography", "computer science", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
 }

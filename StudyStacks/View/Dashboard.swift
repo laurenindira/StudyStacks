@@ -45,7 +45,7 @@ struct Dashboard: View {
                                 if !subjectStacks.isEmpty {
                                     RecommendedStacksView(
                                         stack: subjectStacks,
-                                        title: "So you're interested in \(subject)..."
+                                        title: "Interest in \(subject)..."
                                     )
                                 }
                             }
