@@ -10,6 +10,7 @@ import SwiftUI
 struct LibraryView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
@@ -135,11 +136,11 @@ struct LibraryView: View {
             
             let matchesCategory = selectedCategory == "All" || stack.tags.contains(selectedCategory)
             
-            
             // TODO: Update this logic once the friend feature is implemented
+            let friendIDs = friendVM.friends.map { $0.id }
             let matchesCreator = selectedCreator == "Anyone" ||
                 (selectedCreator == "Me" && stack.creatorID == auth.user?.id) ||
-                (selectedCreator == "Friends" && stack.creatorID != auth.user?.id && stack.isPublic)
+            (selectedCreator == "Friends" && (friendIDs.contains(stack.creatorID)) && stack.isPublic)
             
             return matchesSearch && matchesCategory && matchesCreator
         }
@@ -154,4 +155,5 @@ struct LibraryView: View {
     LibraryView()
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }

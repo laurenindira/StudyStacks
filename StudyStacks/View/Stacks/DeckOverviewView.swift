@@ -15,6 +15,7 @@ struct StackDetailView: View {
     @State private var isDeleted = false
     @State private var showDeleteConfirmation = false
     @State private var deleteErrorMessage: String?
+    @State private var showCardStackView = false
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
@@ -112,7 +113,9 @@ struct StackDetailView: View {
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
 
-                    Button(action: {}) {
+                    Button(action: {
+                        showCardStackView = true
+                    }) {
                         Text("Start Studying")
                             .font(.headline)
                             .foregroundColor(.white)
@@ -122,6 +125,14 @@ struct StackDetailView: View {
                             .cornerRadius(12)
                     }
                     .padding()
+                    .navigationDestination(isPresented: $showCardStackView) {
+                        CardStackView(
+                            swipeVM: SwipeableCardsViewModel(cards: stack.cards),
+                            card: stack.cards.first ?? Card(front: "", back: ""),
+                            stack: stack
+                        )
+                    }
+                    
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
