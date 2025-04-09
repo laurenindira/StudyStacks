@@ -12,15 +12,22 @@ struct StatCardView: View {
     var text: String
 
     var body: some View {
-        Text("\(number) \(text)")
-            .font(.customHeading(.headline))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.center)
-            .frame(width: 175, height: 80)
-            .background(Color.prim)
-            .cornerRadius(20)
+        HStack(spacing: 4) {
+            Text("\(number)")
+                .font(.headline)
+                .foregroundColor(.white)
+
+            Text(text)
+                .font(.body)
+                .foregroundColor(.white)
+        }
+        .multilineTextAlignment(.center)
+        .frame(width: 175, height: 80)
+        .background(Color.prim)
+        .cornerRadius(20)
     }
 }
+
 
 
 #Preview {

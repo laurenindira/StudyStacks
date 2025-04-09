@@ -34,6 +34,15 @@ struct Dashboard: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
+                
+                Button {
+                    Task {
+                        await auth.signOut()
+                    }
+                } label: {
+                    GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
+                }
+                .padding(.top, 20)
 
             }
             .toolbar {
