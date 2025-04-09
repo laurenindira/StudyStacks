@@ -33,6 +33,8 @@ struct Dashboard: View {
                         StatCardView(number: 2345, text: "lifetime cards")
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    // Recommended Stacks
                 }
                 
                 Button {
