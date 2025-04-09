@@ -36,7 +36,7 @@ struct Dashboard: View {
                     
                     // Recommended Stacks
                     if let selectedSubjects = auth.user?.selectedSubjects {
-                        ForEach(selectedSubjects, id: \.self) { subject in
+                        ForEach(selectedSubjects.prefix(3), id: \.self) { subject in
                             let subjectStacks = stackVM.publicStacks.filter { stack in
                                 stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
                             }
@@ -108,7 +108,7 @@ struct Dashboard: View {
         creationDate: .now,
         lastSignIn: nil,
         providerRef: "",
-        selectedSubjects: ["biology", "computer science", "geography"],
+        selectedSubjects: ["biology", "computer science", "geography", "political science"],
         studyReminderTime: .now,
         studentType: "college",
         currentStreak: 6,
