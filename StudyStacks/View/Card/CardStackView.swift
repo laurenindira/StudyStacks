@@ -54,22 +54,26 @@ struct CardStackView: View {
             if swipeVM.unswipedCards.isEmpty {
                 VStack {
                     Spacer()
-                    
-                    Text("No Cards Left")
-                        .font(.title)
-                        .foregroundColor(.gray)
-                        .padding()
-                    
-                    NavigationLink(destination: StackDetailView(stack: stack)) {
-                        GeneralButton(
-                            placeholder: "Return to Stack Overview",
-                            backgroundColor: Color.prim,
-                            foregroundColor: Color.white,
-                            isSystemImage: false
-                        )
+
+                    VStack(spacing: 20) {
+                        Text("No Cards Left")
+                            .font(.title)
+                            .foregroundColor(.gray)
+
+                        NavigationLink(destination: StackDetailView(stack: stack)) {
+                            GeneralButton(
+                                placeholder: "Return to Stack Overview",
+                                backgroundColor: Color.prim,
+                                foregroundColor: Color.white,
+                                isSystemImage: false
+                            )
+                        }
+                        .padding(.horizontal, 80)
                     }
-                    .padding(.horizontal, 80)
+
+                    Spacer()
                 }
+                .frame(maxHeight: .infinity)
             } else {
                 let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
                 
@@ -139,35 +143,67 @@ struct CardStackView: View {
             Spacer()
             
             // remember it section
-            VStack {
-                Spacer()
+            if !swipeVM.unswipedCards.isEmpty {
+                VStack {
+                    Spacer()
 
-                HStack {
-                    Button(action: {
-                        handleButtonSwipe(direction: .left)
-                    }) {
-                        Image(systemName: "hand.thumbsdown.circle")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.red)
+                    HStack {
+                        Button(action: {
+                            handleButtonSwipe(direction: .left)
+                        }) {
+                            Image(systemName: "hand.thumbsdown.circle")
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.red)
+                        }
+
+                        Text("remember it?")
+                            .font(.body)
+                            .foregroundColor(.black)
+                            .padding(.horizontal)
+
+                        Button(action: {
+                            handleButtonSwipe(direction: .right)
+                        }) {
+                            Image(systemName: "hand.thumbsup.circle")
+                                .resizable()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.green)
+                        }
                     }
-
-                    Text("remember it?")
-                        .font(.body)
-                        .foregroundColor(.black)
-                        .padding(.horizontal)
-
-                    Button(action: {
-                        handleButtonSwipe(direction: .right)
-                    }) {
-                        Image(systemName: "hand.thumbsup.circle")
-                            .resizable()
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.green)
-                    }
+                    .padding(.bottom, 40)
                 }
-                .padding(.bottom, 40)
             }
+
+//            VStack {
+//                Spacer()
+//
+//                HStack {
+//                    Button(action: {
+//                        handleButtonSwipe(direction: .left)
+//                    }) {
+//                        Image(systemName: "hand.thumbsdown.circle")
+//                            .resizable()
+//                            .frame(width: 50, height: 50)
+//                            .foregroundColor(.red)
+//                    }
+//
+//                    Text("remember it?")
+//                        .font(.body)
+//                        .foregroundColor(.black)
+//                        .padding(.horizontal)
+//
+//                    Button(action: {
+//                        handleButtonSwipe(direction: .right)
+//                    }) {
+//                        Image(systemName: "hand.thumbsup.circle")
+//                            .resizable()
+//                            .frame(width: 50, height: 50)
+//                            .foregroundColor(.green)
+//                    }
+//                }
+//                .padding(.bottom, 40)
+//            }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
