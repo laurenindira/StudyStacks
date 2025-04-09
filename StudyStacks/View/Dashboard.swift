@@ -15,6 +15,8 @@ struct Dashboard: View {
     @State var creatingStack: Bool = false
    
     @AppStorage("userPoints") var currentPoints: Int = 0
+    
+    let knownSubjects = ["english", "chemistry", "biology", "computer science", "geography", "spanish", "psychology"]
   
     var body: some View {
         NavigationStack {
@@ -36,16 +38,35 @@ struct Dashboard: View {
                     
                     // Recommended Stacks
                     if let selectedSubjects = auth.user?.selectedSubjects {
-                        ForEach(selectedSubjects.prefix(3), id: \.self) { subject in
-                            let subjectStacks = stackVM.publicStacks.filter { stack in
-                                stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
+                        if selectedSubjects.contains(where: { $0.lowercased() == "none of these tbh..." }) {
+                            //  Stacks with ONLY unknown tags
+                            let fallbackStacks = stackVM.publicStacks.filter { stack in
+                                stack.tags.allSatisfy { tag in
+                                    !knownSubjects.contains(tag.lowercased())
+                                }
                             }
 
-                            Group {
-                                if !subjectStacks.isEmpty {
+                            if !fallbackStacks.isEmpty {
+                                RecommendedStacksView(
+                                    stack: fallbackStacks,
+                                    title: "You might like these..."
+                                )
+                            }
+
+                        } else {
+                            let filteredSubjects = selectedSubjects
+                                .filter { $0.lowercased() != "none of these tbh..." }
+                                .prefix(3)
+
+                            ForEach(filteredSubjects, id: \.self) { subject in
+                                let filteredStacks = stackVM.publicStacks.filter { stack in
+                                    stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
+                                }
+
+                                if !filteredStacks.isEmpty {
                                     RecommendedStacksView(
-                                        stack: subjectStacks,
-                                        title: "Interest in \(subject)..."
+                                        stack: filteredStacks,
+                                        title: "Interest in \(subject.capitalized)..."
                                     )
                                 }
                             }
