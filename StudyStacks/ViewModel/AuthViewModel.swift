@@ -18,11 +18,11 @@ class AuthViewModel: NSObject, ObservableObject {
     var user: User? {
         didSet {
             if let currentUser = user {
-                print("✅ Auth user set: \(currentUser.id)")
+                print("Auth user set: \(currentUser.id)")
                 saveUserToCache(currentUser)
                 userDefaults.set(currentUser != nil , forKey: "isSignedIn")
             } else {
-                print("❌ Auth user cleared.")
+                print("Auth user cleared.")
                 clearUserCache()
             }
         }
@@ -59,14 +59,14 @@ class AuthViewModel: NSObject, ObservableObject {
            let savedUser = try? JSONDecoder().decode(User.self, from: savedUserData) {
             self.user = savedUser
             UserDefaults.standard.set(true, forKey: "isSignedIn")
-            print("📦 Cached user loaded: \(savedUser.id)")
+            print("Cached user loaded: \(savedUser.id)")
         } else if auth.currentUser != nil {
-            print("🔄 No cached user — fetching from Firebase")
+            print("No cached user — fetching from Firebase")
             Task {
                 await self.loadUserFromFirebase()
             }
         } else {
-            print("❌ No logged-in Firebase user found.")
+            print("No logged-in Firebase user found.")
         }
     }
 
