@@ -36,7 +36,10 @@ struct FriendRow: View {
             if isRequest {
                 Button {
                     Task {
-                        await friendVM.acceptFriendRequest(senderID: friend.id)
+                        print("THIS IS THE FRIEND: \(friend)")
+                        if let currentUserID = auth.user?.id {
+                            await friendVM.acceptFriendRequest(senderID: friend.id, currentUserID: currentUserID)
+                        }
                     }
                 } label: {
                     Text("accept")
@@ -51,7 +54,10 @@ struct FriendRow: View {
                 
                 Button {
                     Task {
-                        await friendVM.rejectFriendRequest(senderID: friend.id)
+                        print("THIS IS THE FRIEND: \(friend)")
+                        if let currentUserID = auth.user?.id {
+                            await friendVM.rejectFriendRequest(senderID: friend.id, currentUserID: currentUserID)
+                        }
                     }
                 } label: {
                     Text("deny")
@@ -84,9 +90,11 @@ struct FriendRow: View {
             Button("Cancel", role: .cancel) {}
             Button("Remove", role: .destructive) {
                 Task {
-                    let (success, errorMessage) = await friendVM.removeFriend(toRemove: removal.id)
-                    if !success {
-                        print(errorMessage ?? "unknown error")
+                    if let currentUserID = auth.user?.id {
+                        let (success, errorMessage) = await friendVM.removeFriend(friendIDToRemove: removal.id, currentUserID: currentUserID)
+                        if !success {
+                            print(errorMessage ?? "unknown error")
+                        }
                     }
                 }
             }
