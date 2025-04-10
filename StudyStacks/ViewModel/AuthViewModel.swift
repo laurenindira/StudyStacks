@@ -282,6 +282,21 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    //MARK: - User Editing
+    func updateStudyReminder(for userID: String, newReminderTime: Date) async {
+        guard let user = user else { return }
+        self.isLoading = true
+        
+        do {
+            try await db.collection("users").document(userID).updateData(["studyReminderTime" : newReminderTime ])
+            print("SUCCESS: Changed reminder time")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failed to update reminder time - \(String(describing: errorMessage))")
+        }
+        self.isLoading = false
+    }
+    
     //MARK: - Streak Calculations
     func updateStudyStreak(for userID: String) async {
         guard let user = user else { return }
