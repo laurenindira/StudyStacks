@@ -34,7 +34,6 @@ class StackViewModel: ObservableObject {
     var errorMessage: String = ""
     
     private let db = Firestore.firestore()
-    private var auth = AuthViewModel.shared
     
     //delaying firebase writes for favorites
     private var syncTimer: Timer?
@@ -44,8 +43,8 @@ class StackViewModel: ObservableObject {
     func fetchUserStacks(for userID: String) async {
         self.isLoading = true
         
-        guard let _ = auth.user else {
-            print("CURRENTLY KNOWN USER FOR STACKS: \(String(describing: auth.user))")
+        guard let _ = AuthViewModel.shared.user else {
+            print("CURRENTLY KNOWN USER FOR STACKS: \(String(describing: AuthViewModel.shared.user))")
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
@@ -98,7 +97,7 @@ class StackViewModel: ObservableObject {
     func deleteStack(_ stack: Stack) async {
         self.isLoading = true
         
-        guard let user = auth.user else {
+        guard let user = AuthViewModel.shared.user else {
             print("ERROR: user not logged in")
             self.isLoading = false
             return
@@ -136,7 +135,7 @@ class StackViewModel: ObservableObject {
     
     //MARK: - Favorite Stacks
     func fetchUserFavorites(for userID: String) async {
-        guard let user = auth.user else {
+        guard let user = AuthViewModel.shared.user else {
             print("ERROR: user not logged in")
             self.isLoading = false
             return
@@ -160,7 +159,7 @@ class StackViewModel: ObservableObject {
     func toggleFavorite(for stackID: String) async {
         self.isLoading = true
         
-        guard let user = auth.user else {
+        guard let user = AuthViewModel.shared.user else {
             print("ERROR: user not logged in")
             self.isLoading = false
             return
