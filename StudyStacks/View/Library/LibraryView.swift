@@ -10,10 +10,12 @@ import SwiftUI
 struct LibraryView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
     @State private var selectedCreator: String = "Anyone"
+    @State private var showFavoritesOnly: Bool = false
     
     // TODO: Revisit this later to create a consistent list of subjects across the app.
     let categories = ["All", "English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
@@ -86,7 +88,12 @@ struct LibraryView: View {
                             .padding(10)
                             .background(RoundedRectangle(cornerRadius: 10).fill(Color.surface))
                         }
+                        
                     }
+                    
+                    Toggle("Show Favorites Only", isOn: $showFavoritesOnly)
+                        .padding(.horizontal)
+                        .toggleStyle(SwitchToggleStyle(tint: Color.prim))
                     
                     // LIST OF CARDS
                     if searchResults.isEmpty {
@@ -95,13 +102,11 @@ struct LibraryView: View {
                             .padding()
                     } else {
                         ForEach(searchResults, id: \.self) { stack in
-                            // TODO: add in check for if card is favorite
                             NavigationLink {
                                 StackDetailView(stack: stack)
                                     .environmentObject(stackVM)
-                                // link to overview
                             } label: {
-                                StackCardView(stack: stack, isFavorite: true)
+                                StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
                             }
                             .buttonStyle(.plain)
                         }
@@ -114,6 +119,7 @@ struct LibraryView: View {
                 Task {
                     if let userID = auth.user?.id {
                         await stackVM.fetchUserStacks(for: userID)
+                        await stackVM.fetchUserFavorites(for: userID)
                     }
                     await stackVM.fetchPublicStacks()
                 }
@@ -125,28 +131,38 @@ struct LibraryView: View {
     }
     
     var searchResults: [Stack] {
-        if searchText.isEmpty && selectedCategory == "All" && selectedCreator == "Anyone" {
-            return stackVM.combinedStacks
-        }
+        let filteredStacks: [Stack]
         
-        return stackVM.combinedStacks.filter { stack in
-            let matchesSearch = searchText.isEmpty || stack.title.localizedCaseInsensitiveContains(searchText) ||
-                stack.description.localizedCaseInsensitiveContains(searchText) || stack.creator.localizedCaseInsensitiveContains(searchText)
-            
-            let matchesCategory = selectedCategory == "All" || stack.tags.contains(selectedCategory)
-            
-            
-            // TODO: Update this logic once the friend feature is implemented
-            let matchesCreator = selectedCreator == "Anyone" ||
-                (selectedCreator == "Me" && stack.creatorID == auth.user?.id) ||
-                (selectedCreator == "Friends" && stack.creatorID != auth.user?.id && stack.isPublic)
-            
-            return matchesSearch && matchesCategory && matchesCreator
+        if searchText.isEmpty && selectedCategory == "All" && selectedCreator == "Anyone" {
+            filteredStacks = stackVM.combinedStacks
+        } else {
+            filteredStacks = stackVM.combinedStacks.filter { stack in
+                let matchesSearch = searchText.isEmpty || stack.title.localizedCaseInsensitiveContains(searchText) ||
+                    stack.description.localizedCaseInsensitiveContains(searchText) || stack.creator.localizedCaseInsensitiveContains(searchText)
+                
+                let matchesCategory = selectedCategory == "All" || stack.tags.contains(selectedCategory)
+                
+                let friendIDs = friendVM.friends.map { $0.id }
+                let matchesCreator = selectedCreator == "Anyone" ||
+                                  (selectedCreator == "Me" && stack.creatorID == auth.user?.id) ||
+                                  (selectedCreator == "Friends" && (friendIDs.contains(stack.creatorID)) && stack.isPublic)
+                
+                return matchesSearch && matchesCategory && matchesCreator
+            }
         }
+        if showFavoritesOnly {
+          return filteredStacks.filter { stack in
+              stackVM.favoriteStackIDs.contains(stack.id)
+          }
+        }
+        return filteredStacks
     }
     
     private func refresh() async {
         await stackVM.fetchPublicStacks()
+        if let userID = auth.user?.id {
+            await stackVM.fetchUserFavorites(for: userID)
+        }
     }
 }
 
@@ -154,4 +170,5 @@ struct LibraryView: View {
     LibraryView()
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }

@@ -16,6 +16,7 @@ enum Page {
 struct ContentView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
     @AppStorage("isSignedIn") var isSignedIn = false
 
     @State private var selectedPage: Page = .dashboard
@@ -71,4 +72,5 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }
