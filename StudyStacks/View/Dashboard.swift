@@ -31,7 +31,7 @@ struct Dashboard: View {
 
                     // Streaks + Cards Studied
                     HStack(alignment: .center, spacing: 16) {
-                        StatCardView(number: 6, text: "day streak")
+                        StatCardView(number: auth.user!.currentStreak, text: "day streak")
                         StatCardView(number: 2345, text: "lifetime cards")
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
