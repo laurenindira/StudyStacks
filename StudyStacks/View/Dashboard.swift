@@ -27,6 +27,7 @@ struct Dashboard: View {
                         .font(.customHeading(.title2))
 
                     // Weekly Progress Card
+                    // TODO: change once leaderboard is implemented
                     WeeklyProgressView(rank: "1st", cardsStudied: currentPoints)
 
                     // Streaks + Cards Studied
