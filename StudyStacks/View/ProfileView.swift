@@ -26,91 +26,153 @@ struct ProfileView: View {
     }
 
     var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            // Top Bar with Settings
-            HStack {
-                Spacer()
-                NavigationLink(destination: Text("Settings")) {
-                    Image(systemName: "gearshape")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 12)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .center, spacing: 20) {
 
-            // Profile Section
-            HStack(alignment: .center, spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(Color("background"))
-                        .frame(width: 72, height: 72)
-                        .overlay(
+                    // Top Bar
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: Text("Settings")) {
+                            Image(systemName: "gearshape")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+
+                    // Profile
+                    HStack(alignment: .center, spacing: 16) {
+                        ZStack {
                             Circle()
-                                .stroke(Color.black.opacity(0.1), lineWidth: 2)
-                        )
-                    Text(userInitials.isEmpty ? "??" : userInitials)
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(.black)
-                }
+                                .fill(Color("background"))
+                                .frame(width: 72, height: 72)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.black.opacity(0.1), lineWidth: 2)
+                                )
+                            Text(userInitials.isEmpty ? "??" : userInitials)
+                                .font(.title)
+                                .bold()
+                                .foregroundColor(.black)
+                        }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(auth.user?.displayName ?? "Unknown User")
-                        .font(.system(size: 22, weight: .bold))
-                    Text("@\(auth.user?.username ?? "username")")
-                        .font(.system(size: 16, weight: .semibold))
-                    Text("Member since \(formattedDate)")
-                        .font(.subheadline)
-                        .foregroundStyle(.gray)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(auth.user?.displayName ?? "Unknown User")
+                                .font(.system(size: 22, weight: .bold))
+                            Text("@\(auth.user?.username ?? "username")")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Member since \(formattedDate)")
+                                .font(.subheadline)
+                                .foregroundStyle(.gray)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Stats
+                    HStack(spacing: 40) {
+                        VStack {
+                            Image(systemName: "sparkles")
+                                .resizable()
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(Color("stacksblue"))
+                            let streak = auth.user?.currentStreak ?? 0
+                            Text("\(streak) day\(streak == 1 ? "" : "s")")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                        }
+
+                        VStack {
+                            Image(systemName: "square.stack.3d.up")
+                                .resizable()
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(Color("stacksblue"))
+                            Text("\(stackVM.userStacks.count) stacks")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                        }
+
+                        VStack {
+                            Image(systemName: "medal")
+                                .resizable()
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(Color("stacksblue"))
+                            Text("2 badges")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding()
+                    .background(Color("background"))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+
+                    // MARK: My Stacks
+                    if let userID = auth.user?.id {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("My Stacks")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                                ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
+                                    NavigationLink(destination: StackDetailView(stack: stack)
+                                        .environmentObject(stackVM)) {
+                                        StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+
+                        // MARK: Saved Stacks
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Saved Stacks")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            if stackVM.favoriteStackIDs.isEmpty {
+                                Text("You haven't saved any stacks yet.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal)
+                            } else {
+                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                                    ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
+                                        NavigationLink(destination: StackDetailView(stack: stack)
+                                            .environmentObject(stackVM)) {
+                                            StackCardView(stack: stack, isFavorite: true)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+
+                    Spacer()
                 }
             }
-            .padding(.horizontal)
-
-            // Stats Container
-            HStack(spacing: 40) {
-                VStack {
-                    Image(systemName: "sparkles")
-                        .resizable()
-                        .frame(width: 22, height: 22)
-                        .foregroundColor(Color("stacksblue"))
-
-                    // TODO: Replace hardcoded streak value with actual user data in future PR
-                    Text("126 days")
-                        .font(.subheadline)
-                        .foregroundColor(.black)
-                }
-
-                VStack {
-                    Image(systemName: "square.stack.3d.up")
-                        .resizable()
-                        .frame(width: 22, height: 22)
-                        .foregroundColor(Color("stacksblue"))
-
-                    // ✅ Corrected: use userStacks
-                    Text("\(stackVM.userStacks.count) stacks")
-                        .font(.subheadline)
-                        .foregroundColor(.black)
-                }
-
-                VStack {
-                    Image(systemName: "medal")
-                        .resizable()
-                        .frame(width: 22, height: 22)
-                        .foregroundColor(Color("stacksblue"))
-                    Text("2 badges")
-                        .font(.subheadline)
-                        .foregroundColor(.black)
+            .onAppear {
+                Task {
+                    if let userID = auth.user?.id {
+                        await stackVM.fetchUserStacks(for: userID)
+                        await stackVM.fetchUserFavorites(for: userID)
+                        await stackVM.fetchPublicStacks()
+                    }
                 }
             }
-            .padding()
-            .background(Color("background"))
-            .cornerRadius(20)
-            .padding(.horizontal)
-
-            Spacer()
         }
+    }
+
+    private func relativeDate(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
 
