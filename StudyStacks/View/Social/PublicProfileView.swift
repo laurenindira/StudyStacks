@@ -41,7 +41,7 @@ struct PublicProfileView: View {
                             Image(systemName: "fireworks")
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.sec)
-                            Text("\(String(friend.currentStreak)) days")
+                            Text("\(String(friend.points)) points")
                                 .font(.body)
                         }
                         .frame(width: UIScreen.main.bounds.width * 0.25)
@@ -86,8 +86,9 @@ struct PublicProfileView: View {
                                 // TODO: add in check for if card is favorite
                                 NavigationLink {
                                     StackDetailView(stack: stack)
+                                        .environmentObject(stackVM)
                                 } label: {
-                                    StackCardView(stack: stack, isFavorite: true)
+                                    StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -97,7 +98,6 @@ struct PublicProfileView: View {
                 .padding()
                 .onAppear {
                     Task {
-                        
                         friendCount = await friendVM.getFriendCount(userID: friend.id)
                     }
                 }
@@ -113,7 +113,7 @@ struct PublicProfileView: View {
 }
 
 #Preview {
-    PublicProfileView(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5))
+    PublicProfileView(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5, points: 35))
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
         .environmentObject(FriendsViewModel())

@@ -19,9 +19,9 @@ struct StudyStacksApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(StackViewModel())
-                .environmentObject(AuthViewModel())
-                .environmentObject(FriendsViewModel())
+                .environmentObject(auth)
+                .environmentObject(stackVM)
+                .environmentObject(friendVM)
         }
     }
 }

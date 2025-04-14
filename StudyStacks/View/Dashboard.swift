@@ -18,6 +18,7 @@ struct Dashboard: View {
   
     var body: some View {
         NavigationStack {
+
             ScrollView {
                 VStack {
                     
@@ -63,9 +64,11 @@ struct Dashboard: View {
             .onAppear {
                 Task {
                     //TODO: modify this to only load once on app launch instead of every time you go to dashboard
-                    await friendVM.fetchFriends(userID: auth.user?.id)
-                    await friendVM.fetchFriendRequests(userID: auth.user?.id)
-                    //await stackVM.fetchPublicStacks()
+                    if let currentUser = auth.user {
+                        await friendVM.fetchFriends(userID: currentUser.id)
+                        await friendVM.fetchFriendRequests(userID: currentUser.id)
+                    }
+                    await stackVM.fetchPublicStacks()
                 }
             }
             .padding()
