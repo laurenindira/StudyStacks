@@ -43,15 +43,14 @@ struct Dashboard: View {
                         
                         ForEach(filteredSubjects, id: \.self) { subject in
                             let filteredStacks = stackVM.publicStacks.filter { stack in
-                                stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
+                                stack.tags.contains { $0.caseInsensitiveCompare(subject) == .orderedSame }
                             }
 
-                            if !filteredStacks.isEmpty {
-                                RecommendedStacksView(
-                                    stack: filteredStacks,
-                                    title: "Interest in \(subject.capitalized)..."
-                                )
-                            }
+                            RecommendedStacksView(
+                                stack: filteredStacks,
+                                title: "Interest in \(subject.capitalized)...",
+                                emptyMessage: "No stacks found for your interest."
+                            )
                         }
                     }
 
@@ -121,9 +120,9 @@ struct Dashboard: View {
         points: 2345
     )
 
-    // 5 stacks for each selected subject
-    let mockStacks: [Stack] = mockUser.selectedSubjects.flatMap { subject in
-        (1...5).map { index in
+    // Only add stacks for biology, geography, and computer science
+    let mockStacks: [Stack] = ["biology", "geography", "computer science"].flatMap { subject in
+        (1...3).map { index in
             Stack(
                 id: "\(subject)-\(index)",
                 title: "\(subject.capitalized) Stack \(index)",
