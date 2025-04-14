@@ -292,28 +292,3 @@ struct CardStackView: View {
     .environmentObject(mockAuth)
     .environmentObject(StackViewModel())
 }
-
-
-
-//#Preview {
-//    CardStackView(
-//        swipeVM: SwipeableCardsViewModel(cards: [
-//            Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
-//            Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
-//        ]),
-//        forgottenCardsVM: ForgottenCardsViewModel(), card: Card(id: "1", front: "agile methodologies", back: "scrum"),
-//        stack: Stack(
-//            id: "1",
-//            title: "bj class",
-//            description: "project management",
-//            creator: "jane",
-//            creatorID: "",
-//            creationDate: Date(),
-//            tags: ["cs"],
-//            cards: [],
-//            isPublic: true
-//        )
-//    )
-//    .environmentObject(AuthViewModel())
-//    .environmentObject(StackViewModel())
-//}

@@ -116,7 +116,9 @@ struct StackDetailView: View {
 
                     // Start Studying entire stack
                     NavigationLink(destination: CardStackView(
-                        swipeVM: SwipeableCardsViewModel(cards: stack.cards),
+                        swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
+                            Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
+                        }),
                         forgottenCardsVM: forgottenCardsVM,
                         card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
                         stack: stack
@@ -247,7 +249,7 @@ struct StackDetailView: View {
 
 }
 
-#Preview("Stack Detail with Forgotten Cards") {
+#Preview{
     let forgottenCards = [
         Card(id: "1", front: "California", back: "Sacramento"),
         Card(id: "2", front: "Texas", back: "Austin"),
