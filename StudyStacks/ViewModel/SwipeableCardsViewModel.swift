@@ -12,11 +12,13 @@ class SwipeableCardsViewModel: ObservableObject {
     private var originalCards: [Card]
     @Published var unswipedCards: [Card]
     @Published var swipedCards: [Card]
+    @Published var unswipedForgottenCards: [Card]
 
     init(cards: [Card]) {
         self.originalCards = cards
         self.unswipedCards = cards
         self.swipedCards = []
+        self.unswipedForgottenCards = []
     }
 
     func removeTopCard() {
@@ -24,6 +26,16 @@ class SwipeableCardsViewModel: ObservableObject {
             guard let card = unswipedCards.first else { return }
             unswipedCards.removeFirst()
             swipedCards.append(card)
+        }
+    }
+    
+    func setupForgottenCards(_ cards: [Card]) {
+        self.unswipedForgottenCards = cards
+    }
+    
+    func removeTopForgottenCard() {
+        if !unswipedForgottenCards.isEmpty {
+            unswipedForgottenCards.removeFirst()
         }
     }
 
