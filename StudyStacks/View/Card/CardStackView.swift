@@ -160,7 +160,8 @@ struct CardStackView: View {
             loadForgottenCards()
         }
     }
-
+    
+    // functions
     private func loadForgottenCards() {
         if let userID = auth.user?.id {
             forgottenCardsVM.load(for: userID)
@@ -176,7 +177,7 @@ struct CardStackView: View {
         guard let topCard = swipeVM.unswipedCards.first else { return }
 
         let remembered = direction == .right
-        print("Button tapped → \(remembered ? "REMEMBERED ✅" : "FORGOTTEN ❌") for \(topCard.front)")
+        print("Button tapped → \(remembered ? "REMEMBERED" : "FORGOTTEN") for \(topCard.front)")
 
         if let _ = auth.user?.id {
             forgottenCardsVM.updateCardStatus(
