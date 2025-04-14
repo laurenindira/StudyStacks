@@ -12,10 +12,13 @@ struct CardPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Card Placeholder
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.surface)
+            // Card Image
+            Image(CoverImage(from: stack.tags))
+                .resizable()
+                .scaledToFill()
                 .frame(width: 140, height: 180)
+                .clipped()
+                .cornerRadius(20)
 
             // Stack Details
             Text(stack.title)
@@ -29,8 +32,28 @@ struct CardPreview: View {
         }
         .frame(width: 140)
     }
+    
+    
+    //
+    private func CoverImage(from tags: [String]) -> String {
+        let validTags: Set<String> = [
+            "accounting", "biology", "chemistry", "computer science",
+            "english", "geography", "history",
+            "physics", "psychology", "spanish"
+        ]
+
+        for tag in tags {
+            let lower = tag.lowercased()
+            if validTags.contains(lower) {
+                return lower
+            }
+        }
+
+        return "default"
+    }
+
 }
 
 #Preview {
-    CardPreview(stack: Stack(id: "", title: "test time bleep bloop blap", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["biology", "geography", "computer science", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
+    CardPreview(stack: Stack(id: "", title: "test time bleep bloop blap", description: "", creator: "farmer john", creatorID: "", creationDate: Date.now, tags: ["beelp", "geography", "computer science", "another"], cards: [Card(front: "", back: ""), Card(front: "", back: "")], isPublic: true))
 }
