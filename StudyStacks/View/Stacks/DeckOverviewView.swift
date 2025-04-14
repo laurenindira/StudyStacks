@@ -139,13 +139,11 @@ struct StackDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(Color.prim)
                     } else {
-                        NavigationLink(destination:
-                            CardStackView(
-                                swipeVM: SwipeableCardsViewModel(cards: forgotten),
-                                forgottenCardsVM: forgottenCardsVM,
-                                card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-                                stack: stack
-                            )
+                        NavigationLink(destination: ForgottenCardStackView(
+                            swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                            forgottenCardsVM: forgottenCardsVM,
+                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                            stack: stack)
                         ) {
                             Text("Review Forgotten Cards")
                                 .font(.headline)
@@ -249,82 +247,57 @@ struct StackDetailView: View {
 
 }
 
-//struct StackDetailView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        let mockUser = User(
-//            id: "previewUser123",
-//            username: "preview_user",
-//            displayName: "Preview User",
-//            email: "preview@example.com",
-//            profilePicture: nil,
-//            creationDate: Date(),
-//            lastSignIn: nil,
-//            providerRef: "preview_provider",
-//            selectedSubjects: ["Math", "History"],
-//            studyReminderTime: Date(),
-//            studentType: "College",
-//            currentStreak: 3,
-//            longestStreak: 10,
-//            lastStudyDate: Date()
-//        )
-//
-//        let mockAuth = AuthViewModel()
-//        mockAuth.user = mockUser
-//
-//        let mockStack = Stack(
-//            id: UUID().uuidString,
-//            title: "U.S. States & Capitals",
-//            description: "A deck to learn U.S. states and their capitals",
-//            creator: "Sarah Cameron",
-//            creatorID: "mockCreatorID",
-//            creationDate: Date(),
-//            tags: ["Geography", "States", "Capitals"],
-//            cards: [
-//                Card(id: "1", front: "California", back: "Sacramento"),
-//                Card(id: "2", front: "Texas", back: "Austin"),
-//                Card(id: "3", front: "Florida", back: "Tallahassee"),
-//                Card(id: "4", front: "New York", back: "Albany"),
-//                Card(id: "5", front: "Illinois", back: "Springfield")
-//            ],
-//            isPublic: true
-//        )
-//
-//        let mockStackVM = StackViewModel()
-//        mockStackVM.stacks = [mockStack]
-//
-//        return StackDetailView(stack: mockStack)
-//            .environmentObject(mockStackVM)
-//            .environmentObject(mockAuth)
-//    }
-//}
+#Preview("Stack Detail with Forgotten Cards") {
+    let forgottenCards = [
+        Card(id: "1", front: "California", back: "Sacramento"),
+        Card(id: "2", front: "Texas", back: "Austin"),
+        Card(id: "3", front: "Florida", back: "Tallahassee"),
+        Card(id: "4", front: "New York", back: "Albany"),
+        Card(id: "5", front: "Illinois", back: "Springfield")
+    ]
 
+    let mockStack = Stack(
+        id: "stack1",
+        title: "U.S. States & Capitals",
+        description: "A deck to learn U.S. states and their capitals",
+        creator: "Sarah Cameron",
+        creatorID: "mockCreatorID",
+        creationDate: .now,
+        tags: ["Geography", "States", "Capitals"],
+        cards: forgottenCards,
+        isPublic: true
+    )
 
+    let mockAuth = AuthViewModel()
+    mockAuth.user = User(
+        id: "previewUser123",
+        username: "preview_user",
+        displayName: "Preview User",
+        email: "preview@example.com",
+        profilePicture: nil,
+        creationDate: .now,
+        lastSignIn: nil,
+        providerRef: "preview_provider",
+        selectedSubjects: ["Geography"],
+        studyReminderTime: .now,
+        studentType: "College",
+        currentStreak: 1,
+        longestStreak: 3,
+        lastStudyDate: .now
+    )
 
-struct StackDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        let mockStack = Stack(
-            id: UUID().uuidString,
-            title: "U.S. States & Capitals",
-            description: "A deck to learn U.S. states and their capitals",
-            creator: "Sarah Cameron",
-            creatorID: "mockCreatorID",
-            creationDate: Date(),
-            tags: ["Geography", "States", "Capitals"],
-            cards: [
-                Card(front: "California", back: "Sacramento"),
-                Card(front: "Texas", back: "Austin"),
-                Card(front: "Florida", back: "Tallahassee"),
-                Card(front: "New York", back: "Albany"),
-                Card(front: "Illinois", back: "Springfield")
-            ],
-            isPublic: true
-        )
+    let mockStackVM = StackViewModel()
+    mockStackVM.stacks = [mockStack]
 
-        let mockStackVM = StackViewModel()
-        mockStackVM.stacks = [mockStack]
+    let forgottenVM = ForgottenCardsViewModel()
+    forgottenVM.localForgottenCards = [
+        "stack1": Set(forgottenCards.map { $0.id })
+    ]
+    // Important: must call load to assign userID
+    forgottenVM.load(for: "previewUser123")
 
-        return StackDetailView(stack: mockStack)
-            .environmentObject(mockStackVM)
-    }
+    return StackDetailView(stack: mockStack)
+        .environmentObject(mockStackVM)
+        .environmentObject(mockAuth)
+        .environmentObject(forgottenVM)
 }
-
