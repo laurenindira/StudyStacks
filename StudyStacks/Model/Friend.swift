@@ -14,6 +14,7 @@ struct Friend: Identifiable, Codable {
     var email: String
     var creationDate: Date
     var currentStreak: Int
+    var points: Int
     //var badgeCount: Int
 }
 

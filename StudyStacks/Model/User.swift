@@ -30,4 +30,8 @@ struct User: Identifiable, Codable {
     
     //points
     var points: Int
+
+    //FAVORITES
+    var favoriteStackIDs: [String]
+
 }

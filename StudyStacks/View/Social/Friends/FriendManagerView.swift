@@ -40,7 +40,7 @@ struct FriendManagerView: View {
                                         .fill(Color.surface)
                                 }
                         } else {
-                            ForEach(friendVM.receivedRequests, id: \.self) { request in
+                            ForEach(friendVM.receivedRequests) { request in
                                 FriendRow(friend: request, isRequest: true)
                             }
                         }
@@ -84,6 +84,7 @@ struct FriendManagerView: View {
             }
             .onAppear {
                 Task {
+                    print("CURRENTLY IN USER: \(String(describing: auth.user))")
                     await stackVM.fetchPublicStacks()
                     await friendVM.fetchFriends(userID: auth.user?.id)
                     await friendVM.fetchFriendRequests(userID: auth.user?.id)

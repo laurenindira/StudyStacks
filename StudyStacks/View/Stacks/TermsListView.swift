@@ -12,8 +12,8 @@ struct TermsListView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Terms:")
-                .font(.title2)
+            Text("Terms")
+                .font(.customHeading(.title2))
                 .fontWeight(.bold)
                 .padding(.top, 8)
                 .padding(.leading, 16)

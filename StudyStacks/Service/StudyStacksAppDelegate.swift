@@ -10,8 +10,9 @@ import SwiftUI
 import FirebaseCore
 import FirebaseFirestore
 import GoogleSignIn
+import UserNotifications
 
-class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
+class StudyStacksAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
@@ -21,6 +22,7 @@ class StudyStacksAppDelegate: NSObject, UIApplicationDelegate {
         settings.cacheSettings = cacheSettings
         Firestore.firestore().settings = settings
         
+        UNUserNotificationCenter.current().delegate = self
         return true
       }
     
