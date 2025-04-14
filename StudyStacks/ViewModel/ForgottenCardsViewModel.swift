@@ -11,7 +11,7 @@ class ForgottenCardsViewModel: ObservableObject {
     @Published var localForgottenCards: [String: Set<String>] = [:]
     private var userID: String = ""
 
-    // Load cards for a user (usually called on login or onAppear)
+    // Load cards for a user
     func load(for userID: String) {
         self.userID = userID
         let key = "forgottenCards_\(userID)"
@@ -20,13 +20,13 @@ class ForgottenCardsViewModel: ObservableObject {
             do {
                 let decoded = try JSONDecoder().decode([String: Set<String>].self, from: data)
                 self.localForgottenCards = decoded
-                print("✅ Loaded forgotten cards for user \(userID)")
+                print("Loaded forgotten cards for user \(userID)")
             } catch {
-                print("⚠️ Failed to decode forgotten cards: \(error)")
+                print("Failed to decode forgotten cards: \(error)")
                 self.localForgottenCards = [:]
             }
         } else {
-            print("ℹ️ No existing forgotten cards for user \(userID)")
+            print("No existing forgotten cards for user \(userID)")
             self.localForgottenCards = [:]
         }
         print("Loaded: \(localForgottenCards)")
@@ -38,9 +38,9 @@ class ForgottenCardsViewModel: ObservableObject {
         do {
             let encoded = try JSONEncoder().encode(localForgottenCards)
             UserDefaults.standard.set(encoded, forKey: key)
-            print("💾 Saved forgotten cards for user \(userID)")
+            print("Saved forgotten cards for user \(userID)")
         } catch {
-            print("❌ Failed to encode forgotten cards: \(error)")
+            print("Failed to encode forgotten cards: \(error)")
         }
     }
 
@@ -56,7 +56,7 @@ class ForgottenCardsViewModel: ObservableObject {
             localForgottenCards[stackID]?.insert(cardID)
         }
         
-        print("📝 Updating card status for cardID: \(cardID), remembered: \(remembered), stackID: \(stackID)")
+        print("Updating card status for cardID: \(cardID), remembered: \(remembered), stackID: \(stackID)")
         print("Saved: \(localForgottenCards)")
 
         save()
@@ -66,11 +66,5 @@ class ForgottenCardsViewModel: ObservableObject {
     func getForgottenCards(from allCards: [Card], for stackID: String) -> [Card] {
         let ids = localForgottenCards[stackID] ?? []
         return allCards.filter { ids.contains($0.id) }
-    }
-
-    // Optional: Clear forgotten cards (e.g. on logout)
-    func clear() {
-        localForgottenCards = [:]
-        save()
     }
 }
