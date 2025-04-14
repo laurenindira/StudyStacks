@@ -39,40 +39,22 @@ struct Dashboard: View {
                     
                     // Recommended Stacks
                     if let selectedSubjects = auth.user?.selectedSubjects {
-                        if selectedSubjects.contains(where: { $0.lowercased() == "none of these tbh..." }) {
-                            //  Stacks with ONLY unknown tags
-                            let fallbackStacks = stackVM.publicStacks.filter { stack in
-                                stack.tags.allSatisfy { tag in
-                                    !knownSubjects.contains(tag.lowercased())
-                                }
+                        let filteredSubjects = selectedSubjects.prefix(3)
+                        
+                        ForEach(filteredSubjects, id: \.self) { subject in
+                            let filteredStacks = stackVM.publicStacks.filter { stack in
+                                stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
                             }
 
-                            if !fallbackStacks.isEmpty {
+                            if !filteredStacks.isEmpty {
                                 RecommendedStacksView(
-                                    stack: fallbackStacks,
-                                    title: "You might like these..."
+                                    stack: filteredStacks,
+                                    title: "Interest in \(subject.capitalized)..."
                                 )
-                            }
-
-                        } else {
-                            let filteredSubjects = selectedSubjects
-                                .filter { $0.lowercased() != "none of these tbh..." }
-                                .prefix(3)
-
-                            ForEach(filteredSubjects, id: \.self) { subject in
-                                let filteredStacks = stackVM.publicStacks.filter { stack in
-                                    stack.tags.contains { $0.localizedCaseInsensitiveContains(subject) }
-                                }
-
-                                if !filteredStacks.isEmpty {
-                                    RecommendedStacksView(
-                                        stack: filteredStacks,
-                                        title: "Interest in \(subject.capitalized)..."
-                                    )
-                                }
                             }
                         }
                     }
+
                 }
                 
                 Button {
@@ -130,7 +112,7 @@ struct Dashboard: View {
         creationDate: .now,
         lastSignIn: nil,
         providerRef: "",
-        selectedSubjects: ["biology", "computer science", "geography", "political science"],
+        selectedSubjects: ["biology", "geography", "political science", "computer science"],
         studyReminderTime: .now,
         studentType: "college",
         currentStreak: 6,
