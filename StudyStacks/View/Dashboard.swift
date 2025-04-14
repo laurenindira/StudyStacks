@@ -15,9 +15,7 @@ struct Dashboard: View {
     @State var creatingStack: Bool = false
    
     @AppStorage("userPoints") var currentPoints: Int = 0
-    
-    let knownSubjects = ["english", "chemistry", "biology", "computer science", "geography", "spanish", "psychology"]
-  
+      
     var body: some View {
         NavigationStack {
             ScrollView {
