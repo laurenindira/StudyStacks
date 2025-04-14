@@ -105,7 +105,7 @@ struct FriendRow: View {
 }
 
 #Preview {
-    FriendRow(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5), isRequest: false)
+    FriendRow(friend: Friend(id: "", username: "johndoe", displayName: "john doe", email: "johndoe@jdoe.com", creationDate: Date(), currentStreak: 5, points: 35), isRequest: false)
         .environmentObject(AuthViewModel())
         .environmentObject(StackViewModel())
         .environmentObject(FriendsViewModel())

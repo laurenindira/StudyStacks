@@ -19,11 +19,13 @@ struct ContentView: View {
                 SplashView()
                     .environmentObject(auth)
                     .environmentObject(stackVM)
+                    .environmentObject(friendVM)
             } else {
                 TabView() {
                     Dashboard()
                         .environmentObject(auth)
                         .environmentObject(stackVM)
+                        .environmentObject(friendVM)
                         .tabItem {
                             Label("Dashboard", systemImage: "house")
                         }
@@ -34,6 +36,15 @@ struct ContentView: View {
                         .tabItem {
                             Label("Library", systemImage: "square.stack.3d.up.fill")
                         }
+                    
+                    LeaderboardView()
+                        .environmentObject(auth)
+                        .environmentObject(stackVM)
+                        .environmentObject(friendVM)
+                        .tabItem {
+                            Label("Leaderboard", systemImage: "trophy")
+                        }
+                    
                 }
             }
         }
