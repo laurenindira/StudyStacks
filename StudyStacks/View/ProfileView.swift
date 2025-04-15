@@ -29,36 +29,22 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .center, spacing: 20) {
-
-                    // Top Bar
-                    HStack {
-                        Spacer()
-                        NavigationLink(destination: Text("Settings")) {
-                            Image(systemName: "gearshape")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.black)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-
+                    
                     // Profile
                     HStack(alignment: .center, spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(Color("background"))
-                                .frame(width: 72, height: 72)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.black.opacity(0.1), lineWidth: 2)
-                                )
-                            Text(userInitials.isEmpty ? "??" : userInitials)
-                                .font(.title)
-                                .bold()
-                                .foregroundColor(.black)
-                        }
-
+                        Text(userInitials.isEmpty ? "??" : userInitials)
+                            .font(.title)
+                            .bold()
+                            .foregroundColor(.black)
+                            .padding(24) // adjusts the "circle" size
+                            .background(
+                                Circle()
+                                    .fill(Color("background"))
+                                    .overlay(
+                                        Circle().stroke(Color.black.opacity(0.1), lineWidth: 2)
+                                    )
+                            )
+                        
                         VStack(alignment: .leading, spacing: 4) {
                             Text(auth.user?.displayName ?? "Unknown User")
                                 .font(.system(size: 22, weight: .bold))
@@ -70,7 +56,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(.horizontal)
-
+                    
                     // Stats
                     HStack(spacing: 40) {
                         VStack {
@@ -83,7 +69,7 @@ struct ProfileView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
-
+                        
                         VStack {
                             Image(systemName: "square.stack.3d.up")
                                 .resizable()
@@ -93,76 +79,90 @@ struct ProfileView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
-
+                        
                         VStack {
                             Image(systemName: "medal")
                                 .resizable()
                                 .frame(width: 22, height: 22)
                                 .foregroundColor(Color("stacksblue"))
+                            //TODO: Replace hardcoded badges when implemented (or use friends)
                             Text("2 badges")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
                     }
                     .padding()
-                    .background(Color("background"))
+                    .background(Color("surface"))
                     .cornerRadius(20)
                     .padding(.horizontal)
-
+                    
                     // MARK: My Stacks
                     if let userID = auth.user?.id {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("My Stacks")
                                 .font(.headline)
                                 .padding(.horizontal)
-
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                                ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
-                                    NavigationLink(destination: StackDetailView(stack: stack)
-                                        .environmentObject(stackVM)) {
-                                        StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
+                                        NavigationLink(destination: StackDetailView(stack: stack)
+                                            .environmentObject(stackVM)) {
+                                                StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
+                                            }
+                                            .buttonStyle(.plain)
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
                             .padding(.horizontal)
                         }
-
+                        
                         // MARK: Saved Stacks
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Saved Stacks")
                                 .font(.headline)
                                 .padding(.horizontal)
-
+                            
                             if stackVM.favoriteStackIDs.isEmpty {
                                 Text("You haven't saved any stacks yet.")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                                     .padding(.horizontal)
                             } else {
-                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                                    ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
-                                        NavigationLink(destination: StackDetailView(stack: stack)
-                                            .environmentObject(stackVM)) {
-                                            StackCardView(stack: stack, isFavorite: true)
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
+                                        ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
+                                            NavigationLink(destination: StackDetailView(stack: stack)
+                                                .environmentObject(stackVM)) {
+                                                    StackCardView(stack: stack, isFavorite: true)
+                                                        .frame(maxWidth: .infinity)
+                                                }
+                                                .buttonStyle(.plain)
                                         }
-                                        .buttonStyle(.plain)
                                     }
+                                    .padding(.horizontal)
                                 }
-                                .padding(.horizontal)
                             }
                         }
                     }
-
-                    Spacer()
                 }
-            }
-            .onAppear {
-                Task {
-                    if let userID = auth.user?.id {
-                        await stackVM.fetchUserStacks(for: userID)
-                        await stackVM.fetchUserFavorites(for: userID)
-                        await stackVM.fetchPublicStacks()
+                .onAppear {
+                    Task {
+                        if let userID = auth.user?.id {
+                            await stackVM.fetchUserStacks(for: userID)
+                            await stackVM.fetchUserFavorites(for: userID)
+                            await stackVM.fetchPublicStacks()
+                        }
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink(destination: Text("Settings")) {
+                            Image(systemName: "gearshape")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.black)
+                        }
                     }
                 }
             }
