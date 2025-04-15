@@ -1,5 +1,5 @@
 //
-//  DashboardView.swift
+//  Dashboard.swift
 //  StudyStacks
 //
 //  Created by Lauren Indira on 2/9/25.
