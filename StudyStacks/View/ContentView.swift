@@ -25,9 +25,15 @@ struct ContentView: View {
         Group {
             if !isSignedIn {
                 SplashView()
+                    .environmentObject(auth)
+                    .environmentObject(stackVM)
+                    .environmentObject(friendVM)
             } else {
                 TabView(selection: $selectedPage) {
                     Dashboard()
+                        .environmentObject(auth)
+                        .environmentObject(stackVM)
+                        .environmentObject(friendVM)
                         .tabItem {
                             Label("Dashboard", systemImage: "rectangle.stack.fill")
                         }
@@ -45,8 +51,6 @@ struct ContentView: View {
                         }
                         .tag(Page.library)
                 }
-                .environmentObject(auth)
-                .environmentObject(stackVM)
             }
         }
     }
