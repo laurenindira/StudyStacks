@@ -29,6 +29,7 @@ struct FlashcardPreview: View {
                                 .foregroundColor(.black)
                                 .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
                                 .opacity(isFlipped ? 0 : 1)
+                                .padding(.horizontal, 16)
                         } else {
                             Text(currentCard.back)
                                 .font(.title2)
@@ -36,6 +37,7 @@ struct FlashcardPreview: View {
                                 .foregroundColor(.black)
                                 .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
                                 .opacity(isFlipped ? 1 : 0)
+                                .padding(.horizontal, 16)
                         }
                     }
                 )
@@ -58,7 +60,7 @@ struct FlashcardPreview: View {
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.title)
-                        .padding(.leading, 20)
+                        .padding(.leading, 15)
                 }
 
                 Spacer()
@@ -73,7 +75,7 @@ struct FlashcardPreview: View {
                 }) {
                     Image(systemName: "chevron.right")
                         .font(.title)
-                        .padding(.trailing, 20)
+                        .padding(.trailing, 15)
                 }
             }
             .padding(.horizontal, 24)
