@@ -48,69 +48,10 @@ struct StackDetailView: View {
                     }
                     .padding(.horizontal)
 
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(width: 340, height: 200)
-                            .overlay(
-                                ZStack {
-                                    if !isFlipped {
-                                        Text(stack.cards[currentCardIndex].front)
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.black)
-                                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
-                                            .opacity(isFlipped ? 0 : 1)
-                                    }
-                                    if isFlipped {
-                                        Text(stack.cards[currentCardIndex].back)
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.black)
-                                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
-                                            .opacity(isFlipped ? 1 : 0)
-                                    }
-                                }
-                            )
-                            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 1, y: 0, z: 0))
-                            .animation(.easeInOut(duration: 0.6), value: isFlipped)
-                            .onTapGesture {
-                                withAnimation {
-                                    isFlipped.toggle()
-                                }
-                            }
-                        
-                        HStack {
-                            Button(action: {
-                                withAnimation {
-                                    if currentCardIndex > 0 {
-                                        currentCardIndex -= 1
-                                        isFlipped = false
-                                    }
-                                }
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.title)
-                            }
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                withAnimation {
-                                    if currentCardIndex < stack.cards.count - 1 {
-                                        currentCardIndex += 1
-                                        isFlipped = false
-                                    }
-                                }
-                            }) {
-                                Image(systemName: "chevron.right")
-                                    .font(.title)
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                        .foregroundColor(.gray)
-                    }
+                    FlashcardPreview(stack: stack
+                    )
                     .padding()
+
                     
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
@@ -145,7 +86,7 @@ struct StackDetailView: View {
                         NavigationLink(destination: ForgottenCardStackView(
                             swipeVM: SwipeableCardsViewModel(cards: forgotten),
                             forgottenCardsVM: forgottenCardsVM,
-                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+//                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
                             stack: stack)
                         ) {
                             Text("Review Forgotten Cards")
