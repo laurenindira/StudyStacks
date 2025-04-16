@@ -22,6 +22,12 @@ struct SignUpView: View {
     @State var showPassword: Bool = false
     @State var showConfirmPassword: Bool = false
     
+    //checking password
+    @State private var passwordMessage: String = ""
+    @State private var passwordIsValid: Bool = false
+    @State private var confirmPasswordMessage: String = ""
+    @State private var confirmPasswordIsValid: Bool = false
+    
     var tempUser: User
     
     var showPasswordToggle: Bool {
@@ -73,13 +79,29 @@ struct SignUpView: View {
                         Text("password")
                             .font(.headline)
                             .foregroundStyle(Color.secondaryText)
+                        
+                        //checking password
                         SecureTextField(placeholder: "password", showPassword: showPasswordToggle, text: $password)
-                    }
-                    VStack (alignment: .leading, spacing: 5) {
-                        Text("confirm password")
-                            .font(.headline)
-                            .foregroundStyle(Color.secondaryText)
-                        SecureTextField(placeholder: "confirm password", showPassword: showConfirmPasswordToggle, text: $confirmPassword)
+                            .onChange(of: password) { newValue in
+                                passwordIsValid = newValue.count >= 6
+                                passwordMessage = passwordIsValid ? "✓ Password looks good" : "Password must be at least 6 characters"
+                                confirmPasswordIsValid = confirmPassword == newValue
+                                confirmPasswordMessage = confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match"
+                            }
+
+                        Text(passwordMessage)
+                            .font(.caption)
+                            .foregroundStyle(passwordIsValid ? .green : .red)
+
+                        SecureTextField(placeholder: "confirm password", showPassword: showPasswordToggle, text: $confirmPassword)
+                            .onChange(of: confirmPassword) { newValue in
+                                confirmPasswordIsValid = newValue == password
+                                confirmPasswordMessage = confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match"
+                            }
+
+                        Text(confirmPasswordMessage)
+                            .font(.caption)
+                            .foregroundStyle(confirmPasswordIsValid ? .green : .red)
                     }
                 }
                 .padding(.bottom, 25)
