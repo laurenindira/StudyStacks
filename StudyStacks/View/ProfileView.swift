@@ -47,7 +47,7 @@ struct ProfileView: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(auth.user?.displayName ?? "Unknown User")
-                                .font(.system(size: 22, weight: .bold))
+                                .customHeading(.title)
                             Text("@\(auth.user?.username ?? "username")")
                                 .font(.system(size: 16, weight: .semibold))
                             Text("Member since \(formattedDate)")
@@ -100,27 +100,26 @@ struct ProfileView: View {
                     if let userID = auth.user?.id {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("My Stacks")
-                                .font(.headline)
+                                .customHeading(.headline)
                                 .padding(.horizontal)
                             
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
-                                        NavigationLink(destination: StackDetailView(stack: stack)
-                                            .environmentObject(stackVM)) {
-                                                StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
-                                            }
-                                            .buttonStyle(.plain)
-                                    }
+                            VStack(spacing: 16) {
+                                ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
+                                    NavigationLink(destination: StackDetailView(stack: stack)
+                                        .environmentObject(stackVM)) {
+                                            StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.horizontal)
+                                        }
+                                        .buttonStyle(.plain)
                                 }
                             }
-                            .padding(.horizontal)
                         }
-                        
+
                         // MARK: Saved Stacks
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Saved Stacks")
-                                .font(.headline)
+                                .customHeading(.headline)
                                 .padding(.horizontal)
                             
                             if stackVM.favoriteStackIDs.isEmpty {
@@ -129,21 +128,21 @@ struct ProfileView: View {
                                     .foregroundColor(.gray)
                                     .padding(.horizontal)
                             } else {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 16) {
-                                        ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
-                                            NavigationLink(destination: StackDetailView(stack: stack)
-                                                .environmentObject(stackVM)) {
-                                                    StackCardView(stack: stack, isFavorite: true)
-                                                        .frame(maxWidth: .infinity)
-                                                }
-                                                .buttonStyle(.plain)
-                                        }
+                                VStack(spacing: 16) {
+                                    ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
+                                        NavigationLink(destination: StackDetailView(stack: stack)
+                                            .environmentObject(stackVM)) {
+                                                StackCardView(stack: stack, isFavorite: true)
+                                                    .frame(maxWidth: .infinity)
+                                            }
+                                            .buttonStyle(.plain)
                                     }
-                                    .padding(.horizontal)
                                 }
+                                .padding(.horizontal)
                             }
                         }
+                    }
+
                     }
                 }
                 .onAppear {
@@ -157,11 +156,12 @@ struct ProfileView: View {
                 }
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: Text("Settings")) {
+                        // TODO: Replace with actual SettingsView when implemented
+                        NavigationLink(destination: EmptyView()) {
                             Image(systemName: "gearshape")
                                 .resizable()
                                 .frame(width: 24, height: 24)
-                                .foregroundColor(.black)
+                                .foregroundColor(Color("AccentColor"))
                         }
                     }
                 }
@@ -174,7 +174,6 @@ struct ProfileView: View {
         formatter.unitsStyle = .full
         return formatter.localizedString(for: date, relativeTo: Date())
     }
-}
 
 #Preview {
     ProfileView()
