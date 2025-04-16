@@ -55,6 +55,7 @@ struct ProfileView: View {
                                 .foregroundStyle(.gray)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     
                     // Stats
@@ -91,6 +92,7 @@ struct ProfileView: View {
                                 .foregroundColor(.black)
                         }
                     }
+                    .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color("surface"))
                     .cornerRadius(20)
@@ -98,49 +100,18 @@ struct ProfileView: View {
                     
                     // MARK: My Stacks
                     if let userID = auth.user?.id {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("My Stacks")
-                                .customHeading(.headline)
-                                .padding(.horizontal)
-                            
-                            VStack(spacing: 16) {
-                                ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
-                                    NavigationLink(destination: StackDetailView(stack: stack)
-                                        .environmentObject(stackVM)) {
-                                            StackCardView(stack: stack, isFavorite: stackVM.isFavorite(stack))
-                                                .frame(maxWidth: .infinity)
-                                                .padding(.horizontal)
-                                        }
-                                        .buttonStyle(.plain)
-                                }
-                            }
-                        }
+                        RecommendedStacksView(
+                            stack: stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4).map { $0 },
+                            title: "My Stacks",
+                            emptyMessage: "You haven't created any stacks yet."
+                        )
 
                         // MARK: Saved Stacks
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Saved Stacks")
-                                .customHeading(.headline)
-                                .padding(.horizontal)
-                            
-                            if stackVM.favoriteStackIDs.isEmpty {
-                                Text("You haven't saved any stacks yet.")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal)
-                            } else {
-                                VStack(spacing: 16) {
-                                    ForEach(stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4)) { stack in
-                                        NavigationLink(destination: StackDetailView(stack: stack)
-                                            .environmentObject(stackVM)) {
-                                                StackCardView(stack: stack, isFavorite: true)
-                                                    .frame(maxWidth: .infinity)
-                                            }
-                                            .buttonStyle(.plain)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
+                        RecommendedStacksView(
+                            stack: stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4).map { $0 },
+                            title: "Saved Stacks",
+                            emptyMessage: "You haven't saved any stacks yet."
+                        )
                     }
 
                     }
