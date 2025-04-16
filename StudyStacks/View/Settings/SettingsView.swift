@@ -22,7 +22,8 @@ struct SettingsView: View {
                         .fontWeight(.bold)
                         .padding(.top, 20)
                         .padding(.bottom, 16)
-                        .frame(maxWidth: .infinity, alignment: .center)
+//                        .frame(maxWidth: .infinity, alignment: .center)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
                     Group {
                         NavigationLink(destination: PlaceholderView(title: "Profile")) {
@@ -70,7 +71,6 @@ struct SettingsView: View {
                     }
 
                     Button(action: {
-                        // Trigger the delete account confirmation
                         showDeleteConfirmation = true
                     }) {
                         GeneralButton(
@@ -93,7 +93,6 @@ struct SettingsView: View {
                     title: Text("Are you sure?"),
                     message: Text("This action will permanently delete your account and all associated data."),
                     primaryButton: .destructive(Text("Delete")) {
-                        // Call delete account function here
                         Task {
                             do {
                                 try await auth.deleteUserAccount { error in
