@@ -19,6 +19,9 @@ struct CardStackView: View {
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
     @State private var forgottenCount: Int = 0
+    @State private var showingPointsEarned = false
+    @State private var pointsEarned = 0
+    @State private var navigateToOverview = false
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -54,26 +57,48 @@ struct CardStackView: View {
             if swipeVM.unswipedCards.isEmpty {
                 VStack {
                     Spacer()
-
-                    VStack(spacing: 20) {
-                        Text("No Cards Left")
-                            .font(.title)
-                            .foregroundColor(.gray)
-
-                        NavigationLink(destination: StackDetailView(stack: stack)) {
-                            GeneralButton(
-                                placeholder: "Return to Stack Overview",
-                                backgroundColor: Color.prim,
-                                foregroundColor: Color.white,
-                                isSystemImage: false
-                            )
+                    if showingPointsEarned {
+                                Text("+\(pointsEarned) points!")
+                                    .font(.title)
+                                    .foregroundColor(.green)
+                                    .padding()
+                                    .transition(.scale)
+                            }
+                    
+                    Text("No Cards Left")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                        .padding()
+                    
+                    Button(action: {
+                        pointsEarned = swipeVM.originalCards.count
+                        showingPointsEarned = true
+                        
+                        Task {
+                            PointsManager.shared.addPoints(points: pointsEarned)
+                            //await auth.addPoints(pointsEarned)
+                            //await auth.loadUserFromFirebase()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                showingPointsEarned = false
+                                navigateToOverview = true
+                                swipeVM.reset()
+                            }
                         }
-                        .padding(.horizontal, 80)
+                    }) {
+                        
+                        GeneralButton(
+                            placeholder: "Return to Stack Overview (+\(swipeVM.originalCards.count) pts)",
+                            backgroundColor: Color.prim,
+                            foregroundColor: Color.white,
+                            isSystemImage: false)
                     }
-
+                    .padding(.horizontal, 80)
+                    
                     Spacer()
                 }
                 .frame(maxHeight: .infinity)
+                .animation(.easeInOut, value: showingPointsEarned)
+                
             } else {
                 let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
                 
@@ -141,6 +166,9 @@ struct CardStackView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToOverview) {
+            StackDetailView(stack: stack)
+        }
         .onAppear {
             print("CardStackView appeared for stack \(stack.id)")
             if let userID = auth.user?.id {
@@ -280,15 +308,19 @@ struct CardStackView: View {
         studentType: "College",
         currentStreak: 1,
         longestStreak: 2,
-        lastStudyDate: Date()
+        lastStudyDate: Date(),
+        points: 0,
+        favoriteStackIDs: []
     )
 
-    return CardStackView(
-        swipeVM: mockSwipeVM,
-        forgottenCardsVM: mockForgottenVM,
-        card: mockCards.first!,
-        stack: mockStack
-    )
-    .environmentObject(mockAuth)
-    .environmentObject(StackViewModel())
+    return NavigationStack {
+        CardStackView(
+            swipeVM: mockSwipeVM,
+            forgottenCardsVM: mockForgottenVM,
+            card: mockCards.first!,
+            stack: mockStack
+        )
+        .environmentObject(mockAuth)
+        .environmentObject(StackViewModel())
+    }
 }

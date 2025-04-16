@@ -9,7 +9,7 @@
 import SwiftUI
 
 class SwipeableCardsViewModel: ObservableObject {
-    private var originalCards: [Card]
+    var originalCards: [Card]
     @Published var unswipedCards: [Card]
     @Published var swipedCards: [Card]
     @Published var unswipedForgottenCards: [Card]

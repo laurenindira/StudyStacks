@@ -9,12 +9,13 @@ import SwiftUI
 
 struct StackDetailView: View {
     var stack: Stack
-    @State private var isFavorited = false
     @State private var currentCardIndex = 0
     @State private var isFlipped = false
     @State private var isDeleted = false
     @State private var showDeleteConfirmation = false
     @State private var deleteErrorMessage: String?
+    @State private var isFavorite: Bool = false
+    @State private var showCardStackView = false
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
@@ -78,7 +79,7 @@ struct StackDetailView: View {
                                     isFlipped.toggle()
                                 }
                             }
-
+                        
                         HStack {
                             Button(action: {
                                 withAnimation {
@@ -91,9 +92,9 @@ struct StackDetailView: View {
                                 Image(systemName: "chevron.left")
                                     .font(.title)
                             }
-
+                            
                             Spacer()
-
+                            
                             Button(action: {
                                 withAnimation {
                                     if currentCardIndex < stack.cards.count - 1 {
@@ -110,7 +111,7 @@ struct StackDetailView: View {
                         .foregroundColor(.gray)
                     }
                     .padding()
-
+                    
                     TermsListView(cards: stack.cards)
                         .padding(.horizontal)
 
@@ -162,28 +163,36 @@ struct StackDetailView: View {
                     }
                 }
             }
+            .onAppear {
+                self.isFavorite = stackVM.isFavorite(stack)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(role: .destructive, action: {
-                            showDeleteConfirmation = true
-                        }) {
-                            Label("Delete Deck", systemImage: "trash")
+                    HStack {
+                        Menu {
+                            Button(role: .destructive, action: {
+                                showDeleteConfirmation = true
+                            }) {
+                                Label("Delete Deck", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.title2)
+                                .padding(.vertical)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.title2)
-                            .padding()
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { isFavorited.toggle() }) {
-                        Image(systemName: isFavorited ? "star.fill" : "star")
-                            .foregroundColor(isFavorited ? Color.yellow : Color.gray)
-                            .font(.title2)
-                            .padding()
+                        
+                        Button {
+                            Task {
+                                isFavorite.toggle()
+                                await stackVM.toggleFavorite(for: stack.id)
+                            }
+                        } label: {
+                            Image(systemName: isFavorite ? "star.fill" : "star")
+                                .foregroundColor(isFavorite ? Color.prim : .gray)
+                                .font(.title2)
+                                .padding(.vertical)
+                        }
                     }
                 }
             }
@@ -226,8 +235,6 @@ struct StackDetailView: View {
 //            }
         }
     }
-
-
     
     private func deleteStack() {
         Task {
@@ -246,10 +253,9 @@ struct StackDetailView: View {
             }
         }
     }
-
 }
 
-#Preview{
+#Preview {
     let forgottenCards = [
         Card(id: "1", front: "California", back: "Sacramento"),
         Card(id: "2", front: "Texas", back: "Austin"),
@@ -285,7 +291,9 @@ struct StackDetailView: View {
         studentType: "College",
         currentStreak: 1,
         longestStreak: 3,
-        lastStudyDate: .now
+        lastStudyDate: .now,
+        points: 0,
+        favoriteStackIDs: []
     )
 
     let mockStackVM = StackViewModel()
@@ -295,11 +303,12 @@ struct StackDetailView: View {
     forgottenVM.localForgottenCards = [
         "stack1": Set(forgottenCards.map { $0.id })
     ]
-    // Important: must call load to assign userID
     forgottenVM.load(for: "previewUser123")
 
-    return StackDetailView(stack: mockStack)
-        .environmentObject(mockStackVM)
-        .environmentObject(mockAuth)
-        .environmentObject(forgottenVM)
+    return NavigationStack {
+        StackDetailView(stack: mockStack)
+            .environmentObject(mockStackVM)
+            .environmentObject(mockAuth)
+            .environmentObject(forgottenVM)
+    }
 }
