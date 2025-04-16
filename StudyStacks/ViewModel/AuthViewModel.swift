@@ -280,72 +280,65 @@ class AuthViewModel: NSObject, ObservableObject {
 //        }
 //    }
     
-    // does not work, email gets deleted but the users stacks still showing up
-      func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
-          guard let currentUser = auth.currentUser else {
-              completion(NSError(domain: "UserNotLoggedIn", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in."]))
-              return
-          }
+    // delete user should work now
+    func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
+        guard let currentUser = auth.currentUser else {
+            completion(NSError(domain: "UserNotLoggedIn", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in."]))
+            return
+        }
 
-          self.isLoading = true
-          let userID = currentUser.uid
-          let userRef = db.collection("users").document(userID)
-
-          do {
-              let deckQuery = db.collection("decks").whereField("userID", isEqualTo: userID)
-              let deckSnapshot = try await deckQuery.getDocuments()
-
-              for deckDoc in deckSnapshot.documents {
-                  let cardsRef = deckDoc.reference.collection("cards")
-                  let cardsSnapshot = try await cardsRef.getDocuments()
-
-                  let batch = db.batch()
-                  for cardDoc in cardsSnapshot.documents {
-                      batch.deleteDocument(cardDoc.reference)
-                  }
-                  try await batch.commit()
-
-                  try await deckDoc.reference.delete()
-              }
-
-              let publicDeckQuery = db.collection("decks").whereField("createdBy", isEqualTo: userID)
-              let publicDeckSnapshot = try await publicDeckQuery.getDocuments()
-
-              for deckDoc in publicDeckSnapshot.documents {
-                  if !deckSnapshot.documents.contains(where: { $0.documentID == deckDoc.documentID }) {
-                      let cardsRef = deckDoc.reference.collection("cards")
-                      let cardsSnapshot = try await cardsRef.getDocuments()
-
-                      let batch = db.batch()
-                      for cardDoc in cardsSnapshot.documents {
-                          batch.deleteDocument(cardDoc.reference)
-                      }
-                      try await batch.commit()
-
-                      try await deckDoc.reference.delete()
-                  }
-              }
-
-              print("SUCCESS: All user decks and cards deleted")
-
-              try await userRef.delete()
-              print("SUCCESS: User removed from user collection")
-
-              try await currentUser.delete()
-              print("SUCCESS: User removed from auth console")
-
-              self.user = nil
-              clearUserCache()
-              self.isLoading = false
-              completion(nil)
-
-          } catch let error {
-              self.isLoading = false
-              print("ERROR: Deletion Error - \(error.localizedDescription)")
-              completion(error)
-          }
-      }
+        self.isLoading = true
+        let userID = currentUser.uid
+        
+        do {
+            let allUserDecksQuery = db.collection("decks").whereField("createdBy", isEqualTo: userID)
+            let allUserDecksSnapshot = try await allUserDecksQuery.getDocuments()
+            
+            for deckDoc in allUserDecksSnapshot.documents {
+                let cardsRef = deckDoc.reference.collection("cards")
+                let cardsSnapshot = try await cardsRef.getDocuments()
+                
+                let batch = db.batch()
+                for cardDoc in cardsSnapshot.documents {
+                    batch.deleteDocument(cardDoc.reference)
+                }
+                try await batch.commit()
+                
+                try await deckDoc.reference.delete()
+            }
+            
+            print("SUCCESS: All user decks and cards deleted")
+            
+            let usersWithFavoritesQuery = db.collection("users").whereField("favoriteStackIDs", arrayContains: userID)
+            let usersWithFavoritesSnapshot = try await usersWithFavoritesQuery.getDocuments()
+            
+            for userDoc in usersWithFavoritesSnapshot.documents {
+                var favIDs = userDoc.data()["favoriteStackIDs"] as? [String] ?? []
+                favIDs.removeAll { $0 == userID }
+                try await userDoc.reference.updateData(["favoriteStackIDs": favIDs])
+            }
+            
+            try await db.collection("friendships").document(userID).delete()
+            print("SUCCESS: User's friendship document deleted")
+            
+            try await db.collection("users").document(userID).delete()
+            print("SUCCESS: User removed from user collection")
+            
+            try await currentUser.delete()
+            print("SUCCESS: User removed from auth console")
+            
+            self.user = nil
+            clearUserCache()
+            self.isLoading = false
+            completion(nil)
+        } catch let error {
+            self.isLoading = false
+            print("ERROR: Deletion Error - \(error.localizedDescription)")
+            completion(error)
+        }
+    }
     
+
     //MARK: - User Editing
     func updateStudyReminder(for userID: String, newReminderTime: Date) async {
         guard let user = user else { return }
