@@ -68,6 +68,23 @@ class StackViewModel: ObservableObject {
         do {
             let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
             let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
+            
+            // make sure user is valid
+            var validStacks: [Stack] = []
+                    for document in querySnapshot.documents {
+                        if let stack = try? document.data(as: Stack.self) {
+                            let creatorRef = db.collection("users").document(stack.creatorID)
+                            let creatorDoc = try await creatorRef.getDocument()
+                            
+                            if creatorDoc.exists {
+                                validStacks.append(stack)
+                            } else {
+                                try await document.reference.delete()
+                                print("Deleted orphaned stack: \(stack.title) from deleted user: \(stack.creatorID)")
+                            }
+                        }
+                    }
+            
             self.publicStacks = stacks
         } catch let error as NSError {
             self.errorMessage = error.localizedDescription
