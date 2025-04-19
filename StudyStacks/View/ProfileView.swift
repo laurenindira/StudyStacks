@@ -100,9 +100,19 @@ struct ProfileView: View {
                     // MARK: My Stacks
                     if let userID = auth.user?.id {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("My Stacks")
-                                .customHeading(.headline)
-                                .padding(.horizontal)
+                            HStack {
+                                Text("My Stacks")
+                                    .customHeading(.headline)
+                                Spacer()
+                            }
+                            if stackVM.userStacks.filter({ $0.creatorID == userID }).isEmpty {
+                                HStack {
+                                    Text("You haven't created any stacks yet.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                    Spacer()
+                                }
+                            }
                             
                             VStack(spacing: 16) {
                                 ForEach(stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4)) { stack in
@@ -116,6 +126,7 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        .padding(.horizontal)
                         
                         // MARK: Saved Stacks
                         VStack(alignment: .leading, spacing: 8) {
@@ -154,7 +165,7 @@ struct ProfileView: View {
                             .fontWeight(.semibold)
                             .padding(.horizontal, 40)
                             .padding(.vertical, 12)
-                            .background(Color("stacksblue"))
+                            .background(Color.prim)
                             .cornerRadius(20)
                     }
                 }

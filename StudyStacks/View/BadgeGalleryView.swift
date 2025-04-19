@@ -103,7 +103,11 @@ struct BadgeGalleryView: View {
             // MARK: - Navigation Arrows
             HStack(spacing: 60) {
                 Button(action: {
-                    if selectedIndex > 0 { selectedIndex -= 1 }
+                    if selectedIndex > 0 {
+                        withAnimation(.easeInOut) {
+                            selectedIndex -= 1
+                        }
+                    }
                 }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 36, weight: .bold))
@@ -112,7 +116,11 @@ struct BadgeGalleryView: View {
                 .disabled(selectedIndex == 0)
 
                 Button(action: {
-                    if selectedIndex < badgeIDs.count - 1 { selectedIndex += 1 }
+                    if selectedIndex < badgeIDs.count - 1 {
+                        withAnimation(.easeInOut) {
+                            selectedIndex += 1
+                        }
+                    }
                 }) {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 36, weight: .bold))
