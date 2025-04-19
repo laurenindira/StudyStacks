@@ -17,107 +17,141 @@ class StackViewModel: ObservableObject {
     var userStacks: [Stack] = []
     var publicStacks: [Stack] = []
     var favoriteStackIDs: [String] = []
-    
+
     var combinedStacks: [Stack] {
-        let filteredPublicStacks = publicStacks.filter({ !userStacks.contains($0) })
+        let filteredPublicStacks = publicStacks.filter { !userStacks.contains($0) }
         return (userStacks + filteredPublicStacks).sorted { $0.creationDate > $1.creationDate }
     }
-    
-//    var favoriteStacks: [Stack] {
-//        return combinedStacks.filter { favoriteStackIDs.contains($0.id) }
-//    }
-    
+
     var creatingStack: Bool = false
     var editingStack: Bool = false
-    
     var isLoading: Bool = false
     var errorMessage: String = ""
-    
+
     private let db = Firestore.firestore()
-    
-    //delaying firebase writes for favorites
     private var syncTimer: Timer?
     private let syncDelay: TimeInterval = 0.5
-    
-    //MARK: - Stack Fetching
+
+    // MARK: - Stack Fetching
     func fetchUserStacks(for userID: String) async {
         self.isLoading = true
-        
         guard let _ = AuthViewModel.shared.user else {
-            print("CURRENTLY KNOWN USER FOR STACKS: \(String(describing: AuthViewModel.shared.user))")
             self.errorMessage = "ERROR: user not logged in"
             print("ERROR: user not logged in")
             self.isLoading = false
             return
         }
-        
+
         do {
             let querySnapshot = try await db.collection("allStacks").document(userID).collection("stacks").getDocuments()
             let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
             self.userStacks = stacks
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed to fetch user stacks - \(String(describing: errorMessage))")
+            print("ERROR: Failed to fetch user stacks - \(self.errorMessage)")
         }
+
         self.isLoading = false
     }
-    
+
     func fetchPublicStacks() async {
         self.isLoading = true
-        
+
         do {
-            let querySnapshot = try await db.collectionGroup("stacks").whereField("isPublic", isEqualTo: true).getDocuments()
+            let querySnapshot = try await db.collectionGroup("stacks")
+                .whereField("isPublic", isEqualTo: true)
+                .getDocuments()
             let stacks = querySnapshot.documents.compactMap { try? $0.data(as: Stack.self) }
             self.publicStacks = stacks
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed to fetch public stacks - \(String(describing: errorMessage))")
+            print("ERROR: Failed to fetch public stacks - \(self.errorMessage)")
         }
+
         self.isLoading = false
     }
-    
-    //MARK: - Stack Creation
-    func createStack(for userID: String, stackToAdd: Stack) async {
-        self.isLoading = true
+
+    // MARK: - Stack Creation
+    func createStack(for userID: String, stackToAdd: Stack, badgeAwarded: @escaping (String?) -> Void) async {
+        isLoading = true
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document()
         var stackToAddWithID = stackToAdd
         stackToAddWithID.id = stackRef.documentID
-        
+
         do {
             try stackRef.setData(from: stackToAddWithID)
-        } catch let error as NSError {
-            self.errorMessage = error.localizedDescription
-            print("ERROR: Failed create stack - \(String(describing: errorMessage))")
-            self.isLoading = false
+            await fetchUserStacks(for: userID)
+            await checkForStackBadges(userID: userID) { badgeID in
+                badgeAwarded(badgeID)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            print("ERROR: Failed create stack - \(errorMessage)")
+            badgeAwarded(nil)
         }
-        self.isLoading = false
+
+        isLoading = false
+    }
+
+    // MARK: - Badge Logic
+    func checkForStackBadges(userID: String, completion: @escaping (String?) -> Void) async {
+        let milestones: [Int: String] = [
+            1: "1_Stack",
+            5: "5_Stacks",
+            10: "10_Stacks"
+        ]
+
+        guard let user = AuthViewModel.shared.user else {
+            completion(nil)
+            return
+        }
+
+        let currentBadgeIDs = user.earnedBadges
+        let currentStackCount = userStacks.count
+
+        guard let badgeID = milestones[currentStackCount],
+              !currentBadgeIDs.contains(badgeID) else {
+            completion(nil)
+            return
+        }
+
+        var updatedBadges = currentBadgeIDs
+        updatedBadges.append(badgeID)
+
+        do {
+            try await db.collection("users").document(userID).updateData(["earnedBadges": updatedBadges])
+            AuthViewModel.shared.user?.earnedBadges = updatedBadges
+            print("SUCCESS: Awarded badge \(badgeID)")
+            completion(badgeID)
+        } catch {
+            print("ERROR: Failed to update badges in Firestore: \(error.localizedDescription)")
+            completion(nil)
+        }
     }
     
-    //MARK: - Stack Deletion
+    // MARK: - Stack Deletion
     func deleteStack(_ stack: Stack) async {
         self.isLoading = true
-        
+
         guard let user = AuthViewModel.shared.user else {
             print("ERROR: user not logged in")
             self.isLoading = false
             return
         }
-        
-        let stackRef = db.collection("allStacks").document(user.id).collection("stacks")
+
         do {
-            try await stackRef.document(stack.id).delete()
+            try await db.collection("allStacks").document(user.id).collection("stacks").document(stack.id).delete()
             await self.fetchUserStacks(for: user.id)
-            
             print("DOCUMENT REMOVED")
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
             print("ERROR: Failed to delete stack: \(error.localizedDescription)")
         }
-        
+
         self.isLoading = false
     }
-    
-    //MARK: - Stack Update
+
+    // MARK: - Stack Update
     func updateStack(for userID: String, stackToUpdate: Stack) async {
         self.isLoading = true
         let stackRef = db.collection("allStacks").document(userID).collection("stacks").document(stackToUpdate.id)
@@ -125,80 +159,52 @@ class StackViewModel: ObservableObject {
         do {
             try stackRef.setData(from: stackToUpdate)
             print("SUCCESS: Stack updated")
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed to update stack - \(String(describing: errorMessage))")
+            print("ERROR: Failed to update stack: \(error.localizedDescription)")
         }
-        
+
         self.isLoading = false
     }
-    
-    //MARK: - Favorite Stacks
+
+    // MARK: - Favorites
     func fetchUserFavorites(for userID: String) async {
         guard let user = AuthViewModel.shared.user else {
             print("ERROR: user not logged in")
-            self.isLoading = false
             return
         }
-        
+
         do {
             let snapshot = try await db.collection("users").document(userID).getDocument()
             let favorites = snapshot.data()?["favoriteStackIDs"] as? [String] ?? []
             self.favoriteStackIDs = favorites
-            print("FAVORITE IDS: \(self.favoriteStackIDs)")
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed to fetch user favorites - \(String(describing: errorMessage))")
+            print("ERROR: Failed to fetch favorites - \(self.errorMessage)")
         }
     }
-    
+
     func isFavorite(_ stack: Stack) -> Bool {
         return self.favoriteStackIDs.contains(stack.id)
     }
-    
+
     func toggleFavorite(for stackID: String) async {
-        self.isLoading = true
-        
-        guard let user = AuthViewModel.shared.user else {
-            print("ERROR: user not logged in")
-            self.isLoading = false
-            return
-        }
-        
+        guard let user = AuthViewModel.shared.user else { return }
+
         if favoriteStackIDs.contains(stackID) {
-            favoriteStackIDs.removeAll { $0 == stackID}
+            favoriteStackIDs.removeAll { $0 == stackID }
         } else {
             favoriteStackIDs.append(stackID)
         }
-        
+
         do {
             try await db.collection("users").document(user.id).updateData(["favoriteStackIDs": favoriteStackIDs])
-            print("SUCCESS: Favorite stacks updated in Firebase")
-        } catch let error as NSError {
+        } catch {
             self.errorMessage = error.localizedDescription
-            print("ERROR: Failed to update favorites - \(String(describing: errorMessage))")
         }
     }
-    
+
     func clearFavorites() {
         self.favoriteStackIDs = []
-        print("SUCCESS: Cleared favorite data locally")
     }
-    
-    //TODO: revisit these later on in order to delay the sync for the favorites
-//    private func scheduleFavoritesSync() {
-//        syncTimer?.invalidate()
-//        syncTimer = Timer.scheduledTimer(withTimeInterval: syncDelay, repeats: false) { [weak self] _ in
-//            Task {
-//                print("BEGINNING SYNC")
-//                await self?.syncFavoritesWithFirebase()
-//            }
-//        }
-//    }
-//    
-//    func syncFavoritesWithFirebase() async {
-//        guard let user = auth.user else { return }
-//        
-//        
-//    }
 }

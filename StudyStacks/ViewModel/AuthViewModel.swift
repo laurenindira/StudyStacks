@@ -12,6 +12,7 @@ import FirebaseFirestore
 import GoogleSignIn
 
 @Observable
+
 class AuthViewModel: NSObject, ObservableObject {
     static var shared = AuthViewModel()
     
@@ -36,7 +37,7 @@ class AuthViewModel: NSObject, ObservableObject {
     //loading and errors
     var isLoading: Bool = false
     var errorMessage: String?
-    
+
     override init() {
         guard auth.currentUser != nil else {
             self.user = nil
