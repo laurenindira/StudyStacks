@@ -36,15 +36,14 @@ struct StackDetailView: View {
                         .font(.headline)
                         .padding()
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(stack.title)
-                            .font(.title)
-                            .fontWeight(.bold)
-
+                            .customHeading(.title)
                         Text("Created by \(stack.creator)")
-                            .font(.body)
+                            .font(.subheadline)
                             .foregroundColor(.gray)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
 
                     ZStack {
@@ -143,18 +142,13 @@ struct StackDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        Menu {
-                            Button(role: .destructive, action: {
-                                showDeleteConfirmation = true
-                            }) {
-                                Label("Delete Deck", systemImage: "trash")
-                            }
+                        Button {
+                            showDeleteConfirmation = true
                         } label: {
-                            Image(systemName: "ellipsis.circle")
+                            Image(systemName: "trash")
+                                .foregroundColor(.error)
                                 .font(.title2)
-                                .padding(.vertical)
                         }
-                        
                         Button {
                             Task {
                                 isFavorite.toggle()
