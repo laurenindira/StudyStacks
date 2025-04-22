@@ -28,15 +28,15 @@ struct WeeklyProgressView: View {
 
                 // Leaderboard and Weekly Points
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(rank ?? "1st")
                             .font(.customHeading(.title2))
-                        Text("place on leaderboard")
+                        Text("on leaderboard")
                             .font(.headline)
                             .foregroundColor(Color.text)
                     }
 
-                    HStack(spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("\(cardsStudied ?? 0)")
                             .font(.customHeading(.title2))
                         Text("cards studied")
