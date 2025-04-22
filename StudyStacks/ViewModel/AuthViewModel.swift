@@ -280,7 +280,8 @@ class AuthViewModel: NSObject, ObservableObject {
 //        }
 //    }
     
-     func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
+    
+    func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
         guard let currentUser = auth.currentUser else {
             completion(NSError(domain: "UserNotLoggedIn", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in."]))
             return
@@ -289,36 +290,16 @@ class AuthViewModel: NSObject, ObservableObject {
         self.isLoading = true
         let userID = currentUser.uid
         
-        if currentUser.providerData[0].providerID == "password" {
-        } else if currentUser.providerData[0].providerID == "google.com" {
-        }
-        
         do {
-            let allUserDecksQuery = db.collection("decks").whereField("createdBy", isEqualTo: userID)
-            let allUserDecksSnapshot = try await allUserDecksQuery.getDocuments()
+            let allUserStacksQuery = db.collection("stacks").whereField("createdBy", isEqualTo: userID)
+            let allUserStacksSnapshot = try await allUserStacksQuery.getDocuments()
             
-            for deckDoc in allUserDecksSnapshot.documents {
-                let deckID = deckDoc.documentID
-                print("Processing deck with ID: \(deckID)")
-                
-                let cardsRef = deckDoc.reference.collection("cards")
-                let cardsSnapshot = try await cardsRef.getDocuments()
-                
-                if !cardsSnapshot.documents.isEmpty {
-                    let batch = db.batch()
-                    for cardDoc in cardsSnapshot.documents {
-                        batch.deleteDocument(cardDoc.reference)
-                        print("Added card \(cardDoc.documentID) to deletion batch")
-                    }
-                    try await batch.commit()
-                    print("Deleted \(cardsSnapshot.documents.count) cards from deck \(deckID)")
-                }
-                
-                try await deckDoc.reference.delete()
-                print("Deleted deck with ID: \(deckID)")
+            for stackDoc in allUserStacksSnapshot.documents {
+                try await stackDoc.reference.delete()
+                print("Deleted stack with ID: \(stackDoc.documentID)")
             }
             
-            print("SUCCESS: All user decks and cards deleted")
+            print("SUCCESS: All user stacks deleted")
             
             let usersWithFavoritesQuery = db.collection("users").whereField("favoriteStackIDs", arrayContains: userID)
             let usersWithFavoritesSnapshot = try await usersWithFavoritesQuery.getDocuments()
@@ -375,6 +356,10 @@ class AuthViewModel: NSObject, ObservableObject {
             
             do {
                 try await currentUser.delete()
+                StackViewModel.shared.clearFavorites()
+                FriendsViewModel.shared.clearFriendshipLocally()
+                clearUserCache()
+                self.user = nil
                 print("SUCCESS: User removed from auth console")
             } catch let authError as NSError {
                 if authError.code == AuthErrorCode.requiresRecentLogin.rawValue {
@@ -390,8 +375,6 @@ class AuthViewModel: NSObject, ObservableObject {
                 }
             }
             
-            self.user = nil
-            clearUserCache()
             self.isLoading = false
             completion(nil)
         } catch let error {
@@ -400,7 +383,6 @@ class AuthViewModel: NSObject, ObservableObject {
             completion(error)
         }
     }
-    
     
     
     //MARK: - User Editing

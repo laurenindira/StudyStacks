@@ -22,7 +22,6 @@ struct SettingsView: View {
                         .fontWeight(.bold)
                         .padding(.top, 20)
                         .padding(.bottom, 16)
-//                        .frame(maxWidth: .infinity, alignment: .center)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     Group {
