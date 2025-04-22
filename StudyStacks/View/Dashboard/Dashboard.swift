@@ -21,13 +21,15 @@ struct Dashboard: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    let rank = getCurrentUserRank(from: friendVM.friends, user: auth.user)
+                    let rankDisplay = rankString(from: rank)
+                    
                     // Header
                     Text("Welcome back, \(auth.user?.displayName ?? "user")!")
                         .font(.customHeading(.title2))
 
                     // Weekly Progress Card
-                    // TODO: change once leaderboard is implemented
-                    WeeklyProgressView(rank: "1st", cardsStudied: currentPoints)
+                    WeeklyProgressView(rank: rankDisplay, cardsStudied: currentPoints)
 
                     // Streaks + Cards Studied
                     HStack(alignment: .center, spacing: 16) {
@@ -99,6 +101,44 @@ struct Dashboard: View {
             .padding()
         }
     
+    }
+    
+    // functions
+    func getCurrentUserRank(from friends: [Friend], user: User?) -> Int? {
+        guard let user = user else { return nil }
+        
+        var allFriends = friends
+        let currentUserAsFriend = Friend(
+            id: user.id,
+            username: user.username,
+            displayName: user.displayName,
+            email: user.email,
+            creationDate: user.creationDate,
+            currentStreak: user.currentStreak,
+            points: user.points
+        )
+        
+        allFriends.append(currentUserAsFriend)
+        let sorted = allFriends.sorted { $0.points > $1.points }
+        
+        return sorted.firstIndex(where: { $0.id == user.id }).map { $0 + 1 }
+    }
+    
+    func rankString(from rank: Int?) -> String {
+        guard let rank = rank else { return "N/A" }
+        let suffix: String
+        switch rank {
+        case 11, 12, 13:
+            suffix = "th"
+        default:
+            switch rank % 10 {
+            case 1: suffix = "st"
+            case 2: suffix = "nd"
+            case 3: suffix = "rd"
+            default: suffix = "th"
+            }
+        }
+        return "\(rank)\(suffix)"
     }
 }
 
