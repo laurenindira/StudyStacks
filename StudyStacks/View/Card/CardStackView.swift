@@ -101,33 +101,65 @@ struct CardStackView: View {
                 
             } else {
                 let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
-                
+                // CardStackView.swift  (and the forgotten version)
                 ZStack(alignment: .top) {
-                    ForEach(reversedIndices, id: \.self) { index in
-                        let isTopCard = index == reversedIndices.last
-                        let isSecondCard = index == swipeVM.unswipedCards.indices.dropLast().last
-                        let card = swipeVM.unswipedCards[index]
-                        
+                    // draw bottom‑to‑top so the last .zIndex wins naturally
+                    ForEach(swipeVM.unswipedCards, id: \.id) { card in
                         CardView(
                             presenter: FlipCardPresenter(),
                             card: card,
                             stack: stack,
                             dragOffset: dragState,
-                            isTopCard: isTopCard,
-                            isSecondCard: isSecondCard
+                            isTopCard: card.id == swipeVM.unswipedCards.first?.id,
+                            isSecondCard: card.id == swipeVM.unswipedCards.dropFirst().first?.id
                         )
                         .frame(width: 340, height: 524)
-                        .zIndex(isTopCard ? 1 : 0)
-                        .offset(x: isTopCard ? dragState.width : 0)
-                        .rotationEffect(.degrees(isTopCard ? Double(dragState.width) / rotationFactor : 0))
-                        .shadow(
-                            color: getShadowColor(for: dragState),
-                            radius: isTopCard ? 10 : 0,
-                            x: 0, y: 5
-                        )
-                        .gesture(swipingAction(for: card, isTopCard: isTopCard))
+                        .offset(x: card.id == swipeVM.unswipedCards.first?.id ? dragState.width : 0)
+                        .rotationEffect(.degrees(card.id == swipeVM.unswipedCards.first?.id
+                                                 ? Double(dragState.width) / rotationFactor : 0))
+                        .shadow(color: getShadowColor(for: dragState),
+                                radius: card.id == swipeVM.unswipedCards.first?.id ? 10 : 0,
+                                x: 0, y: 5)
+                        .zIndex(card.id == swipeVM.unswipedCards.first?.id ? 1 : 0)
+                        .gesture(swipingAction(for: card,
+                                               isTopCard: card.id == swipeVM.unswipedCards.first?.id))
                     }
                 }
+//                .animation(.easeInOut, value: swipeVM.unswipedCards)
+
+                
+//                ZStack(alignment: .top) {
+//                    ForEach(Array(swipeVM.unswipedCards.enumerated()).reversed(),
+//                            id: \.element.id) { tuple in
+//                        let index        = tuple.offset
+//                        let card         = tuple.element
+//                        let isTopCard    = index == swipeVM.unswipedCards.count - 1
+//                        let isSecondCard = index == swipeVM.unswipedCards.count - 2
+////                    ForEach(reversedIndices, id: \.self) { index in
+////                        let isTopCard = index == reversedIndices.last
+////                        let isSecondCard = index == swipeVM.unswipedCards.indices.dropLast().last
+////                        let card = swipeVM.unswipedCards[index]
+//                        
+//                        CardView(
+//                            presenter: FlipCardPresenter(),
+//                            card: card,
+//                            stack: stack,
+//                            dragOffset: dragState,
+//                            isTopCard: isTopCard,
+//                            isSecondCard: isSecondCard
+//                        )
+//                        .frame(width: 340, height: 524)
+//                        .zIndex(isTopCard ? 1 : 0)
+//                        .offset(x: isTopCard ? dragState.width : 0)
+//                        .rotationEffect(.degrees(isTopCard ? Double(dragState.width) / rotationFactor : 0))
+//                        .shadow(
+//                            color: getShadowColor(for: dragState),
+//                            radius: isTopCard ? 10 : 0,
+//                            x: 0, y: 5
+//                        )
+//                        .gesture(swipingAction(for: card, isTopCard: isTopCard))
+//                    }
+//                }
                 .frame(width: 340, height: 524)
             }
             Spacer()
@@ -184,23 +216,12 @@ struct CardStackView: View {
                 forgottenCardsVM.load(for: userID)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            loadForgottenCards()
-        }
+//        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+//            loadForgottenCards()
+//        }
     }
     
     // functions
-    private func loadForgottenCards() {
-        if let userID = auth.user?.id {
-            forgottenCardsVM.load(for: userID)
-            let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
-            forgottenCount = forgotten.count
-            print("🧠 Forgotten cards loaded: \(forgottenCount)")
-        } else {
-            print("⚠️ No user ID available")
-        }
-    }
-    
     private func handleButtonSwipe(direction: CardView.SwipeDirection) {
         guard let topCard = swipeVM.unswipedCards.first else { return }
 

@@ -21,6 +21,7 @@ struct StackDetailView: View {
     @EnvironmentObject var stackVM: StackViewModel
     @EnvironmentObject var forgottenCardsVM: ForgottenCardsViewModel
     @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var forgottenSwipeVM: SwipeableCardsViewModel
 
     var body: some View {
         NavigationStack {
