@@ -59,40 +59,39 @@ struct ProfileView: View {
                     .padding(.horizontal)
                     
                     // Stats
-                    HStack(spacing: 40) {
+                    HStack {
                         VStack {
                             Image(systemName: "sparkles")
-                                .resizable()
-                                .frame(width: 22, height: 22)
+                                .font(.system(size: 22))
                                 .foregroundColor(Color("stacksblue"))
                             let streak = auth.user?.currentStreak ?? 0
                             Text("\(streak) day\(streak == 1 ? "" : "s")")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
-                        
+                        .padding(.horizontal)
+
                         VStack {
                             Image(systemName: "square.stack.3d.up")
-                                .resizable()
-                                .frame(width: 22, height: 22)
+                                .font(.system(size: 22))
                                 .foregroundColor(Color("stacksblue"))
                             Text("\(stackVM.userStacks.count) stacks")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
-                        
+                        .padding(.horizontal)
+
                         VStack {
                             Image(systemName: "medal")
-                                .resizable()
-                                .frame(width: 22, height: 22)
+                                .font(.system(size: 22))
                                 .foregroundColor(Color("stacksblue"))
-                            //TODO: Replace hardcoded badges when implemented (or use friends)
                             Text("2 badges")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
                         }
+                        .padding(.horizontal)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
                     .background(Color("surface"))
                     .cornerRadius(20)
