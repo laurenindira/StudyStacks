@@ -15,15 +15,15 @@ struct StatCardView: View {
         HStack(spacing: 4) {
             Text("\(number)")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(Color.text)
 
             Text(text)
                 .font(.body)
-                .foregroundColor(.white)
+                .foregroundColor(Color.text)
         }
         .multilineTextAlignment(.center)
         .frame(width: 175, height: 80)
-        .background(Color.prim)
+        .background(Color.surface)
         .cornerRadius(20)
     }
 }
