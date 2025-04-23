@@ -27,12 +27,13 @@ struct ContentView: View {
                         .environmentObject(stackVM)
                         .environmentObject(friendVM)
                         .tabItem {
-                            Label("Dashboard", systemImage: "rectangle.stack.fill")
+                            Label("Dashboard", systemImage: "house")
                         }
 
                     ProfileView()
                         .environmentObject(auth)
                         .environmentObject(stackVM)
+                        .environmentObject(FriendsViewModel())
                         .tabItem {
                             Label("Profile", systemImage: "person.crop.circle")
                         }
