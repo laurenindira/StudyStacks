@@ -179,9 +179,6 @@ struct CardStackView: View {
                 forgottenCardsVM.load(for: userID)
             }
         }
-//        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-//            loadForgottenCards()
-//        }
     }
     
     // functions

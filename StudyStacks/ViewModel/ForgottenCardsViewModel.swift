@@ -65,22 +65,18 @@ class ForgottenCardsViewModel: ObservableObject {
     // Get forgotten cards to review
     func getForgottenCards(from allCards: [Card], for stackID: String) -> [Card] {
         let ids = localForgottenCards[stackID] ?? []
-        print("🧠 getForgottenCards - Stack ID: \(stackID)")
-        print("🧠 getForgottenCards - Forgotten IDs: \(ids)")
-        print("🧠 getForgottenCards - All cards count: \(allCards.count)")
+        print("getForgottenCards - Stack ID: \(stackID)")
+        print("getForgottenCards - Forgotten IDs: \(ids)")
+        print("getForgottenCards - All cards count: \(allCards.count)")
         
         let forgottenCards = allCards.filter { ids.contains($0.id) }
-        print("🧠 getForgottenCards - Found \(forgottenCards.count) forgotten cards")
+        print("getForgottenCards - Found \(forgottenCards.count) forgotten cards")
         
         // Debug each card
         for card in forgottenCards {
-            print("🧠 Forgotten card: \(card.id) - \(card.front)")
+            print("Forgotten card: \(card.id) - \(card.front)")
         }
         
         return forgottenCards
     }
-//    func getForgottenCards(from allCards: [Card], for stackID: String) -> [Card] {
-//        let ids = localForgottenCards[stackID] ?? []
-//        return allCards.filter { ids.contains($0.id) }
-//    }
 }

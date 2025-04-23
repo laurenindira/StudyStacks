@@ -87,7 +87,7 @@ struct StackDetailView: View {
                         NavigationLink(destination: ForgottenCardStackView(
                             swipeVM: SwipeableCardsViewModel(cards: forgotten),
                             forgottenCardsVM: forgottenCardsVM,
-//                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
                             stack: stack)
                         ) {
                             Text("Review Forgotten Cards")
@@ -150,8 +150,6 @@ struct StackDetailView: View {
                 if let userID = auth.user?.id {
                     print("✅ User already set: \(userID)")
                     forgottenCardsVM.load(for: userID)
-                } else {
-                    print("⏳ Waiting for user...")
                 }
             }
 
