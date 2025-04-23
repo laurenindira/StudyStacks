@@ -82,6 +82,12 @@ struct Dashboard: View {
                                 Image(systemName: "bell.badge")
                             }
                         }
+                        NavigationLink {
+                            SettingsView()
+                        } label: {
+                            Image(systemName: "gearshape")
+                        
+                        }
                     }
                 }
             }
