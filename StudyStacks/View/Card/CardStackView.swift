@@ -13,7 +13,7 @@ struct CardStackView: View {
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
 
-    @ObservedObject var swipeVM: SwipeableCardsViewModel
+    @StateObject var swipeVM: SwipeableCardsViewModel
     @ObservedObject var forgottenCardsVM: ForgottenCardsViewModel
 
     @State private var dragState = CGSize.zero

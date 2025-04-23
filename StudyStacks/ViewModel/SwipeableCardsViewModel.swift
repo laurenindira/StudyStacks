@@ -27,9 +27,9 @@ class SwipeableCardsViewModel: ObservableObject {
     @MainActor
     func removeTopCard() {
         if !unswipedCards.isEmpty {
-            let removed = unswipedCards.removeFirst()
-            swipedCards.append(removed)
-            print("🗑 removed:", removed.front, "| left:", unswipedCards.map(\.front))
+            guard let card = unswipedCards.first else { return }
+            unswipedCards.removeFirst()
+            swipedCards.append(card)
         }
     }
     
