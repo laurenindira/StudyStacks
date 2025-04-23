@@ -45,6 +45,7 @@ struct StackDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
+                    .padding(.top, 10)
                     
                     ZStack {
                         ZStack {
@@ -120,10 +121,11 @@ struct StackDetailView: View {
                         .frame(width: 340)
                     }
                     .frame(width: 340, height: 220)
-                    .padding(.horizontal, 20)
+//                    .padding(.horizontal, 20)
                     
                     TermsListView(cards: stack.cards)
-                        .padding(.horizontal)
+//                        .padding(.horizontal)
+//                        .padding(.horizontal, 10)
 
                     Button {
                         showCardStackView = true
@@ -147,6 +149,7 @@ struct StackDetailView: View {
                     
                 }
             }
+            .padding(.horizontal, 10)
             .onAppear {
                 self.isFavorite = stackVM.isFavorite(stack)
             }
@@ -159,7 +162,7 @@ struct StackDetailView: View {
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.error)
-                                .font(.title2)
+                                .font(.title3)
                         }
                         Button {
                             Task {
