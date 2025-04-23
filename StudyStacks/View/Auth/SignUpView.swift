@@ -22,6 +22,12 @@ struct SignUpView: View {
     @State var showPassword: Bool = false
     @State var showConfirmPassword: Bool = false
     
+    //checking password
+    @State private var passwordMessage: String = ""
+    @State private var passwordIsValid: Bool = false
+    @State private var confirmPasswordMessage: String = ""
+    @State private var confirmPasswordIsValid: Bool = false
+    
     var tempUser: User
     
     var showPasswordToggle: Bool {
@@ -69,17 +75,42 @@ struct SignUpView: View {
                             .foregroundStyle(Color.secondaryText)
                         GeneralTextField(placeholder: "email", text: $email)
                     }
-                    VStack (alignment: .leading, spacing: 5) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("password")
                             .font(.headline)
                             .foregroundStyle(Color.secondaryText)
+
                         SecureTextField(placeholder: "password", showPassword: showPasswordToggle, text: $password)
+                            .onChange(of: password) { newValue in
+                                passwordIsValid = newValue.count >= 6
+                                passwordMessage = passwordIsValid ? "✓ Password looks good" : "Password must be at least 6 characters"
+                                confirmPasswordIsValid = confirmPassword == newValue
+                                confirmPasswordMessage = confirmPassword.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match")
+                            }
+
+                        if !password.isEmpty {
+                            Text(passwordMessage)
+                                .font(.caption)
+                                .foregroundStyle(passwordIsValid ? Color.stacksgreen : Color.error)
+                        }
                     }
-                    VStack (alignment: .leading, spacing: 5) {
+
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("confirm password")
                             .font(.headline)
                             .foregroundStyle(Color.secondaryText)
+
                         SecureTextField(placeholder: "confirm password", showPassword: showConfirmPasswordToggle, text: $confirmPassword)
+                            .onChange(of: confirmPassword) { newValue in
+                                confirmPasswordIsValid = newValue == password
+                                confirmPasswordMessage = newValue.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match")
+                            }
+
+                        if !confirmPassword.isEmpty {
+                            Text(confirmPasswordMessage)
+                                .font(.caption)
+                                .foregroundStyle(confirmPasswordIsValid ? Color.stacksgreen : Color.error)
+                        }
                     }
                 }
                 .padding(.bottom, 25)
