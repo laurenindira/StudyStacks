@@ -33,7 +33,7 @@ struct ContentView: View {
                     ProfileView()
                         .environmentObject(auth)
                         .environmentObject(stackVM)
-                        .environmentObject(FriendsViewModel())
+                        .environmentObject(friendVM)
                         .tabItem {
                             Label("Profile", systemImage: "person.crop.circle")
                         }
