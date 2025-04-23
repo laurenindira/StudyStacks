@@ -18,6 +18,8 @@ struct ForgottenCardStackView: View {
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
     @State private var forgottenCount: Int = 0
+    @State private var showingPointsEarned = false
+    @State private var navigateToOverview = false
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -51,16 +53,49 @@ struct ForgottenCardStackView: View {
             
             // when all cards gone, return back to stack overview page
             if swipeVM.unswipedForgottenCards.isEmpty {
-                VStack(spacing: 20) {
+                VStack {
                     Spacer()
-                    Text("No Forgotten Cards Left")
-                        .font(.title2)
+                    if showingPointsEarned {
+                        Text("+\(forgottenCount) points!")
+                            .font(.title)
+                            .foregroundColor(.green)
+                            .padding()
+                            .transition(.scale)
+                    }
+                    
+                    Text("No Cards Left")
+                        .font(.title)
                         .foregroundColor(.gray)
+                        .padding()
+                    
+                    Button(action: {
+                        showingPointsEarned = true
+                        
+                        Task {
+                            PointsManager.shared.addPoints(points: forgottenCount)
+                            //await auth.addPoints(pointsEarned)
+                            //await auth.loadUserFromFirebase()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                showingPointsEarned = false
+                                navigateToOverview = true
+                            }
+                        }
+                    }) {
+                        
+                        GeneralButton(
+                            placeholder: "Return to Stack Overview (+\(forgottenCount) pts)",
+                            backgroundColor: Color.prim,
+                            foregroundColor: Color.white,
+                            isSystemImage: false)
+                    }
+                    .padding(.horizontal, 80)
+                    
                     Spacer()
                 }
                 .frame(maxHeight: .infinity)
+                .animation(.easeInOut, value: showingPointsEarned)
+                
             } else {
-//                let reversedIndices = Array(swipeVM.unswipedForgottenCards.indices).reversed()
                 ZStack {
                     ForEach(Array(swipeVM.unswipedForgottenCards.enumerated()), id: \.element.id) { index, card in
                         let isTopCard = index == 0
@@ -127,11 +162,15 @@ struct ForgottenCardStackView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToOverview) {
+            StackDetailView(stack: stack)
+        }
         .onAppear {
             if let userID = auth.user?.id {
                 forgottenCardsVM.load(for: userID)
                 let forgottenCards = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
                 swipeVM.setupForgottenCards(forgottenCards)
+                forgottenCount = forgottenCards.count
                 print("ForgottenCardStackView appeared. Loaded \(forgottenCards.count) forgotten cards.")
             } else {
                 print("No user ID found.")
