@@ -36,7 +36,7 @@ class AuthViewModel: NSObject, ObservableObject {
     //loading and errors
     var isLoading: Bool = false
     var errorMessage: String?
-    
+
     override init() {
         guard auth.currentUser != nil else {
             self.user = nil
@@ -88,7 +88,7 @@ class AuthViewModel: NSObject, ObservableObject {
         
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
-            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [])
+            let user = User(id: result.user.uid, username: username, displayName: displayName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "password", selectedSubjects: selectedSubjects, studyReminderTime: studyReminderTime, studentType: studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [], earnedBadges: [])
             print("USER: \(user)")
             
             self.user = user
@@ -184,7 +184,7 @@ class AuthViewModel: NSObject, ObservableObject {
                             }
                         } else {
                             let newUsername = fullName.filter { !$0.isWhitespace }.lowercased()
-                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [])
+                            let newUser = User(id: uid, username: newUsername, displayName: fullName, email: email, creationDate: Date(), lastSignIn: Date(), providerRef: "google", selectedSubjects: tempUser.selectedSubjects, studyReminderTime: tempUser.studyReminderTime, studentType: tempUser.studentType, currentStreak: 0, longestStreak: 0, lastStudyDate: Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: Date()), points: 0, favoriteStackIDs: [], earnedBadges: [])
                             
                             Task {
                                 do {
@@ -493,6 +493,35 @@ class AuthViewModel: NSObject, ObservableObject {
 //            //checkForMilestones(streak: streak)
 //        }
 //    }
+    
+    func updateStreakAndCheckForBadge() async -> String? {
+        guard let user = user else { return nil }
+        
+        await updateStudyStreak(for: user.id)
+
+        let milestones: [Int: String] = [5: "5_Streak", 15: "15_Streak", 30: "30_Streak"]
+        guard let badgeID = milestones[user.currentStreak],
+              !user.earnedBadges.contains(badgeID) else {
+            return nil
+        }
+
+        var updatedBadges = user.earnedBadges
+        updatedBadges.append(badgeID)
+
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "earnedBadges": updatedBadges
+            ])
+            self.user?.earnedBadges = updatedBadges
+            updateCachedUser(user: self.user!)
+            print("✅ Awarded badge: \(badgeID)")
+            return badgeID
+        } catch {
+            print("❌ Badge update error: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
 
     //MARK: - Tracking points
     func updatePointsInFirebase() async {

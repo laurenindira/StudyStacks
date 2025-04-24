@@ -34,4 +34,7 @@ struct User: Identifiable, Codable {
     //FAVORITES
     var favoriteStackIDs: [String]
 
+    // BADGES
+    var earnedBadges: [String]
+
 }

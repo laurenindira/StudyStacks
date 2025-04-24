@@ -23,9 +23,11 @@ struct NewStackView: View {
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
     
+    @State private var earnedBadgeID: String? = nil
+
     var body: some View {
         NavigationStack {
-            ScrollView{
+            ScrollView {
                 VStack {
                     VStack(alignment: .leading, spacing: 10) {
                         //TITLE
@@ -41,12 +43,9 @@ struct NewStackView: View {
                                 .textInputAutocapitalization(.never)
                                 .padding(10)
                                 .foregroundStyle(Color.secondaryText)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(Color.surface)
-                                }
+                                .background(RoundedRectangle(cornerRadius: 15).fill(Color.surface))
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Description")
                                 .font(.headline)
@@ -59,6 +58,7 @@ struct NewStackView: View {
                                         .fill(Color.surface)
                                 }
                         }
+                        
                         //TODO: add tags as dropdown instead of list
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Tags (comma-separated)")
@@ -67,25 +67,20 @@ struct NewStackView: View {
                                 .textInputAutocapitalization(.never)
                                 .padding(10)
                                 .foregroundStyle(Color.secondaryText)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(Color.surface)
-                                }
+                                .background(RoundedRectangle(cornerRadius: 15).fill(Color.surface))
                         }
+
                         Toggle("Is deck public?", isOn: $isPublic)
                             .font(.headline)
                             .padding(.bottom, 5)
-                        
+
                         Divider()
-                        
-                        //CARDS
+
                         VStack(alignment: .leading) {
                             Text("Cards")
                                 .font(.headline)
-                            
-                            //EMPTY LIST
+
                             if cards.isEmpty {
-                                //TODO: make prettier error message
                                 Text("No cards here! You should add some")
                                     .padding()
                                     .frame(width: UIScreen.main.bounds.width * 0.9)
@@ -93,70 +88,48 @@ struct NewStackView: View {
                                 LazyVStack(alignment: .leading) {
                                     ForEach(cards.indices, id: \.self) { index in
                                         HStack(alignment: .center) {
-                                            //TEXT
                                             VStack(alignment: .leading) {
                                                 Text(cards[index].front)
                                                     .font(.headline).bold()
                                                     .foregroundStyle(Color.prim)
                                                     .padding(.bottom, 5)
-                                                    .overlay(
-                                                        Rectangle()
-                                                            .frame(height: 1)
-                                                            .foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom
-                                                    )
+                                                    .overlay(Rectangle().frame(height: 1).foregroundColor(Color.prim.opacity(0.5)), alignment: .bottom)
                                                 Text(cards[index].back)
                                             }
-                                            
+
                                             Spacer()
-                                            
-                                            //DELETE BUTTON
+
                                             Button(action: { deleteCard(at: index) }) {
                                                 Image(systemName: "trash")
                                                     .foregroundColor(Color.stacksred)
                                                     .padding(5)
                                             }
                                         }
-                                        
                                         .padding()
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 20)
-                                                .fill(Color.surface)
-                                        }
+                                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.surface))
                                     }
                                 }
-                                .frame(maxWidth: .infinity)
                             }
-                            
+
                             Divider()
-                            
-                            //NEW CARD
+
                             VStack(alignment: .leading) {
                                 TextField("This is a word", text: $cardFront)
                                     .textInputAutocapitalization(.never)
                                     .font(.headline).bold()
                                     .foregroundStyle(Color.prim)
                                     .padding([.top, .bottom], 5)
-                                    .overlay(
-                                        Rectangle()
-                                            .frame(height: 1)
-                                            .foregroundColor(Color.prim), alignment: .bottom
-                                    )
+                                    .overlay(Rectangle().frame(height: 1).foregroundColor(Color.prim), alignment: .bottom)
+
                                 TextField("This is a definition", text: $cardBack, axis: .vertical)
                                     .textInputAutocapitalization(.never)
                                     .padding([.top, .bottom], 5)
-                                    .overlay(
-                                        Rectangle()
-                                            .frame(height: 1)
-                                            .foregroundColor(Color.secondary.opacity(0.5)), alignment: .bottom
-                                    )
+                                    .overlay(Rectangle().frame(height: 1).foregroundColor(Color.secondary.opacity(0.5)), alignment: .bottom)
                             }
                             .padding()
-                            .background {
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.surface)
-                            }
-                            
+                            .background(RoundedRectangle(cornerRadius: 20).fill(Color.surface))
+
                             Button {
                                 addCard()
                             } label: {
@@ -165,7 +138,6 @@ struct NewStackView: View {
                             .disabled(cardFront.isEmpty || cardBack.isEmpty)
                             .padding(.top, 20)
                         }
-                        
                     }
                 }
                 .padding()
@@ -176,39 +148,64 @@ struct NewStackView: View {
                     Button("Save Stack") {
                         Task {
                             await saveStack()
+                            stackVM.creatingStack = false
+                            
+                            // If a badge is earned, delay dismiss until popup is dismissed
+                            if earnedBadgeID == nil {
+                                dismiss()
+                            }
                         }
-                        stackVM.creatingStack = false
-                        dismiss()
                     }
+
                     .disabled(title.isEmpty || cards.isEmpty)
+                }
+            }
+            .overlay {
+                if let badgeID = earnedBadgeID {
+                    ZStack {
+                        Color.black.opacity(0.4).ignoresSafeArea()
+                        BadgePopupView(badgeID: badgeID) {
+                            earnedBadgeID = nil
+                            dismiss()
+                        }
+                    }
+                    .zIndex(1)
                 }
             }
         }
     }
-    
-    //FUNCTIONS
+
+    // MARK: - Logic
+
     private func addCard() {
         let newCard = Card(front: cardFront, back: cardBack, imageURL: nil)
         cards.append(newCard)
         cardFront = ""
         cardBack = ""
     }
-    
+
     private func deleteCard(at index: Int) {
         guard index < cards.count else { return }
         cards.remove(at: index)
     }
-    
+
     private func saveStack() async {
         guard let userID = auth.user?.id else {
             print("ERROR: User ID is nil")
             return
         }
-        
+
         let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let savedDescription = (description.isEmpty ? "No description given" : description)
-        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: auth.user?.id ?? "", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
-        await stackVM.createStack(for: userID, stackToAdd: newStack)
+        let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: userID, creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
+
+        await stackVM.createStack(for: userID, stackToAdd: newStack) { badgeID in
+            if let badgeID = badgeID {
+                DispatchQueue.main.async {
+                    earnedBadgeID = badgeID
+                }
+            }
+        }
     }
 }
 

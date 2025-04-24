@@ -165,7 +165,8 @@ struct Dashboard: View {
         longestStreak: 15,
         lastStudyDate: nil,
         points: 2345,
-        favoriteStackIDs: []
+        favoriteStackIDs: [],
+        earnedBadges: []
     )
 
     // Only add stacks for biology, geography, and computer science
