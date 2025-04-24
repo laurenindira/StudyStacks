@@ -235,6 +235,24 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    func updateUserData(updatedUser: User) async throws {
+        guard let user = user else { return }
+        
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "displayName": updatedUser.displayName,
+                "studentType": updatedUser.studentType,
+                "selectedSubjects": updatedUser.selectedSubjects
+            ])
+            print("SUCCESS: Document updated")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failure updating Firestore - \(String(describing: errorMessage))")
+        }
+        
+        await loadUserFromFirebase()
+    }
+    
     //MARK: - Sign out and deletion
     func signOut() async {
         do {
