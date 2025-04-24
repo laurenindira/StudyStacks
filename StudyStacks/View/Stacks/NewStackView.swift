@@ -30,10 +30,12 @@ struct NewStackView: View {
             ScrollView {
                 VStack {
                     VStack(alignment: .leading, spacing: 10) {
+                        //TITLE
                         Text("New Stack")
                             .font(.customHeading(.title))
                             .padding(.bottom, 20)
                         
+                        //CARD INFORMATION
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Stack Title")
                                 .font(.headline)
@@ -51,9 +53,13 @@ struct NewStackView: View {
                                 .textInputAutocapitalization(.never)
                                 .padding(10)
                                 .foregroundStyle(Color.secondaryText)
-                                .background(RoundedRectangle(cornerRadius: 15).fill(Color.surface))
+                                .background {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .fill(Color.surface)
+                                }
                         }
-
+                        
+                        //TODO: add tags as dropdown instead of list
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Tags (comma-separated)")
                                 .font(.headline)

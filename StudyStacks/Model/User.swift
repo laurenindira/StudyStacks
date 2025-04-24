@@ -35,5 +35,6 @@ struct User: Identifiable, Codable {
     var favoriteStackIDs: [String]
 
     // BADGES
-    var earnedBadges: [String] = []
+    var earnedBadges: [String]
+
 }

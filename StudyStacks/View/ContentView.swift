@@ -27,12 +27,13 @@ struct ContentView: View {
                         .environmentObject(stackVM)
                         .environmentObject(friendVM)
                         .tabItem {
-                            Label("Dashboard", systemImage: "rectangle.stack.fill")
+                            Label("Dashboard", systemImage: "house")
                         }
 
                     ProfileView()
                         .environmentObject(auth)
                         .environmentObject(stackVM)
+                        .environmentObject(friendVM)
                         .tabItem {
                             Label("Profile", systemImage: "person.crop.circle")
                         }
@@ -52,22 +53,6 @@ struct ContentView: View {
                         }
                 }
             }
-        }
-    }
-
-    // Custom button for bottom nav — no longer used but kept here in case you want to bring it back later
-    @ViewBuilder
-    private func bottomNavButton(label: String, systemImage: String, page: Int) -> some View {
-        Button(action: {
-            // Placeholder action; selectedPage removed
-        }) {
-            VStack(spacing: 4) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 20))
-                Text(label)
-                    .font(.caption)
-            }
-            .foregroundColor(.gray) // default appearance
         }
     }
 }
