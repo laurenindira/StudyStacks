@@ -54,18 +54,7 @@ struct Dashboard: View {
                             )
                         }
                     }
-
                 }
-                
-                Button {
-                    Task {
-                        await auth.signOut()
-                    }
-                } label: {
-                    GeneralButton(placeholder: "Sign Out", backgroundColor: Color.prim, foregroundColor: Color.white, isSystemImage: false)
-                }
-                .padding(.top, 20)
-
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -81,12 +70,6 @@ struct Dashboard: View {
                             } else {
                                 Image(systemName: "bell.badge")
                             }
-                        }
-                        NavigationLink {
-                            SettingsView()
-                        } label: {
-                            Image(systemName: "gearshape")
-                        
                         }
                     }
                 }
@@ -106,7 +89,7 @@ struct Dashboard: View {
             }
             .padding()
         }
-    
+        .scrollIndicators(.hidden)
     }
     
     // functions

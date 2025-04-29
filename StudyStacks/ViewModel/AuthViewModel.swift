@@ -256,6 +256,24 @@ class AuthViewModel: NSObject, ObservableObject {
         }
     }
     
+    func updateUserData(updatedUser: User) async throws {
+        guard let user = user else { return }
+        
+        do {
+            try await db.collection("users").document(user.id).updateData([
+                "displayName": updatedUser.displayName,
+                "studentType": updatedUser.studentType,
+                "selectedSubjects": updatedUser.selectedSubjects
+            ])
+            print("SUCCESS: Document updated")
+        } catch let error as NSError {
+            self.errorMessage = error.localizedDescription
+            print("ERROR: Failure updating Firestore - \(String(describing: errorMessage))")
+        }
+        
+        await loadUserFromFirebase()
+    }
+    
     //MARK: - Sign out and deletion
     func signOut() async {
         do {
@@ -275,32 +293,6 @@ class AuthViewModel: NSObject, ObservableObject {
             print("ERROR: Sign out error - \(error.localizedDescription)")
         }
     }
-    
-//    func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
-//        guard let currentUser = auth.currentUser else {
-//            completion(NSError(domain: "UserNotLoggedIn", code: 0, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in."]))
-//            return
-//        }
-//        
-//        self.isLoading = true
-//        let userID = currentUser.uid
-//        let userRef = db.collection("users").document(userID)
-//        //TODO: add in flashcard removal when implemented
-//        
-//        do {
-//            try await userRef.delete()
-//            print("SUCCESS: User removed from user collection")
-//            try await currentUser.delete()
-//            print("SUCCESS: User removed from auth console")
-//            self.user = nil
-//            clearUserCache()
-//        } catch let error {
-//            self.isLoading = false
-//            print("ERROR: Deletion Error - \(error.localizedDescription)")
-//            completion(error)
-//        }
-//    }
-    
     
     func deleteUserAccount(completion: @escaping (Error?) -> Void) async throws {
         guard let currentUser = auth.currentUser else {
@@ -486,16 +478,18 @@ class AuthViewModel: NSObject, ObservableObject {
     }
     
     //TODO: move to relevant page when detail views are created
-//    func endStudySession() async {
-//        guard let userID = auth.user?.id else { return }
-//        
-//        await updateStudyStreak(for: userID)
-//
-            //TO DO: milestones and badges related to streaks
-//        if let streak = auth.user?.currentStreak {
-//            //checkForMilestones(streak: streak)
+    func endStudySession() async {
+        guard let userID = user?.id else {
+            print("ERROR: Couldn't verify user ID")
+            return
+        }
+        await updateStudyStreak(for: userID)
+
+        //TODO: milestones and badges related to streaks
+//        if let streak = user?.currentStreak {
+//            checkForMilestones(streak: streak)
 //        }
-//    }
+    }
 
     //MARK: - Tracking points
     func updatePointsInFirebase() async {

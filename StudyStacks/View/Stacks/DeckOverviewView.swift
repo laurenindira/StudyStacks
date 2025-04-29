@@ -38,23 +38,22 @@ struct StackDetailView: View {
                         .font(.headline)
                         .padding()
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(stack.title)
-                            .font(.title)
-                            .fontWeight(.bold)
-
+                            .customHeading(.title)
                         Text("Created by \(stack.creator)")
-                            .font(.body)
+                            .font(.subheadline)
                             .foregroundColor(.gray)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
 
                     FlashcardPreview(stack: stack)
                     .padding()
-
                     
                     TermsListView(cards: stack.cards)
-                        .padding(.horizontal)
+//                        .padding(.horizontal)
+//                        .padding(.horizontal, 10)
 
                     // Start Studying entire stack
                     NavigationLink(destination: CardStackView(
@@ -104,6 +103,7 @@ struct StackDetailView: View {
                     }
                 }
             }
+            .padding(.horizontal, 10)
             .onAppear {
                 self.isFavorite = stackVM.isFavorite(stack)
             }
@@ -111,18 +111,13 @@ struct StackDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack {
-                        Menu {
-                            Button(role: .destructive, action: {
-                                showDeleteConfirmation = true
-                            }) {
-                                Label("Delete Deck", systemImage: "trash")
-                            }
+                        Button {
+                            showDeleteConfirmation = true
                         } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .font(.title2)
-                                .padding(.vertical)
+                            Image(systemName: "trash")
+                                .foregroundColor(.error)
+                                .font(.title3)
                         }
-                        
                         Button {
                             Task {
                                 isFavorite.toggle()
@@ -145,33 +140,19 @@ struct StackDetailView: View {
             }
             
             .onAppear {
-                print("📦 View appeared for stack \(stack.id)")
+                print("View appeared for stack \(stack.id)")
                 if let userID = auth.user?.id {
-                    print("✅ User already set: \(userID)")
+                    print("User already set: \(userID)")
                     forgottenCardsVM.load(for: userID)
                 }
             }
 
             .onChange(of: auth.user?.id) {
                 if let userID = auth.user?.id {
-                    print("✅ User ID now available (onChange): \(userID)")
+                    print("User ID now available (onChange): \(userID)")
                     forgottenCardsVM.load(for: userID)
                 }
             }
-
-
-            
-//            .onAppear {
-//                print("StackDetailView appeared for stack: \(stack.id)")
-//                if let userID = auth.user?.id {
-//                    print("Loading forgotten cards for user: \(userID)")
-//                    forgottenCardsVM.load(for: userID)
-//                    let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
-//                    print("Found \(forgotten.count) forgotten cards for stack: \(stack.id)")
-//                } else {
-//                    print("No user ID available")
-//                }
-//            }
         }
     }
     

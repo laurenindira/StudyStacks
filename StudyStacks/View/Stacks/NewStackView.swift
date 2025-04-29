@@ -12,6 +12,8 @@ struct NewStackView: View {
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
     
+    @State private var mainSubject: String = ""
+    
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var creator: String = ""
@@ -22,6 +24,8 @@ struct NewStackView: View {
    
     @State private var cardFront: String = ""
     @State private var cardBack: String = ""
+    
+    let potentialSubjects: [String] = ["Accounting", "Biology", "Chemistry", "Computer Science", "English", "Geography", "History", "Physics", "Psychology", "Spanish", "Other"]
     
     var body: some View {
         NavigationStack {
@@ -59,7 +63,23 @@ struct NewStackView: View {
                                         .fill(Color.surface)
                                 }
                         }
-                        //TODO: add tags as dropdown instead of list
+
+                        HStack {
+                            Text("Stack Subject")
+                                .font(.headline)
+                            Spacer()
+                            Picker("Subject", selection: $mainSubject) {
+                                ForEach(potentialSubjects, id: \.self) { subject in
+                                    Text(subject).tag(subject)
+                                }
+                            }
+                            .padding(3)
+                            .background {
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.surface)
+                            }
+                        }
+                       
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Tags (comma-separated)")
                                 .font(.headline)
@@ -72,6 +92,7 @@ struct NewStackView: View {
                                         .fill(Color.surface)
                                 }
                         }
+                        
                         Toggle("Is deck public?", isOn: $isPublic)
                             .font(.headline)
                             .padding(.bottom, 5)
@@ -180,7 +201,7 @@ struct NewStackView: View {
                         stackVM.creatingStack = false
                         dismiss()
                     }
-                    .disabled(title.isEmpty || cards.isEmpty)
+                    .disabled(title.isEmpty || cards.isEmpty || mainSubject == "")
                 }
             }
         }
@@ -205,7 +226,8 @@ struct NewStackView: View {
             return
         }
         
-        let tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        var tagArray = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        tagArray.insert(mainSubject, at: 0)
         let savedDescription = (description.isEmpty ? "No description given" : description)
         let newStack = Stack(id: "", title: title, description: savedDescription, creator: auth.user?.username ?? "unknown", creatorID: auth.user?.id ?? "", creationDate: Date(), tags: tagArray, cards: cards, isPublic: isPublic)
         await stackVM.createStack(for: userID, stackToAdd: newStack)

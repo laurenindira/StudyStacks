@@ -17,9 +17,11 @@ struct LibraryView: View {
     @State private var selectedCreator: String = "Anyone"
     @State private var showFavoritesOnly: Bool = false
     
+    @State var creatingStack: Bool = false
+    
     // TODO: Revisit this later to create a consistent list of subjects across the app.
-    let categories = ["All", "English", "Chemistry", "Physics", "Computer Science", "Spanish", "Psychology", "Geography"]
-    let creatorFilters = ["Anyone", "Friends", "Me"] 
+    let categories = ["All", "Accounting", "Biology", "Chemistry", "Computer Science", "English", "Geography", "History", "Physics", "Psychology", "Spanish"]
+    let creatorFilters = ["Anyone", "Friends", "Me"]
     
     var body: some View {
         NavigationStack {
@@ -126,6 +128,19 @@ struct LibraryView: View {
             }
             .refreshable {
                 await refresh()
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    HStack {
+                        Button(action: { creatingStack = true }) {
+                            Image(systemName: "plus.circle")
+                                .font(.title3)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $creatingStack) {
+                NewStackView()
             }
         }
     }

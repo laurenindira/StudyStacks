@@ -28,7 +28,7 @@ struct CardStackView: View {
     
     var card: Card
     var stack: Stack
-
+    
     var body: some View {
         VStack {
             // deck title and close button
@@ -37,9 +37,9 @@ struct CardStackView: View {
                     .customHeading(.title2)
                     .bold()
                     .padding(.leading, 20)
-
+                
                 Spacer()
-
+                
                 Button(action: {
                     dismiss()
                 }) {
@@ -50,7 +50,7 @@ struct CardStackView: View {
                 }
             }
             .padding(.top, 10)
-
+            
             Spacer()
             
             // when all cards gone, return back to stack overview page
@@ -58,12 +58,12 @@ struct CardStackView: View {
                 VStack {
                     Spacer()
                     if showingPointsEarned {
-                                Text("+\(pointsEarned) points!")
-                                    .font(.title)
-                                    .foregroundColor(.green)
-                                    .padding()
-                                    .transition(.scale)
-                            }
+                        Text("+\(pointsEarned) points!")
+                            .font(.title)
+                            .foregroundColor(.green)
+                            .padding()
+                            .transition(.scale)
+                    }
                     
                     Text("No Cards Left")
                         .font(.title)
@@ -76,6 +76,7 @@ struct CardStackView: View {
                         
                         Task {
                             PointsManager.shared.addPoints(points: pointsEarned)
+                            await auth.endStudySession()
                             //await auth.addPoints(pointsEarned)
                             //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
