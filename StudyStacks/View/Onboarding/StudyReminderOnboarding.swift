@@ -11,8 +11,10 @@ struct StudyReminderOnboarding: View {
     @Binding var user: User
     @Binding var step: Int
     
+    @State var notificationAuth: Bool = false
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 15) {
             
             Text("Great! Now when should we remind you to study?")
                 .font(.headline)
@@ -22,10 +24,19 @@ struct StudyReminderOnboarding: View {
                 .padding()
             
             Button {
+                NotificationManager.requestNotificationAuthorization()
+                notificationAuth = true
+            } label: {
+                GeneralButton(placeholder: "Allow Notifications", backgroundColor: Color.prim, foregroundColor: Color.lod, isSystemImage: false)
+            }
+            
+            Button {
                 step += 1
             } label: {
                 GeneralButton(placeholder: "Next", backgroundColor: Color.prim, foregroundColor: Color.lod, imageRight: "arrow.right", isSystemImage: true)
             }
+            .disabled(!notificationAuth)
+            .opacity(!notificationAuth ? 0.5 : 1)
             .padding(.top, 20)
         }
         .padding()

@@ -63,12 +63,7 @@ struct SignUpView: View {
                             .foregroundStyle(Color.secondaryText)
                         GeneralTextField(placeholder: "username", text: $username)
                     }
-//                    VStack (alignment: .leading, spacing: 5) {
-//                        Text("display name")
-//                            .font(.headline)
-//                            .foregroundStyle(Color.secondaryText)
-//                        GeneralTextField(placeholder: "display name", text: $displayName)
-//                    }
+
                     VStack (alignment: .leading, spacing: 5) {
                         Text("email")
                             .font(.headline)
@@ -83,9 +78,9 @@ struct SignUpView: View {
                         SecureTextField(placeholder: "password", showPassword: showPasswordToggle, text: $password)
                             .onChange(of: password) { newValue in
                                 passwordIsValid = newValue.count >= 6
-                                passwordMessage = passwordIsValid ? "✓ Password looks good" : "Password must be at least 6 characters"
+                                passwordMessage = passwordIsValid ? "✓ Password looks good" : "✘ Password must be at least 6 characters"
                                 confirmPasswordIsValid = confirmPassword == newValue
-                                confirmPasswordMessage = confirmPassword.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match")
+                                confirmPasswordMessage = confirmPassword.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "✘ Passwords do not match")
                             }
 
                         if !password.isEmpty {
@@ -103,7 +98,7 @@ struct SignUpView: View {
                         SecureTextField(placeholder: "confirm password", showPassword: showConfirmPasswordToggle, text: $confirmPassword)
                             .onChange(of: confirmPassword) { newValue in
                                 confirmPasswordIsValid = newValue == password
-                                confirmPasswordMessage = newValue.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "Passwords do not match")
+                                confirmPasswordMessage = newValue.isEmpty ? "" : (confirmPasswordIsValid ? "✓ Passwords match" : "✘ Passwords do not match")
                             }
 
                         if !confirmPassword.isEmpty {

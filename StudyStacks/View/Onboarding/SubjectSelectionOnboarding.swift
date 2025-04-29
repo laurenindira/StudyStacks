@@ -12,8 +12,7 @@ struct SubjectSelectionOnboarding: View {
     @Binding var step: Int
     @Namespace private var animation
     
-    //TODO: determine what subjects our pre-loading stacks will be based on
-    let subjectOptions = ["Math","Chemistry", "Biology", "Physics",  "Computer Science", "Political Science", "Law", "Electrical Engineering", "Medicine", "None of these tbh..."]
+    let subjectOptions = ["Accounting", "Biology", "Chemistry", "Computer Science", "English", "Geography", "History", "Physics", "Psychology", "Spanish", "Other"]
 
     var body: some View {
         VStack(alignment: .leading) {

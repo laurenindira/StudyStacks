@@ -10,83 +10,67 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthViewModel
+    @EnvironmentObject var friendVM: FriendsViewModel
+    @EnvironmentObject var stackVM: StackViewModel
+    
     @State private var showDeleteConfirmation = false
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
+        NavigationStack {
+            VStack(alignment: .leading) {
+                Text("Settings")
+                    .customHeading(.title)
                 
-                VStack(spacing: 0) {
-                    Text("Settings")
-                        .customHeading(.title)
-                        .fontWeight(.bold)
-                        .padding(.top, 20)
-                        .padding(.bottom, 16)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Group {
-                        NavigationLink(destination: PlaceholderView(title: "Profile")) {
-                            SettingsRow(icon: "person.crop.circle", title: "Profile")
-                                .padding(.vertical, 20)
-                        }
-                        Divider()
-
-                        NavigationLink(destination: NotificationSettings()) {
-                            SettingsRow(icon: "bell", title: "Notifications")
-                                .padding(.vertical, 20)
-                        }
-                        Divider()
-
-                        NavigationLink(destination: PrivacyView()) {
-                            SettingsRow(icon: "lock", title: "Privacy")
-                                .padding(.vertical, 20)
-                        }
-                        Divider()
-
-                        NavigationLink(destination: AboutView()) {
-                            SettingsRow(icon: "info.circle", title: "About")
-                                .padding(.vertical, 20)
-                        }
+                VStack(spacing: 15) {
+                    NavigationLink {
+                        UserInfoOverview()
+                    } label: {
+                        SettingsRow(icon: "person.crop.circle", title: "Profile")
+                    }
+                    
+                    Divider()
+                    
+                    NavigationLink {
+                        NotificationSettings()
+                    } label: {
+                        SettingsRow(icon: "bell", title: "Notifications")
+                    }
+                    
+                    Divider()
+                    
+                    NavigationLink {
+                        PrivacyView()
+                    } label: {
+                        SettingsRow(icon: "lock", title: "Privacy")
+                    }
+                    
+                    Divider()
+                    
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        SettingsRow(icon: "info.circle", title: "About")
                     }
                 }
-                .background(Color(.systemBackground))
-                .cornerRadius(12)
-                .padding(.horizontal)
-
+                .buttonStyle(.plain)
+                
                 Spacer()
                 
-                VStack(spacing: 24) {
-                    Button(action: {
-                        Task {
-                            await auth.signOut()
-                        }
-                    }) {
-                        GeneralButton(
-                            placeholder: "Log out",
-                            backgroundColor: Color.prim,
-                            foregroundColor: .white,
-                            isSystemImage: false
-                        )
+                VStack {
+                    Button {
+                        Task { await AuthViewModel.shared.signOut() }
+                    } label: {
+                        GeneralButton(placeholder: "Log out", backgroundColor: Color.prim, foregroundColor: Color.lod, isSystemImage: false)
                     }
-
-                    Button(action: {
+                    
+                    Button {
                         showDeleteConfirmation = true
-                    }) {
-                        GeneralButton(
-                            placeholder: "Delete account",
-                            backgroundColor: Color.error,
-                            foregroundColor: .white,
-                            isSystemImage: false
-                        )
+                    } label: {
+                        GeneralButton(placeholder: "Delete account", backgroundColor: Color.error, foregroundColor: Color.lod, isSystemImage: false)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 40)
-
             }
-            .frame(maxHeight: .infinity)
-            .navigationBarTitleDisplayMode(.inline)
-            .background(Color(.secondarySystemGroupedBackground).ignoresSafeArea())
+            .padding()
             .alert(isPresented: $showDeleteConfirmation) {
                 Alert(
                     title: Text("Are you sure?"),
@@ -113,25 +97,6 @@ struct SettingsView: View {
     }
 }
 
-struct PlaceholderView: View {
-    let title: String
-
-    var body: some View {
-        VStack {
-            Text("\(title) Page")
-                .font(.title)
-                .padding()
-
-            Text("Still in progress.")
-                .font(.subheadline)
-                .padding()
-
-            Spacer()
-        }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
 
 struct SettingsRow: View {
     let icon: String
@@ -153,5 +118,7 @@ struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
             .environmentObject(AuthViewModel())
+            .environmentObject(FriendsViewModel())
+            .environmentObject(StackViewModel())
     }
 }

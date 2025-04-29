@@ -12,9 +12,9 @@ struct CardStackView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
-
+    
     @ObservedObject var swipeVM: SwipeableCardsViewModel
-
+    
     @State private var dragState = CGSize.zero
     @State private var cardRotation: Double = 0
     @State private var showingPointsEarned = false
@@ -25,7 +25,7 @@ struct CardStackView: View {
     
     var card: Card
     var stack: Stack
-
+    
     var body: some View {
         VStack {
             // deck title and close button
@@ -34,9 +34,9 @@ struct CardStackView: View {
                     .customHeading(.title2)
                     .bold()
                     .padding(.leading, 20)
-
+                
                 Spacer()
-
+                
                 Button(action: {
                     dismiss()
                 }) {
@@ -47,7 +47,7 @@ struct CardStackView: View {
                 }
             }
             .padding(.top, 10)
-
+            
             Spacer()
             
             // when all cards gone, show reset button
@@ -56,12 +56,12 @@ struct CardStackView: View {
                     Spacer()
                     
                     if showingPointsEarned {
-                                Text("+\(pointsEarned) points!")
-                                    .font(.title)
-                                    .foregroundColor(.green)
-                                    .padding()
-                                    .transition(.scale)
-                            }
+                        Text("+\(pointsEarned) points!")
+                            .font(.title)
+                            .foregroundColor(.green)
+                            .padding()
+                            .transition(.scale)
+                    }
                     
                     Text("No Cards Left")
                         .font(.title)
@@ -74,6 +74,7 @@ struct CardStackView: View {
                         
                         Task {
                             PointsManager.shared.addPoints(points: pointsEarned)
+                            await auth.endStudySession()
                             //await auth.addPoints(pointsEarned)
                             //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -123,7 +124,7 @@ struct CardStackView: View {
                                     if abs(dragState.width) > swipeThreshold {
                                         let direction: CardView.SwipeDirection = dragState.width > 0 ? .right : .left
                                         swipeVM.updateTopCardSwipeDirection(direction)
-
+                                        
                                         withAnimation(.easeOut(duration: 0.5)) {
                                             dragState.width = dragState.width > 0 ? 1000 : -1000
                                         }
@@ -147,7 +148,7 @@ struct CardStackView: View {
             //remember it section
             VStack {
                 Spacer()
-
+                
                 HStack {
                     Button(action: {
                         // TODO: Add thumbs-down action, save to firebase
@@ -157,12 +158,12 @@ struct CardStackView: View {
                             .frame(width: 50, height: 50)
                             .foregroundColor(.red)
                     }
-
+                    
                     Text("remember it?")
                         .font(.body)
                         .foregroundColor(.black)
                         .padding(.horizontal)
-
+                    
                     Button(action: {
                         // TODO: Add thumbs-up action, save to firebase
                     }) {

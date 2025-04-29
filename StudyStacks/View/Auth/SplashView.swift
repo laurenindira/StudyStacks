@@ -42,7 +42,10 @@ struct SplashView: View {
                 }
             }
             .padding()
-            .background(Color.background)
+            .background {
+                Color.background
+                    .ignoresSafeArea()
+            }
         }
     }
 }

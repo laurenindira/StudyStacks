@@ -10,27 +10,27 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
-
+    
     var formattedDate: String {
         guard let date = auth.user?.creationDate else { return "N/A" }
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
-
+    
     private var userInitials: String {
         let name = auth.user?.displayName ?? ""
         let components = name.split(separator: " ")
         let initials = components.prefix(2).compactMap { $0.first }
         return initials.map { String($0) }.joined().uppercased()
     }
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .center, spacing: 20) {
                     
-                    // Profile
+                    //HEADER
                     HStack(alignment: .center, spacing: 16) {
                         Text(userInitials.isEmpty ? "??" : userInitials)
                             .font(.title)
@@ -70,7 +70,7 @@ struct ProfileView: View {
                                 .foregroundColor(.black)
                         }
                         .padding(.horizontal)
-
+                        
                         VStack {
                             Image(systemName: "square.stack.3d.up")
                                 .font(.system(size: 22))
@@ -80,11 +80,12 @@ struct ProfileView: View {
                                 .foregroundColor(.black)
                         }
                         .padding(.horizontal)
-
+                        
                         VStack {
                             Image(systemName: "medal")
                                 .font(.system(size: 22))
                                 .foregroundColor(Color("stacksblue"))
+                            //TODO: change this to actual badge count if possible
                             Text("2 badges")
                                 .font(.subheadline)
                                 .foregroundColor(.black)
@@ -104,7 +105,7 @@ struct ProfileView: View {
                             title: "My Stacks",
                             emptyMessage: "You haven't created any stacks yet."
                         )
-
+                        
                         // MARK: Saved Stacks
                         RecommendedStacksView(
                             stack: stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4).map { $0 },
@@ -112,38 +113,39 @@ struct ProfileView: View {
                             emptyMessage: "You haven't saved any stacks yet."
                         )
                     }
-
-                    }
+                    
                 }
-                .onAppear {
-                    Task {
-                        if let userID = auth.user?.id {
-                            await stackVM.fetchUserStacks(for: userID)
-                            await stackVM.fetchUserFavorites(for: userID)
-                            await stackVM.fetchPublicStacks()
-                        }
-                    }
-                }
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        // TODO: Replace with actual SettingsView when implemented
-                        NavigationLink(destination: EmptyView()) {
-                            Image(systemName: "gearshape")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(Color("AccentColor"))
-                        }
+            }
+            .padding()
+            .onAppear {
+                Task {
+                    if let userID = auth.user?.id {
+                        await stackVM.fetchUserStacks(for: userID)
+                        await stackVM.fetchUserFavorites(for: userID)
+                        await stackVM.fetchPublicStacks()
                     }
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title3)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
         }
     }
+}
 
-    private func relativeDate(from date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
+private func relativeDate(from date: Date) -> String {
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter.localizedString(for: date, relativeTo: Date())
+}
 
 #Preview {
     ProfileView()

@@ -19,7 +19,7 @@ struct EditProfileView: View {
     @State var selectedSubjects: Set<String> = []
     
     let studentTypes = ["High School", "Undergraduate", "Graduate", "Professional", "Other"]
-    let subjectOptions = ["Math","Chemistry", "Biology", "Physics", "Medicine", "Law", "Electrical Engineering", "Computer Science", "Political Science"]
+    let subjectOptions = ["Accounting", "Biology", "Chemistry", "Computer Science", "English", "Geography", "History", "Physics", "Psychology", "Spanish", "Other"]
     
     let columns = [GridItem(.adaptive(minimum: 120), spacing: 5)]
     
@@ -110,4 +110,7 @@ struct EditProfileView: View {
 
 #Preview {
     EditProfileView(isEditing: .constant(true))
+        .environmentObject(AuthViewModel())
+        .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }
