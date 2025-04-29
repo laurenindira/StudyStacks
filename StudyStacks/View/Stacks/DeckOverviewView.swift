@@ -49,8 +49,7 @@ struct StackDetailView: View {
                     }
                     .padding(.horizontal)
 
-                    FlashcardPreview(stack: stack
-                    )
+                    FlashcardPreview(stack: stack)
                     .padding()
 
                     
