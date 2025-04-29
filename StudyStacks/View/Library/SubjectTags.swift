@@ -18,7 +18,8 @@ struct SubjectTags: View {
                     Text(tag)
                         .font(.callout)
                         .foregroundStyle(tagColor(for: tag)[1])
-                        .frame(minWidth: 100)
+                        .padding(.horizontal)
+                        .frame(minWidth: 75)
                         .padding(3)
                         .background {
                             RoundedRectangle(cornerRadius: 20)
@@ -46,6 +47,12 @@ struct SubjectTags: View {
             return [Color.stacksyellow, Color.text]
         case "psychology":
             return [Color.stacksred, Color.lod]
+        case "accounting":
+            return [Color.stackspink, Color.dol]
+        case "history":
+            return  [Color.stacksbrown, Color.dol]
+        case "physics":
+            return [Color.stackslightblue, Color.dol]
         default:
             return [Color.disabled, Color.text]
         }

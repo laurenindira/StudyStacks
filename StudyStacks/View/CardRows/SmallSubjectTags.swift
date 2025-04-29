@@ -44,6 +44,12 @@ struct SmallSubjectTags: View {
             return [Color.stacksyellow, Color.text]
         case "psychology":
             return [Color.stacksred, Color.lod]
+        case "accounting":
+            return [Color.stackspink, Color.dol]
+        case "history":
+            return  [Color.stacksbrown, Color.dol]
+        case "physics":
+            return [Color.stackslightblue, Color.dol]
         default:
             return [Color.disabled, Color.text]
         }

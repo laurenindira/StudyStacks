@@ -26,7 +26,3 @@ struct MultiSelectPicker: View {
         }
     }
 }
-
-//#Preview {
-//    MultiSelectPicker(title: "subjectName", isSelected: true, action: <#T##() -> Void#>)
-//}

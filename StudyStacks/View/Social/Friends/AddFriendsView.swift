@@ -40,6 +40,7 @@ struct AddFriendsView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .fill(Color.surface)
                             }
+                            .padding(.bottom, 20)
                         
                         Button {
                             Task {

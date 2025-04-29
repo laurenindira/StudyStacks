@@ -43,7 +43,6 @@ struct RecommendedStacksView: View {
                 }
             }
         }
-        .padding(.horizontal)
     }
 }
 

@@ -21,7 +21,7 @@ struct UserInfoOverview: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 20) {
                     //TITLE
                     Text("User Information")
                         .customHeading(.title)
@@ -80,4 +80,7 @@ struct UserInfoOverview: View {
 
 #Preview {
     UserInfoOverview()
+        .environmentObject(AuthViewModel())
+        .environmentObject(StackViewModel())
+        .environmentObject(FriendsViewModel())
 }

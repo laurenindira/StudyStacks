@@ -21,9 +21,7 @@ struct OnboardingControl: View {
                 StudyReminderOnboarding(user: $user, step: $step)
             } else if step == 4 {
                 StudentTypeOnboarding(user: $user, step: $step)
-            }
-            
-            
+            } 
         }
         .animation(.easeInOut, value: step)
     }

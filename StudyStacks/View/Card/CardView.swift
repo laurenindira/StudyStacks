@@ -28,31 +28,6 @@ struct CardView: View {
     var isSecondCard: Bool
 
     var body: some View {
-        
-//        // deck title and close button
-//        VStack {
-//            HStack {
-//                Text(stack.title)
-//                    .customHeading(.title2)
-//                    .bold()
-//                    .padding(.leading, 20)
-//                
-//                Spacer()
-//                
-//                Button(action: {
-//                    dismiss()
-//                }) {
-//                    Image(systemName: "xmark")
-//                        .font(.title2)
-//                        .foregroundColor(.black)
-//                        .padding()
-//                }
-//            }
-//            .padding(.top, 10)
-//            
-//            Spacer()
-//        }
-        
         // card & card flipping
         ZStack {
             // front side, term
@@ -93,40 +68,6 @@ struct CardView: View {
             presenter.flipButtonTapped()
         }
         .frame(width: 340, height: 524)
-        
-//        Spacer()
-
-        // remember it section
-//        VStack {
-//            
-//            Spacer()
-//            
-//            HStack {
-//                Button(action: {
-//                    // TODO: Add thumbs-down action, save to firebase
-//                }) {
-//                    Image(systemName: "hand.thumbsdown.circle")
-//                        .resizable()
-//                        .frame(width: 50, height: 50)
-//                        .foregroundColor(.red)
-//                }
-//                
-//                Text("remember it?")
-//                    .font(.body)
-//                    .foregroundColor(.black)
-//                    .padding(.horizontal)
-//                
-//                Button(action: {
-//                    // TODO: Add thumbs-up action, save to firebase
-//                }) {
-//                    Image(systemName: "hand.thumbsup.circle")
-//                        .resizable()
-//                        .frame(width: 50, height: 50)
-//                        .foregroundColor(.green)
-//                }
-//            }
-//            .padding(.bottom, 40)
-//        }
     }
     
     private func getShadowColor() -> Color {
