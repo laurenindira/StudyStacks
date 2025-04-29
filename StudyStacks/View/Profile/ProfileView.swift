@@ -103,14 +103,16 @@ struct ProfileView: View {
                         RecommendedStacksView(
                             stack: stackVM.userStacks.filter { $0.creatorID == userID }.prefix(4).map { $0 },
                             title: "My Stacks",
-                            emptyMessage: "You haven't created any stacks yet."
+                            emptyMessage: "You haven't created any stacks yet.",
+                            isLoading: stackVM.isLoading
                         )
                         
                         // MARK: Saved Stacks
                         RecommendedStacksView(
                             stack: stackVM.combinedStacks.filter { stackVM.favoriteStackIDs.contains($0.id) }.prefix(4).map { $0 },
                             title: "Saved Stacks",
-                            emptyMessage: "You haven't saved any stacks yet."
+                            emptyMessage: "You haven't saved any stacks yet.",
+                            isLoading: stackVM.isLoading
                         )
                     }
                     
