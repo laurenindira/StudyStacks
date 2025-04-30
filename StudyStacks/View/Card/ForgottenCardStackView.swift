@@ -19,7 +19,6 @@ struct ForgottenCardStackView: View {
     @State private var cardRotation: Double = 0
     @State private var forgottenCount: Int = 0
     @State private var showingPointsEarned = false
-    @State private var navigateToOverview = false
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -77,7 +76,7 @@ struct ForgottenCardStackView: View {
                             //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 showingPointsEarned = false
-                                navigateToOverview = true
+                                dismiss()
                             }
                         }
                     }) {
@@ -162,9 +161,6 @@ struct ForgottenCardStackView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .navigationDestination(isPresented: $navigateToOverview) {
-            StackDetailView(stack: stack)
-        }
         .onAppear {
             if let userID = auth.user?.id {
                 forgottenCardsVM.load(for: userID)

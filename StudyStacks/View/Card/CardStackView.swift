@@ -21,7 +21,6 @@ struct CardStackView: View {
     @State private var forgottenCount: Int = 0
     @State private var showingPointsEarned = false
     @State private var pointsEarned = 0
-    @State private var navigateToOverview = false
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
@@ -81,7 +80,7 @@ struct CardStackView: View {
                             //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 showingPointsEarned = false
-                                navigateToOverview = true
+                                dismiss()
                                 swipeVM.reset()
                             }
                         }
@@ -162,9 +161,6 @@ struct CardStackView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .navigationDestination(isPresented: $navigateToOverview) {
-            StackDetailView(stack: stack)
-        }
         .onAppear {
             print("CardStackView appeared for stack \(stack.id)")
             if let userID = auth.user?.id {

@@ -16,6 +16,7 @@ struct StackDetailView: View {
     @State private var deleteErrorMessage: String?
     @State private var isFavorite: Bool = false
     @State private var showCardStackView = false
+    @State private var showForgottenCardStackView = false
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
@@ -56,14 +57,9 @@ struct StackDetailView: View {
 //                        .padding(.horizontal, 10)
 
                     // Start Studying entire stack
-                    NavigationLink(destination: CardStackView(
-                        swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
-                            Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
-                        }),
-                        forgottenCardsVM: forgottenCardsVM,
-                        card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-                        stack: stack
-                    )) {
+                    Button(action: {
+                        showCardStackView = true
+                    }) {
                         Text("Start Studying")
                             .font(.headline)
                             .foregroundColor(.white)
@@ -71,6 +67,16 @@ struct StackDetailView: View {
                             .padding()
                             .background(Color.prim)
                             .cornerRadius(12)
+                    }
+                    .sheet(isPresented: $showCardStackView) {
+                        CardStackView(
+                            swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
+                                Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
+                            }),
+                            forgottenCardsVM: forgottenCardsVM,
+                            card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                            stack: stack
+                        )
                     }
                     .padding()
                     
@@ -82,12 +88,9 @@ struct StackDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(Color.prim)
                     } else {
-                        NavigationLink(destination: ForgottenCardStackView(
-                            swipeVM: SwipeableCardsViewModel(cards: forgotten),
-                            forgottenCardsVM: forgottenCardsVM,
-                            card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-                            stack: stack)
-                        ) {
+                        Button(action: {
+                            showForgottenCardStackView = true
+                        }) {
                             Text("Review Forgotten Cards")
                                 .font(.headline)
                                 .foregroundColor(Color.prim)
@@ -98,6 +101,14 @@ struct StackDetailView: View {
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(Color.prim, lineWidth: 2)
                                 )
+                        }
+                        .sheet(isPresented: $showForgottenCardStackView) {
+                            ForgottenCardStackView(
+                                swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                                forgottenCardsVM: forgottenCardsVM,
+                                card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                stack: stack
+                            )
                         }
                         .padding(.horizontal)
                     }
