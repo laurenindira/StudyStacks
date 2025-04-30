@@ -53,65 +53,63 @@ struct StackDetailView: View {
                     .padding()
                     
                     TermsListView(cards: stack.cards)
-//                        .padding(.horizontal)
-//                        .padding(.horizontal, 10)
 
                     // Start Studying entire stack
-                    Button(action: {
-                        showCardStackView = true
-                    }) {
-                        Text("Start Studying")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.prim)
-                            .cornerRadius(12)
-                    }
-                    .sheet(isPresented: $showCardStackView) {
-                        CardStackView(
-                            swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
-                                Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
-                            }),
-                            forgottenCardsVM: forgottenCardsVM,
-                            card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
-                            stack: stack
-                        )
-                    }
-                    .padding()
-                    
-                    // Forgotten Cards Button
-                    let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
-
-                    if forgotten.isEmpty {
-                        Text("Haven't forgotten anything yet!")
-                            .font(.subheadline)
-                            .foregroundColor(Color.prim)
-                    } else {
+                    VStack {
                         Button(action: {
-                            showForgottenCardStackView = true
+                            showCardStackView = true
                         }) {
-                            Text("Review Forgotten Cards")
+                            Text("Start Studying")
                                 .font(.headline)
-                                .foregroundColor(Color.prim)
+                                .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.prim, lineWidth: 2)
-                                )
+                                .background(Color.prim)
+                                .cornerRadius(12)
                         }
-                        .sheet(isPresented: $showForgottenCardStackView) {
-                            ForgottenCardStackView(
-                                swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                        .sheet(isPresented: $showCardStackView) {
+                            CardStackView(
+                                swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
+                                    Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
+                                }),
                                 forgottenCardsVM: forgottenCardsVM,
-                                card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
                                 stack: stack
                             )
                         }
-                        .padding(.horizontal)
+                        // Forgotten Cards Button
+                        let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+
+                        if forgotten.isEmpty {
+                            Text("Haven't forgotten anything yet!")
+                                .font(.subheadline)
+                                .foregroundColor(Color.prim)
+                        } else {
+                            Button(action: {
+                                showForgottenCardStackView = true
+                            }) {
+                                Text("Review Forgotten Cards")
+                                    .font(.headline)
+                                    .foregroundColor(Color.prim)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.prim, lineWidth: 2)
+                                    )
+                            }
+                            .sheet(isPresented: $showForgottenCardStackView) {
+                                ForgottenCardStackView(
+                                    swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                                    forgottenCardsVM: forgottenCardsVM,
+                                    card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                    stack: stack
+                                )
+                            }
+                        }
                     }
+                    .padding(.horizontal)
                 }
             }
             .padding(.horizontal, 10)
