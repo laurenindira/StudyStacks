@@ -14,6 +14,7 @@ struct StudyStacksApp: App {
     
     @StateObject private var auth = AuthViewModel.shared
     @StateObject private var stackVM = StackViewModel.shared
+    @StateObject private var forgottenCardsVM = ForgottenCardsViewModel()
     @StateObject private var friendVM = FriendsViewModel.shared
     
     var body: some Scene {
@@ -21,6 +22,7 @@ struct StudyStacksApp: App {
             ContentView()
                 .environmentObject(auth)
                 .environmentObject(stackVM)
+                .environmentObject(forgottenCardsVM)
                 .environmentObject(friendVM)
         }
     }

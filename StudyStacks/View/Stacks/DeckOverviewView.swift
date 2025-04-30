@@ -16,11 +16,14 @@ struct StackDetailView: View {
     @State private var deleteErrorMessage: String?
     @State private var isFavorite: Bool = false
     @State private var showCardStackView = false
+    @State private var showForgottenCardStackView = false
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var stackVM: StackViewModel
+    @EnvironmentObject var forgottenCardsVM: ForgottenCardsViewModel
     @EnvironmentObject var auth: AuthViewModel
-    
+    @EnvironmentObject var forgottenSwipeVM: SwipeableCardsViewModel
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
@@ -45,108 +48,68 @@ struct StackDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
-                    .padding(.top, 10)
-                    
-                    ZStack {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(width: 300, height: 200)
-                                .overlay(
-                                    Text(stack.cards[currentCardIndex].front)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.black)
-                                        .multilineTextAlignment(.center)
-                                        .padding(20)
-                                        .minimumScaleFactor(0.5)
-                                )
-                                .opacity(isFlipped ? 0 : 1)
-                                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-                            
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(width: 300, height: 200)
-                                .overlay(
-                                    Text(stack.cards[currentCardIndex].back)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.black)
-                                        .multilineTextAlignment(.center)
-                                        .padding(20)
-                                        .minimumScaleFactor(0.5)
-                                )
-                                .opacity(isFlipped ? 1 : 0)
-                                .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-                        }
-                        .animation(.easeInOut(duration: 0.5), value: isFlipped)
-                        .onTapGesture { isFlipped.toggle() }
 
-                        HStack {
-                            Button {
-                                withAnimation {
-                                    if currentCardIndex > 0 {
-                                        currentCardIndex -= 1
-                                        isFlipped = false
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: "chevron.left")
-                                    .font(.title)
-                                    .padding(10)
-                                    .background(Color.white.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .shadow(radius: 2)
-                            }
-                            
-                            Spacer()
-                            
-                            Button {
-                                withAnimation {
-                                    if currentCardIndex < stack.cards.count - 1 {
-                                        currentCardIndex += 1
-                                        isFlipped = false
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: "chevron.right")
-                                    .font(.title)
-                                    .padding(10)
-                                    .background(Color.white.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .shadow(radius: 2)
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .frame(width: 340)
-                    }
-                    .frame(width: 340, height: 220)
-//                    .padding(.horizontal, 20)
+                    FlashcardPreview(stack: stack)
+                    .padding()
                     
                     TermsListView(cards: stack.cards)
-//                        .padding(.horizontal)
-//                        .padding(.horizontal, 10)
 
-                    Button {
-                        showCardStackView = true
-                    } label: {
-                        Text("Start Studying")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.prim)
-                            .cornerRadius(12)
+                    // Start Studying entire stack
+                    VStack {
+                        Button(action: {
+                            showCardStackView = true
+                        }) {
+                            Text("Start Studying")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.prim)
+                                .cornerRadius(12)
+                        }
+                        .sheet(isPresented: $showCardStackView) {
+                            CardStackView(
+                                swipeVM: SwipeableCardsViewModel(cards: stack.cards.map { card in
+                                    Card(id: card.id, front: card.front, back: card.back, imageURL: card.imageURL)
+                                }),
+                                forgottenCardsVM: forgottenCardsVM,
+                                card: stack.cards.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                stack: stack
+                            )
+                        }
+                        // Forgotten Cards Button
+                        let forgotten = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+
+                        if forgotten.isEmpty {
+                            Text("Haven't forgotten anything yet!")
+                                .font(.subheadline)
+                                .foregroundColor(Color.prim)
+                        } else {
+                            Button(action: {
+                                showForgottenCardStackView = true
+                            }) {
+                                Text("Review Forgotten Cards")
+                                    .font(.headline)
+                                    .foregroundColor(Color.prim)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.prim, lineWidth: 2)
+                                    )
+                            }
+                            .sheet(isPresented: $showForgottenCardStackView) {
+                                ForgottenCardStackView(
+                                    swipeVM: SwipeableCardsViewModel(cards: forgotten),
+                                    forgottenCardsVM: forgottenCardsVM,
+                                    card: forgotten.first ?? Card(id: "0", front: "No Cards", back: "This stack is empty"),
+                                    stack: stack
+                                )
+                            }
+                        }
                     }
-                    .padding()
-                    .navigationDestination(isPresented: $showCardStackView) {
-                        CardStackView(
-                            swipeVM: SwipeableCardsViewModel(cards: stack.cards),
-                            card: stack.cards.first ?? Card(front: "", back: ""),
-                            stack: stack
-                        )
-                    }
-                    
+                    .padding(.horizontal)
                 }
             }
             .padding(.horizontal, 10)
@@ -184,6 +147,21 @@ struct StackDetailView: View {
             } message: {
                 Text("Are you sure you want to delete this deck? This action cannot be undone.")
             }
+            
+            .onAppear {
+                print("View appeared for stack \(stack.id)")
+                if let userID = auth.user?.id {
+                    print("User already set: \(userID)")
+                    forgottenCardsVM.load(for: userID)
+                }
+            }
+
+            .onChange(of: auth.user?.id) {
+                if let userID = auth.user?.id {
+                    print("User ID now available (onChange): \(userID)")
+                    forgottenCardsVM.load(for: userID)
+                }
+            }
         }
     }
     
@@ -207,23 +185,59 @@ struct StackDetailView: View {
 }
 
 #Preview {
-    StackDetailView(stack: Stack(
-        id: UUID().uuidString,
+    let forgottenCards = [
+        Card(id: "1", front: "California", back: "Sacramento"),
+        Card(id: "2", front: "Texas", back: "Austin"),
+        Card(id: "3", front: "Florida", back: "Tallahassee"),
+        Card(id: "4", front: "New York", back: "Albany"),
+        Card(id: "5", front: "Illinois", back: "Springfield")
+    ]
+
+    let mockStack = Stack(
+        id: "stack1",
         title: "U.S. States & Capitals",
         description: "A deck to learn U.S. states and their capitals",
         creator: "Sarah Cameron",
         creatorID: "mockCreatorID",
-        creationDate: Date(),
+        creationDate: .now,
         tags: ["Geography", "States", "Capitals"],
-        cards: [
-            Card(front: "California", back: "Sacramento"),
-            Card(front: "Texas", back: "Austin"),
-            Card(front: "Florida", back: "Tallahassee"),
-            Card(front: "New York", back: "Albany"),
-            Card(front: "Illinois", back: "Springfield")
-        ],
+        cards: forgottenCards,
         isPublic: true
-    ))
-    .environmentObject(StackViewModel())
-    .environmentObject(AuthViewModel())
+    )
+
+    let mockAuth = AuthViewModel()
+    mockAuth.user = User(
+        id: "previewUser123",
+        username: "preview_user",
+        displayName: "Preview User",
+        email: "preview@example.com",
+        profilePicture: nil,
+        creationDate: .now,
+        lastSignIn: nil,
+        providerRef: "preview_provider",
+        selectedSubjects: ["Geography"],
+        studyReminderTime: .now,
+        studentType: "College",
+        currentStreak: 1,
+        longestStreak: 3,
+        lastStudyDate: .now,
+        points: 0,
+        favoriteStackIDs: []
+    )
+
+    let mockStackVM = StackViewModel()
+    mockStackVM.stacks = [mockStack]
+
+    let forgottenVM = ForgottenCardsViewModel()
+    forgottenVM.localForgottenCards = [
+        "stack1": Set(forgottenCards.map { $0.id })
+    ]
+    forgottenVM.load(for: "previewUser123")
+
+    return NavigationStack {
+        StackDetailView(stack: mockStack)
+            .environmentObject(mockStackVM)
+            .environmentObject(mockAuth)
+            .environmentObject(forgottenVM)
+    }
 }

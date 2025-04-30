@@ -50,7 +50,8 @@ struct Dashboard: View {
                             RecommendedStacksView(
                                 stack: filteredStacks,
                                 title: "Interest in \(subject.capitalized)...",
-                                emptyMessage: "No stacks found for your interest."
+                                emptyMessage: "No stacks found for your interest.",
+                                isLoading: stackVM.isLoading
                             )
                         }
                     }

@@ -9,21 +9,39 @@
 import SwiftUI
 
 class SwipeableCardsViewModel: ObservableObject {
-    var originalCards: [Card]
-    @Published var unswipedCards: [Card]
-    @Published var swipedCards: [Card]
+    @Published var originalCards: [Card] = []
+    @Published var unswipedCards: [Card] = []
+    @Published var swipedCards: [Card] = []
+    @Published var unswipedForgottenCards: [Card] = []
+    @Published var swipedForgottenCards: [Card] = []
+
 
     init(cards: [Card]) {
         self.originalCards = cards
         self.unswipedCards = cards
         self.swipedCards = []
+        self.unswipedForgottenCards = []
+        self.swipedForgottenCards = []
     }
 
+    @MainActor
     func removeTopCard() {
         if !unswipedCards.isEmpty {
             guard let card = unswipedCards.first else { return }
             unswipedCards.removeFirst()
             swipedCards.append(card)
+        }
+    }
+    
+    func setupForgottenCards(_ cards: [Card]) {
+        self.unswipedForgottenCards = cards
+    }
+    
+    func removeTopForgottenCard() {
+        if !unswipedForgottenCards.isEmpty {
+            guard let card = unswipedForgottenCards.first else { return }
+            unswipedForgottenCards.removeFirst()
+            swipedForgottenCards.append(card)
         }
     }
 

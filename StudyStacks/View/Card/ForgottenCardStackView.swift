@@ -1,14 +1,13 @@
 //
-//  CardStackView.swift
+//  ForgottenCardStackView.swift
 //  StudyStacks
 //
-//  Created by Raihana Zahra on 3/8/25.
+//  Created by Raihana Zahra on 4/2/25.
 //
-// medium.com/@jaredcassoutt/creating-tinder-like-swipeable-cards-in-swiftui-193fab1427b8
 
 import SwiftUI
 
-struct CardStackView: View {
+struct ForgottenCardStackView: View {
     @EnvironmentObject var auth: AuthViewModel
     @EnvironmentObject var stackVM: StackViewModel
     @Environment(\.dismiss) var dismiss
@@ -20,25 +19,24 @@ struct CardStackView: View {
     @State private var cardRotation: Double = 0
     @State private var forgottenCount: Int = 0
     @State private var showingPointsEarned = false
-    @State private var pointsEarned = 0
     
     private let swipeThreshold: CGFloat = 100.0
     private let rotationFactor: Double = 35.0
     
     var card: Card
     var stack: Stack
-    
+
     var body: some View {
         VStack {
             // deck title and close button
             HStack {
-                Text(stack.title)
+                Text("Review Forgotten")
                     .customHeading(.title2)
                     .bold()
                     .padding(.leading, 20)
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     dismiss()
                 }) {
@@ -49,15 +47,15 @@ struct CardStackView: View {
                 }
             }
             .padding(.top, 10)
-            
+
             Spacer()
             
             // when all cards gone, return back to stack overview page
-            if swipeVM.unswipedCards.isEmpty {
+            if swipeVM.unswipedForgottenCards.isEmpty {
                 VStack {
                     Spacer()
                     if showingPointsEarned {
-                        Text("+\(pointsEarned) points!")
+                        Text("+\(forgottenCount) points!")
                             .font(.title)
                             .foregroundColor(.green)
                             .padding()
@@ -70,24 +68,21 @@ struct CardStackView: View {
                         .padding()
                     
                     Button(action: {
-                        pointsEarned = swipeVM.originalCards.count
                         showingPointsEarned = true
                         
                         Task {
-                            PointsManager.shared.addPoints(points: pointsEarned)
-                            await auth.endStudySession()
+                            PointsManager.shared.addPoints(points: forgottenCount)
                             //await auth.addPoints(pointsEarned)
                             //await auth.loadUserFromFirebase()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 showingPointsEarned = false
                                 dismiss()
-                                swipeVM.reset()
                             }
                         }
                     }) {
                         
                         GeneralButton(
-                            placeholder: "Return to Stack Overview (+\(swipeVM.originalCards.count) pts)",
+                            placeholder: "Return to Stack Overview (+\(forgottenCount) pts)",
                             backgroundColor: Color.prim,
                             foregroundColor: Color.white,
                             isSystemImage: false)
@@ -100,35 +95,40 @@ struct CardStackView: View {
                 .animation(.easeInOut, value: showingPointsEarned)
                 
             } else {
-                let reversedIndices = Array(swipeVM.unswipedCards.indices).reversed()
-                ZStack(alignment: .top) {
-                    ForEach(swipeVM.unswipedCards.reversed(), id: \.id) { card in
+                ZStack {
+                    ForEach(Array(swipeVM.unswipedForgottenCards.enumerated()), id: \.element.id) { index, card in
+                        let isTopCard = index == 0
+                        let isSecondCard = index == 1
+                        let card = swipeVM.unswipedForgottenCards[index]
+
                         CardView(
                             presenter: FlipCardPresenter(),
                             card: card,
                             stack: stack,
                             dragOffset: dragState,
-                            isTopCard: card.id == swipeVM.unswipedCards.first?.id,
-                            isSecondCard: card.id == swipeVM.unswipedCards.dropFirst().first?.id
+                            isTopCard: isTopCard,
+                            isSecondCard: isSecondCard
                         )
                         .frame(width: 340, height: 524)
-                        .offset(x: card.id == swipeVM.unswipedCards.first?.id ? dragState.width : 0)
-                        .rotationEffect(.degrees(card.id == swipeVM.unswipedCards.first?.id
-                                                 ? Double(dragState.width) / rotationFactor : 0))
-                        .shadow(color: getShadowColor(for: dragState),
-                                radius: card.id == swipeVM.unswipedCards.first?.id ? 10 : 0,
-                                x: 0, y: 5)
-                        .zIndex(card.id == swipeVM.unswipedCards.first?.id ? 1 : 0)
-                        .gesture(swipingAction(for: card,
-                                               isTopCard: card.id == swipeVM.unswipedCards.first?.id))
+                        .zIndex(isTopCard ? 1 : 0)
+                        .offset(x: isTopCard ? dragState.width : 0)
+                        .rotationEffect(.degrees(isTopCard ? Double(dragState.width) / rotationFactor : 0))
+                        .shadow(
+                            color: dragState.width > 0 ? Color.green.opacity(0.3) :
+                                   dragState.width < 0 ? Color.red.opacity(0.3) : Color.clear,
+                            radius: isTopCard ? 10 : 0,
+                            x: 0, y: 5
+                        )
+                        .gesture(swipingAction(for: card, isTopCard: isTopCard))
                     }
                 }
                 .frame(width: 340, height: 524)
             }
+
             Spacer()
             
             // remember it section
-            if !swipeVM.unswipedCards.isEmpty {
+            if !swipeVM.unswipedForgottenCards.isEmpty {
                 VStack {
                     Spacer()
 
@@ -162,25 +162,21 @@ struct CardStackView: View {
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
-            print("CardStackView appeared for stack \(stack.id)")
             if let userID = auth.user?.id {
-                print("User already set: \(userID)")
                 forgottenCardsVM.load(for: userID)
+                let forgottenCards = forgottenCardsVM.getForgottenCards(from: stack.cards, for: stack.id)
+                swipeVM.setupForgottenCards(forgottenCards)
+                forgottenCount = forgottenCards.count
+                print("ForgottenCardStackView appeared. Loaded \(forgottenCards.count) forgotten cards.")
             } else {
-                print("Waiting for user...")
-            }
-        }
-        .onChange(of: auth.user?.id) {
-            if let userID = auth.user?.id {
-                print("User ID now available (onChange): \(userID)")
-                forgottenCardsVM.load(for: userID)
+                print("No user ID found.")
             }
         }
     }
     
     // functions
     private func handleButtonSwipe(direction: CardView.SwipeDirection) {
-        guard let topCard = swipeVM.unswipedCards.first else { return }
+        guard let topCard = swipeVM.unswipedForgottenCards.first else { return }
 
         let remembered = direction == .right
         print("Button tapped → \(remembered ? "REMEMBERED" : "FORGOTTEN") for \(topCard.front)")
@@ -192,7 +188,7 @@ struct CardStackView: View {
                 stackID: stack.id
             )
         }
-        swipeVM.removeTopCard()
+        swipeVM.removeTopForgottenCard()
     }
     
     private func getShadowColor(for offset: CGSize) -> Color {
@@ -233,7 +229,7 @@ struct CardStackView: View {
                                 stackID: stack.id
                             )
                         }
-                        swipeVM.removeTopCard()
+                        swipeVM.removeTopForgottenCard()
                         dragState = .zero
                     }
                 } else {
@@ -243,62 +239,46 @@ struct CardStackView: View {
                 }
             }
     }
-
 }
 
+
+
 #Preview {
-    let mockCards = [
-        Card(id: "1", front: "What is Swift?", back: "A programming language by Apple."),
-        Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms.")
+    let forgottenCards = [
+        Card(id: "1", front: "What is Swift??", back: "A language by Apple"),
+        Card(id: "2", front: "What is Xcode?", back: "An IDE for Apple platforms"),
+        Card(id: "3", front: "What is UIKit?", back: "A UI framework"),
+        Card(id: "4", front: "What is SwiftUI?", back: "A declarative UI framework"),
+        Card(id: "5", front: "What is Combine?", back: "A reactive programming framework")
     ]
 
-    let mockStack = Stack(
-        id: "1",
-        title: "bj class",
-        description: "project management",
-        creator: "jane",
-        creatorID: "",
-        creationDate: Date(),
-        tags: ["cs"],
-        cards: mockCards,
+    let stack = Stack(
+        id: "stack1",
+        title: "iOS Flashcards",
+        description: "Learn Apple development",
+        creator: "dev_girl",
+        creatorID: "user1",
+        creationDate: .now,
+        tags: ["swift", "ios"],
+        cards: forgottenCards,
         isPublic: true
     )
 
-    let mockSwipeVM = SwipeableCardsViewModel(cards: mockCards)
+    let swipeVM = SwipeableCardsViewModel(cards: forgottenCards)
+    swipeVM.setupForgottenCards(forgottenCards)
 
-    let mockForgottenVM = ForgottenCardsViewModel()
-    mockForgottenVM.localForgottenCards = [
-        "1": ["2"]
+    let forgottenVM = ForgottenCardsViewModel()
+    forgottenVM.localForgottenCards = [
+        "stack1": Set(forgottenCards.map { $0.id })
     ]
 
-    let mockAuth = AuthViewModel()
-    mockAuth.user = User(
-        id: "previewUser123",
-        username: "preview_user",
-        displayName: "Preview User",
-        email: "preview@example.com",
-        profilePicture: nil,
-        creationDate: Date(),
-        lastSignIn: nil,
-        providerRef: "preview_provider",
-        selectedSubjects: ["Math", "CS"],
-        studyReminderTime: Date(),
-        studentType: "College",
-        currentStreak: 1,
-        longestStreak: 2,
-        lastStudyDate: Date(),
-        points: 0,
-        favoriteStackIDs: []
+    return ForgottenCardStackView(
+        swipeVM: swipeVM,
+        forgottenCardsVM: forgottenVM,
+        card: forgottenCards[0],
+        stack: stack
     )
-
-    return NavigationStack {
-        CardStackView(
-            swipeVM: mockSwipeVM,
-            forgottenCardsVM: mockForgottenVM,
-            card: mockCards.first!,
-            stack: mockStack
-        )
-        .environmentObject(mockAuth)
-        .environmentObject(StackViewModel())
-    }
+    .environmentObject(AuthViewModel())
+    .environmentObject(StackViewModel())
+    .environmentObject(ForgottenCardsViewModel())
 }

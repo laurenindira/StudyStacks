@@ -69,17 +69,6 @@ struct CardView: View {
         }
         .frame(width: 340, height: 524)
     }
-    
-    private func getShadowColor() -> Color {
-        if dragOffset.width > 0 {
-            return Color.green.opacity(0.5) // Right swipe shadow (remember)
-        } else if dragOffset.width < 0 {
-            return Color.red.opacity(0.5) // Left swipe shadow (dont remember)
-        } else {
-            return Color.gray.opacity(0.2)
-        }
-    }
-
 }
 
 #Preview {
@@ -97,9 +86,9 @@ struct CardView: View {
             cards: [],
             isPublic: true
         ),
-        dragOffset: .zero,  // Default to no drag movement
-        isTopCard: true,    // Assume it's the top card for testing
-        isSecondCard: false // Assume it's not the second card
+        dragOffset: .zero,
+        isTopCard: true,
+        isSecondCard: false
     )
     .environmentObject(AuthViewModel())
     .environmentObject(StackViewModel())
