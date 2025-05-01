@@ -1,23 +1,27 @@
 # StudyStacks
 <p align="center">
   <img width="512" alt="StudyStacks Icon" src="docs/img/logo_prim.png">
+  
+  ![iOS](https://img.shields.io/badge/platform-iOS-blue.svg)
+  [![SwiftUI](https://img.shields.io/badge/SwiftUI-524520?logo=swift)](https://developer.apple.com/xcode/swiftui/)
+  [![Firebase](https://img.shields.io/badge/Firebase-039BE5?logo=Firebase&logoColor=white)](https://firebase.google.com/)
+  [![Trello](https://img.shields.io/badge/Trello-0052CC?logo=trello&logoColor=fff)](#)
+  [![Figma](https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/)
+  ![Status](https://img.shields.io/badge/status-In%20Development-yellow)
+  ![License](https://img.shields.io/badge/license-MIT-blue)
 </p>
 
-![iOS](https://img.shields.io/badge/platform-iOS-blue.svg)
-[![SwiftUI](https://img.shields.io/badge/SwiftUI-524520?logo=swift)](https://developer.apple.com/xcode/swiftui/)
-[![Firebase](https://img.shields.io/badge/Firebase-039BE5?logo=Firebase&logoColor=white)](https://firebase.google.com/)
-[![Trello](https://img.shields.io/badge/Trello-0052CC?logo=trello&logoColor=fff)](#)
-[![Figma](https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/)
-![Status](https://img.shields.io/badge/status-In%20Development-yellow)
-![License](https://img.shields.io/badge/license-MIT-blue)
+
 
 ## Introduction
 **StudyStacks** is an iOS flashcard app designed to help users create, study, and share flashcards right from their phone. Whether you're prepping for an exam or just love to learn new things, StudyStacks offers an intuitive experience and no ads! Join StudyStacks, cause no other app stacks up.
 
-## App Demo
+## App Demo & Presentation 
 Here's a demo of the app running in the simulator with some of the main features highlighted: 
 
 <img width="300" alt="App Dashboard" src="docs/img/ss/studystacks-demo.gif">
+
+This is a public link to our presentation: [Canva Presentation](https://www.canva.com/design/DAGlea3eJFI/zDsrDSF3nzE7ADc-yZaMdg/view?utm_content=DAGlea3eJFI&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h344a571543)
 
 ## Main Features
 - **Flashcard Stacks** --> Create, study, and browse stacks across multiple subjects from your Dashboard or the built-in Library of public stacks
