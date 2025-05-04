@@ -44,4 +44,33 @@ Prelimineary design: 10%
 Great work on this entire project!  It has been my great pleasure having you
 four in class and I look forward to seeing you in the future as well!
 
+presentation notes:
+Flashcard application for mobile!
+   found 'quizlet' was 'yuck'
+   trying for unique, convenient
+   allowing discovery, motivation, retention
+Account based
+   onboarding!  what do you want/need
+   library of cards
+   social element with leader board
+   3 collections
+   profile
+used Trello and google docs
+used Scrum, found it easy and flexible
+found Trello to be easy, but it's really for Kanban so some inconvenience
+thought about having badges, but didn't get implemented yet
+Challenges ~ misunderstanding each other
+             waiting until meeting for questions
+             group texting required patience
+Lesson learned ~ ask for help early
+
+Questions:
+   flutter considered? yes, but not enough experience
+   keep working on it? maybe
+   burndown recovery question
+
+these four just rocked it!  Excellent presentation, very good idea, well done
+implementation, nice UI, snappy response
+
+
 Nice job!
