@@ -1,0 +1,37 @@
+
+Preliminary Project Design Document
+Deliverable 01
+CMSI 543/SYEG 557 Spring 2025
+===================================
+
+Prelim Design Document Sections
+1.1 Project Description
+1.2 Preliminary Requirements [Agile or Waterfall]
+1.3 Prelimineary Design Description
+1.4 Preliminary Development Schedule [Gantt Chart]
+1.5 Development Tools Required
+
+NOTES, COMMENTS, AND FEEDBACK
+-----------------------------
+
+You all did very good work on this document!  You've fulfilled the requirements
+for the preliminary document nicely.  I like the idea, it's a very good thing
+which can definitely help students and others to learn new topics!  You have
+put a lot of thought into the project and at the prelinimary design level, at
+an architectural 'view', you have plenty of detail.  Your CSCI components are
+well-planned and the scope of the project seems right for a small team and one
+semester's time.  I like the diagram which shows the information flow of the
+system quite well.  Your "straw man" schedule looks realistic, too, at this
+point.
+
+All in all a very nice job and a good start to the project!
+
+1.1   1 of 1 point
+1.2   1 0f 1 point
+1.3   1 of 1 point
+1.4   1 of 1 point
+1.5   1 of 1 point
+      ------------
+      5 of 5 points = 100.00% of 10% which is an A-plus
+
+Excellent start!

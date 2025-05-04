@@ -1,0 +1,48 @@
+
+Detailed Project Design Document
+Deliverable 02
+CMSI 543/SYEG 557 Spring 2025
+===================================
+
+Detailed Design
+2.1 Project Description [Expanded]
+2.2 Detailed Requirements [Agile Format Only]
+2.3 Detailed Design Description
+2.4 Detailed Devel. Sched. [iterations, sprint plan, &c]
+2.5 Project Status / Burndown Plan
+
+NOTES, COMMENTS, AND FEEDBACK
+-----------------------------
+
+Nice work here, too.  You've added plenty of detail past the prelimineary
+version and I like your rationale for continuing to use Scrum for the product
+development tracking.  The detail you have added to the key features and the
+requirements are good, and the 'will' statements are a nice touch to help
+explain the epics.  Putting the user story and acceptance criteria into a
+table is a great way to show this part of the requirements.  Your diagrams
+and explanatory text provide plenty of detail so that anyone can see what
+needs to be done for creating any part of the project.  Your schedule has the
+right level of detail for each sprint as well.
+
+I'm curious about your burnup chart.  You show a total of 125 story points for
+the project, but your chart shows you reaching that at the end of sprint 5.
+In addition, the flat line for the first three sprints shows you are starting
+the project with a total of about 80 story points but then at the end of sprint
+three you are adding story points to reach your 125 maximum.  Shouldn't story
+points constantly increase as you work your way through the project so that the
+project total line reflects the actual count?  Also, your ideal line should run
+from zero to the maximum as a straight line, which is the ideal to shoot for as
+the project moves forward.
+
+Another nice job from this team!  You have really taken the Agile Philosophy
+and the software engineering concepts to heart and have done excellent work!
+
+2.1   1 of 1 point
+2.2   1 0f 1 point
+2.3   1 of 1 point
+2.4   1 of 1 point
+2.5   1 of 1 point
+      ------------
+      5 of 5 points = 100.00% of 10 points which is an A-plus
+
+Great continuation of your work!
